@@ -305,9 +305,9 @@ The widely deployed OAuth 2.0 Authorization Framework {{!OAUTH-FRAMEWORK=RFC6749
 ## Use of OAuth 2.0 Access Tokens
 An OAuth access token represents the authorization granted to the Agent. In many deployments, access tokens are structured as JSON Web Tokens (JWTs) {{!OAUTH-ACCESSTOKEN-JWT=RFC9068}}, which include claims such as 'client_id', 'sub', 'aud', 'scope', and other attributes relevant to authorization. The access token includes the Agent identity as the 'client_id' claim as defined in {{Section 2.2 of OAUTH-ACCESSTOKEN-JWT}}.
 
-When the Agent is acting on-behalf of another User or System, the User or System identifier is conveyed in the 'sub' claim as defined in {{Section 2.2 of OAUTH-ACCESSTOKEN-JWT}}. These identifiers MUST be used by resource servers protected by the OAuth 2.0 authorization service, along with other claims in the access token, to determine if access to a resource should be allowed. The access token typically includes additional claims to convey contextual, attestation-derived, or policy-related information that enables fine-grained access control. The resource server uses the access token and the information it contains along with other authorization systems (e.g. policy based, attribute based or role based authorization systems) when enforcing access control. JWT access tokens can be validated directly by resource servers while other formats that are opaque to the resource server can be validated through a mechanism that calls back to the authorization server (the mechanism is called introspection despite the word having nearly the opposite meaning). This framework supports both models and does not require a specific token format, provided that equivalent authorization semantics are maintained.
+When the Agent is acting on-behalf of another User or System, the User or System identifier is conveyed in the 'sub' claim as defined in {{Section 2.2 of OAUTH-ACCESSTOKEN-JWT}}. These identifiers MUST be used by resource servers protected by the OAuth 2.0 authorization service, along with other claims in the access token, to determine if access to a resource should be allowed. The access token typically includes additional claims to convey contextual, attestation-derived, or policy-related information that enables fine-grained access control. The resource server uses the access token and the information it contains along with other authorization systems (e.g. policy based, attribute based or role based authorization systems) when enforcing access control. JWT access tokens can be validated directly by resource servers while other formats that are opaque to the resource server can be validated through token introspection that calls back to the authorization server using OAuth 2.0 Token Introspection {{!OAUTH-TOKEN-INTROSPECTION=RFC7662}}. The introspection response provides the active state of the token and associated authorization attributes equivalent to those conveyed in structured tokens.
 
-A resource server in receipt of tokens opaque to it are able to obtain authorization and other information from the token through OAuth 2.0 Token Introspection {{!OAUTH-TOKEN-INTROSPECTION=RFC7662}}. The introspection response provides the active state of the token and associated authorization attributes equivalent to those conveyed in structured tokens.
+This framework supports both models and does not require a specific token format, provided that equivalent authorization semantics are maintained.
 
 ## Obtaining an OAuth 2.0 Access Token
 OAuth 2.0 defines a number authorization grant flows in support of different authorization scenarios. The appropriate flow depends on the specific authorization scenario and the nature of User involvement. The following subsections describe the most relevant flows for Agent authorization.
@@ -433,11 +433,16 @@ The authors would like to thank:
 
 * Sean O'Dell for providing valuable input and feedback on this work.
 * Karl McGuinness for his blog posts on mission shaping as a pre-cursor to authorization {{MissionShaping}}
+* Joe DeCock for his feedback on the token introspection section.
 
 --- back
 
 # Document History
    \[\[ To be removed from the final specification ]]
+  -00
+
+   * Refine language about token introspection, acknowledge Joe DeCock for pointing out the need to do so (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/151)
+
   -03
 
    * Editorial updates
