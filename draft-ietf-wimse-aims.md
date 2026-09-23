@@ -440,9 +440,9 @@ The authors would like to thank:
 # Document History
    \[\[ To be removed from the final specification ]]
   -00
-  
+
    * Refine language about token introspection, acknowledge Joe DeCock for pointing out the need to do so (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/151)
-   
+
   -03
 
    * Editorial updates
