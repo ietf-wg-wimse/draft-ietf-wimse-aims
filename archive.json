@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-09-22T03:47:41.723240+00:00",
+  "timestamp": "2026-09-24T03:37:56.966888+00:00",
   "repo": "ietf-wg-wimse/draft-ietf-wimse-aims",
   "labels": [
     {
@@ -1425,9 +1425,17 @@
       "labels": [],
       "body": "Section 7 covers workload attestation well but there's an AI-specific angle missing - which model is loaded, what version, what use cases it's approved for.\n\nThis is different from traditional workload env attestation (where is it running, what platform, what TEE). For AI agents specifically, the model itself is a security-relevant property. A swapped or unapproved model running under valid workload creds is a real threat.\n\nShould the attestation section address model identity as a first-class attestation property alongside environment attestation? Feels like a genuinely new requirement that's specific to agent systems.",
       "createdAt": "2026-03-23T21:40:21Z",
-      "updatedAt": "2026-03-23T21:40:21Z",
+      "updatedAt": "2026-09-23T02:07:22Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "astrogilda",
+          "authorAssociation": "NONE",
+          "body": "@nik-kale yes, and I would put it more sharply: model identity needs a different vantage from workload attestation.\n\nA workload attester reports the model it loaded, so a swapped model is reported by whoever swapped it.\n\nSection 11 already requires the record that closes this, and its seven minimum fields include the posture influencing a decision.\n\nModel identity belongs there carrying a digest, because a digest binds the weights and a version string does not.\n",
+          "createdAt": "2026-09-23T02:07:21Z",
+          "updatedAt": "2026-09-23T02:07:21Z"
+        }
+      ]
     },
     {
       "number": 88,
@@ -2490,7 +2498,7 @@
       "labels": [],
       "body": "1. Human-in-the-loop - how to request users to grant additional authorization in an out-of-band manner.\n2. Agent credential handling - Define architectures and patterns for agents using credentials at their disposal",
       "createdAt": "2026-06-30T10:39:38Z",
-      "updatedAt": "2026-09-12T04:19:14Z",
+      "updatedAt": "2026-09-23T10:54:02Z",
       "closedAt": null,
       "comments": [
         {
@@ -2541,6 +2549,27 @@
           "body": "yeah, that makes the split much clearer.\n\n9.2.10 and 9.2.11 close the boundary we were talking about here. The remaining case is different: the classification can have the right provenance and still stop describing the tool it is gating. And the 44k-tool result gives that gap a much stronger basis than we had when #1126 was opened.\n\nI think that deserves its own issue rather than trying to stretch 9.2.10 or reopen the provenance question. I'll separate it that way.\n",
           "createdAt": "2026-09-12T04:19:14Z",
           "updatedAt": "2026-09-12T04:19:14Z"
+        },
+        {
+          "author": "astrogilda",
+          "authorAssociation": "NONE",
+          "body": "Hey all! I have a record format for Section 11 as an individual draft, `draft-gilda-wimse-agent-audit-record-00`, posted yesterday. It maps all seven minimum fields onto one in-toto statement and carries an agreement between the reported decision and the observed effect.\n\nA verifier derives that agreement and never reads it. A denial beside an observed write therefore cannot pass as agreement, and Appendix A carries one conformance vector per rule the format adds.\n\nPlease let me know what you think!",
+          "createdAt": "2026-09-22T17:13:49Z",
+          "updatedAt": "2026-09-22T17:13:49Z"
+        },
+        {
+          "author": "aeoess",
+          "authorAssociation": "NONE",
+          "body": "I read -00 as an implementer. A few places where two careful verifiers could come out different:\n\n1. `requestDigest` when `binding` is `not-bindable`. 5.3 hashes four members including `argumentsDigest`, and 5.2 says a not-bindable resource must not carry it. So the input for A6 is open. Omitting the member, `null` and `\"\"` give three different digests for the same request (sha256 prefixes `65a89cbc`, `a373c3fd`, `c1117e1e` for a write to `mcp://files/write`). A6 is an accept member, so this shows up as soon as a second implementation runs it.\n2. Agreement comes from `effect.observed`, which covers the whole interval, and no write is tied to the request. If an unrelated write lands in the interval, a deny can read as `disagree`. The same happens when the only write is outside `pathScope`. Is the interval meant to belong to one request only, or should agreement read only in-scope writes?\n3. `permit` beside `none` derives `disagree`. A permit allows the action but doesn't require it, so a permitted call that failed or was never made gets the same value as a deny that leaked.\n\nSmaller one: 4.6 says a record whose signature fails is not a record under this document, but T2 expects `malformed`. A verifier scored against Appendix B needs to know which one to report.\n",
+          "createdAt": "2026-09-22T18:56:26Z",
+          "updatedAt": "2026-09-22T18:56:26Z"
+        },
+        {
+          "author": "Mayur021",
+          "authorAssociation": "NONE",
+          "body": "@astrogilda, the agreement field is the part of this that matters most to the thread, and I want to say why before the detail.\n\nThe open case from August was a classification with correct provenance that stops describing the tool underneath it. Provenance got settled; divergence did not. Deriving agreement from an observed effect rather than a declared one is the first thing here that could close it, because an observation does not depend on the declaration being honest.\n\nWhich is why @aeoess's second point is not one of four. It decides whether the format does what it claims. If agreement comes from effect.observed over the whole interval with no write tied to the request, the field measures whether anything in the window contradicted the decision, not whether this call did what was decided. Those coincide on a quiet system and separate on a busy one, which is backwards: the property weakens exactly where it is needed.\n\nIt lands on Appendix A too. A conformance vector for an interval-scoped agreement passes because the fixture has no competing writes, not because the rule holds. That is the same failure as a negative result recorded without the sweep that produced it, and the fix has the same shape: one vector has to carry an unrelated write landing inside the interval, with the expected value stated. If agreement still reads correctly there, the rule is doing work. If it does not, the interval is the wrong scope.\n\nOn point 3, permit beside none: I would not collapse those. A permitted call that never ran and a deny that leaked are different facts, and a verifier that cannot tell them apart cannot be used for the incident review this format exists for.",
+          "createdAt": "2026-09-23T10:54:02Z",
+          "updatedAt": "2026-09-23T10:54:02Z"
         }
       ]
     },
@@ -2649,7 +2678,31 @@
       "labels": [],
       "body": "The text describing token introspection can be better presented (see https://lnkd.in/p/dRe2S7Cn)",
       "createdAt": "2026-09-21T14:20:00Z",
-      "updatedAt": "2026-09-21T14:20:00Z",
+      "updatedAt": "2026-09-22T21:58:20Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "bc-pi",
+          "authorAssociation": "COLLABORATOR",
+          "body": "<img width=\"685\" height=\"705\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/a498f990-d369-4a80-bf87-76cbb0c91857\" />",
+          "createdAt": "2026-09-22T21:58:20Z",
+          "updatedAt": "2026-09-22T21:58:20Z"
+        }
+      ]
+    },
+    {
+      "number": 153,
+      "id": "I_kwDOQP22qc8AAAABSkG-jQ",
+      "title": "Add reference to WISE",
+      "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/153",
+      "state": "OPEN",
+      "author": "PieterKas",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "The WISE draft was adopted by the OpenID Foundation, so we can reference it in AIMS.",
+      "createdAt": "2026-09-22T14:11:27Z",
+      "updatedAt": "2026-09-22T14:11:27Z",
       "closedAt": null,
       "comments": []
     }
@@ -6452,19 +6505,68 @@
       "labels": [],
       "body": "Clarified the use of OAuth 2.0 Token Introspection and its role in validating opaque tokens, ensuring the framework supports various token formats while maintaining authorization semantics. See issue #151",
       "createdAt": "2026-09-21T14:20:48Z",
-      "updatedAt": "2026-09-21T14:28:09Z",
+      "updatedAt": "2026-09-23T00:40:29Z",
       "baseRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
       "baseRefName": "main",
       "baseRefOid": "bfff2ebf382eb0e8de156ee1e818c84c5f8c0ba2",
       "headRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
       "headRefName": "PieterKas-patch-25",
-      "headRefOid": "050ba47006c0331bf2d262dbb2000c1d8cb12d3a",
+      "headRefOid": "7e984efd27401fec3ded0cde698591a7d527be15",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
-      "reviews": []
+      "comments": [
+        {
+          "author": "bc-pi",
+          "authorAssociation": "COLLABORATOR",
+          "body": "also, \"(the mechanism is called introspection despite the word having nearly the opposite meaning)\" is completely true and might be useful context to someone unfamiliar with the oauth world and wondering for themselves if they were confused about the meaning of the word ",
+          "createdAt": "2026-09-22T20:21:37Z",
+          "updatedAt": "2026-09-22T20:21:37Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOQP22qc8AAAABOuHtLQ",
+          "commit": {
+            "abbreviatedOid": "050ba47"
+          },
+          "author": "bc-pi",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-22T19:40:46Z",
+          "updatedAt": "2026-09-22T19:40:47Z",
+          "comments": [
+            {
+              "originalPosition": 23,
+              "body": "Hopefully fix the build and list rendering.  Definitely fix spelling. \n\n```suggestion\n  -04\n  \n   * Refine language about token introspection, acknowledge Joe DeCock for pointing out the need to do so (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/151)\n   \n```",
+              "createdAt": "2026-09-22T19:40:46Z",
+              "updatedAt": "2026-09-22T19:40:47Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOQP22qc8AAAABOwwqUA",
+          "commit": {
+            "abbreviatedOid": "b64d9d9"
+          },
+          "author": "PieterKas",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-23T00:37:47Z",
+          "updatedAt": "2026-09-23T00:37:47Z",
+          "comments": [
+            {
+              "originalPosition": 22,
+              "body": "```suggestion\n  -00\n```",
+              "createdAt": "2026-09-23T00:37:47Z",
+              "updatedAt": "2026-09-23T00:37:47Z"
+            }
+          ]
+        }
+      ]
     }
   ]
 }
