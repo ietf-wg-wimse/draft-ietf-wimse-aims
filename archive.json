@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-09-24T03:37:56.966888+00:00",
+  "timestamp": "2026-09-27T04:11:36.660712+00:00",
   "repo": "ietf-wg-wimse/draft-ietf-wimse-aims",
   "labels": [
     {
@@ -2498,7 +2498,7 @@
       "labels": [],
       "body": "1. Human-in-the-loop - how to request users to grant additional authorization in an out-of-band manner.\n2. Agent credential handling - Define architectures and patterns for agents using credentials at their disposal",
       "createdAt": "2026-06-30T10:39:38Z",
-      "updatedAt": "2026-09-23T10:54:02Z",
+      "updatedAt": "2026-09-26T06:51:58Z",
       "closedAt": null,
       "comments": [
         {
@@ -2570,6 +2570,27 @@
           "body": "@astrogilda, the agreement field is the part of this that matters most to the thread, and I want to say why before the detail.\n\nThe open case from August was a classification with correct provenance that stops describing the tool underneath it. Provenance got settled; divergence did not. Deriving agreement from an observed effect rather than a declared one is the first thing here that could close it, because an observation does not depend on the declaration being honest.\n\nWhich is why @aeoess's second point is not one of four. It decides whether the format does what it claims. If agreement comes from effect.observed over the whole interval with no write tied to the request, the field measures whether anything in the window contradicted the decision, not whether this call did what was decided. Those coincide on a quiet system and separate on a busy one, which is backwards: the property weakens exactly where it is needed.\n\nIt lands on Appendix A too. A conformance vector for an interval-scoped agreement passes because the fixture has no competing writes, not because the rule holds. That is the same failure as a negative result recorded without the sweep that produced it, and the fix has the same shape: one vector has to carry an unrelated write landing inside the interval, with the expected value stated. If agreement still reads correctly there, the rule is doing work. If it does not, the interval is the wrong scope.\n\nOn point 3, permit beside none: I would not collapse those. A permitted call that never ran and a deny that leaked are different facts, and a verifier that cannot tell them apart cannot be used for the incident review this format exists for.",
           "createdAt": "2026-09-23T10:54:02Z",
           "updatedAt": "2026-09-23T10:54:02Z"
+        },
+        {
+          "author": "astrogilda",
+          "authorAssociation": "NONE",
+          "body": "@aeoess, thank you, all four are real and -01 repairs each. Under not-bindable the preimage omits the arguments digest, so your 65a89cbc is the one digest, and null or an empty string is malformed (F3b, F3c).\n\nEach write now names its request or says unattributed, so another request's write no longer turns a deny into disagree (A7, A8). Permit beside none derives not-exercised, and a failed signature is malformed, matching T2.\n",
+          "createdAt": "2026-09-25T15:11:41Z",
+          "updatedAt": "2026-09-25T15:11:41Z"
+        },
+        {
+          "author": "astrogilda",
+          "authorAssociation": "NONE",
+          "body": "@Mayur021, you're right that the interval was the wrong scope, and -01 reads agreement only from the writes attributed to this request. A7 is the vector you asked for: a deny, plus a competing write inside the interval attributed to another request, with agree stated.\n\nAn in-scope write the observer cannot attribute gives indeterminate (A8). Permit beside none is now not-exercised, kept apart from a leaked deny.\n",
+          "createdAt": "2026-09-25T15:17:35Z",
+          "updatedAt": "2026-09-25T15:17:35Z"
+        },
+        {
+          "author": "Mayur021",
+          "authorAssociation": "NONE",
+          "body": "@astrogilda  That covers all three, and A8 is the part I would not have thought to ask for.\n\nRequest-scoping the agreement fixes the interval problem, but it creates a new one straight away: an in-scope write the observer cannot attribute. Without a value of its own it has to be forced into agree or disagree, and forcing it either way is the same collapse as permit beside none, one level down. Giving it indeterminate is what stops the scope fix reintroducing the thing it fixed.\n\nA7 is the right shape too. A vector whose expected value is stated for a case the rule is meant to get wrong is worth more than one that passes on a quiet fixture.\n\nWhere can I read -01? Datatracker still shows -00 from the 21st, so I assume it is pending or sitting somewhere else, and aeoess will want it against the four as well.",
+          "createdAt": "2026-09-26T06:51:58Z",
+          "updatedAt": "2026-09-26T06:51:58Z"
         }
       ]
     },
@@ -2678,15 +2699,15 @@
       "labels": [],
       "body": "The text describing token introspection can be better presented (see https://lnkd.in/p/dRe2S7Cn)",
       "createdAt": "2026-09-21T14:20:00Z",
-      "updatedAt": "2026-09-22T21:58:20Z",
+      "updatedAt": "2026-09-25T12:26:09Z",
       "closedAt": null,
       "comments": [
         {
           "author": "bc-pi",
           "authorAssociation": "COLLABORATOR",
-          "body": "<img width=\"685\" height=\"705\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/a498f990-d369-4a80-bf87-76cbb0c91857\" />",
+          "body": "<img width=\"685\" height=\"705\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/a498f990-d369-4a80-bf87-76cbb0c91857\" />\n\n<img width=\"600\" height=\"335\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/37577128-dfb0-4c60-993d-57a3c5d8da92\" />",
           "createdAt": "2026-09-22T21:58:20Z",
-          "updatedAt": "2026-09-22T21:58:20Z"
+          "updatedAt": "2026-09-25T12:26:09Z"
         }
       ]
     },
