@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-09-27T04:11:36.660712+00:00",
+  "timestamp": "2026-09-29T04:44:40.789117+00:00",
   "repo": "ietf-wg-wimse/draft-ietf-wimse-aims",
   "labels": [
     {
@@ -2498,7 +2498,7 @@
       "labels": [],
       "body": "1. Human-in-the-loop - how to request users to grant additional authorization in an out-of-band manner.\n2. Agent credential handling - Define architectures and patterns for agents using credentials at their disposal",
       "createdAt": "2026-06-30T10:39:38Z",
-      "updatedAt": "2026-09-26T06:51:58Z",
+      "updatedAt": "2026-09-29T01:14:30Z",
       "closedAt": null,
       "comments": [
         {
@@ -2591,6 +2591,34 @@
           "body": "@astrogilda  That covers all three, and A8 is the part I would not have thought to ask for.\n\nRequest-scoping the agreement fixes the interval problem, but it creates a new one straight away: an in-scope write the observer cannot attribute. Without a value of its own it has to be forced into agree or disagree, and forcing it either way is the same collapse as permit beside none, one level down. Giving it indeterminate is what stops the scope fix reintroducing the thing it fixed.\n\nA7 is the right shape too. A vector whose expected value is stated for a case the rule is meant to get wrong is worth more than one that passes on a quiet fixture.\n\nWhere can I read -01? Datatracker still shows -00 from the 21st, so I assume it is pending or sitting somewhere else, and aeoess will want it against the four as well.",
           "createdAt": "2026-09-26T06:51:58Z",
           "updatedAt": "2026-09-26T06:51:58Z"
+        },
+        {
+          "author": "astrogilda",
+          "authorAssociation": "NONE",
+          "body": "@Mayur021 thanks for catching that: -01 wasn't on the datatracker yet when I replied. It is now, at https://datatracker.ietf.org/doc/draft-gilda-wimse-agent-audit-record/01/, and the diff against -00 is at https://author-tools.ietf.org/iddiff?url2=draft-gilda-wimse-agent-audit-record-01.\n\n@aeoess, F3b and F3c carry your not-bindable preimage point, and A7 and A8 carry request-scoped agreement. Permit beside none now derives not-exercised, and T2 reads malformed.\n",
+          "createdAt": "2026-09-27T11:45:31Z",
+          "updatedAt": "2026-09-27T11:45:31Z"
+        },
+        {
+          "author": "aeoess",
+          "authorAssociation": "NONE",
+          "body": "@astrogilda checked -01 against the four points. All four look closed in the text now.\n\nI haven't run the Appendix B vectors yet since they're not in the published corpus, but happy to run them once they are.\n",
+          "createdAt": "2026-09-28T03:53:33Z",
+          "updatedAt": "2026-09-28T03:53:33Z"
+        },
+        {
+          "author": "astrogilda",
+          "authorAssociation": "NONE",
+          "body": "@aeoess, thanks for checking -01 against all four, and for the nudge on the vectors. All 47 Appendix B rows are published now, each tagged with its row id: https://github.com/probityai/agent-evidence-vectors/tree/v0.14.1/vectors-agent-audit-record\n\nOur reference reader runs with:\n\n```\nuvx agent-evidence-vectors==0.14.1 --corpus vectors-agent-audit-record\n```\n\nTo score your own verifier, run it over the statements directory with the manifest's observer key and compare its verdicts with the expected ones.\n",
+          "createdAt": "2026-09-29T01:02:47Z",
+          "updatedAt": "2026-09-29T01:02:47Z"
+        },
+        {
+          "author": "aeoess",
+          "authorAssociation": "NONE",
+          "body": "@astrogilda ran `uvx agent-evidence-vectors==0.14.1 --corpus vectors-agent-audit-record`: 47 members (9 accept, 2 indeterminate, 36 reject), every member behaves as MANIFEST.json declares, exit 0. That reproduces the published corpus with the packaged reference reader. It isn't an independent verification of the 47 rows, which would need a separate implementation run over the statements with the observer key.\n",
+          "createdAt": "2026-09-29T01:14:30Z",
+          "updatedAt": "2026-09-29T01:14:30Z"
         }
       ]
     },
@@ -2724,6 +2752,22 @@
       "body": "The WISE draft was adopted by the OpenID Foundation, so we can reference it in AIMS.",
       "createdAt": "2026-09-22T14:11:27Z",
       "updatedAt": "2026-09-22T14:11:27Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 154,
+      "id": "I_kwDOQP22qc8AAAABTrN9Rg",
+      "title": "Consider discovery of supported RAR authorization detail types in Section 10.10",
+      "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/154",
+      "state": "OPEN",
+      "author": "jinwooyou",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "Section 10.10 describes OAuth discovery mechanisms that can help Agents operate in dynamic environments, including Authorization Server Metadata, Protected Resource Metadata, and Client ID Metadata Documents.\nWould it be useful to also mention draft-ietf-oauth-rar-metadata-remediation in this section?\nRAR (RFC 9396) allows clients to request structured authorization_details. In a dynamic Agent-to-Tool interaction, an Agent may already know the identity and authorization endpoints for a Tool, but still not know which RAR authorization_details types and structures are supported by the relevant Authorization Server.\ndraft-ietf-oauth-rar-metadata-remediation defines metadata that enables clients to discover supported authorization detail types and related schemas.\nWould it make sense for Section 10.10 to include a short informative reference to this work, perhaps under Authorization Server Capability Discovery?\nFor example:\nWhere fine-grained authorization is expressed using Rich Authorization Requests (RAR), an Agent may also need to discover the authorization detail types supported by an Authorization Server. OAuth RAR Metadata can provide metadata describing supported authorization detail types and their structure.\n\nI may be overlooking an existing section that already covers this relationship, so clarification would be helpful.",
+      "createdAt": "2026-09-28T13:28:45Z",
+      "updatedAt": "2026-09-28T13:28:45Z",
       "closedAt": null,
       "comments": []
     }
