@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-09-29T04:44:40.789117+00:00",
+  "timestamp": "2026-10-01T04:41:02.383790+00:00",
   "repo": "ietf-wg-wimse/draft-ietf-wimse-aims",
   "labels": [
     {
@@ -2498,7 +2498,7 @@
       "labels": [],
       "body": "1. Human-in-the-loop - how to request users to grant additional authorization in an out-of-band manner.\n2. Agent credential handling - Define architectures and patterns for agents using credentials at their disposal",
       "createdAt": "2026-06-30T10:39:38Z",
-      "updatedAt": "2026-09-29T01:14:30Z",
+      "updatedAt": "2026-09-30T06:49:44Z",
       "closedAt": null,
       "comments": [
         {
@@ -2619,6 +2619,13 @@
           "body": "@astrogilda ran `uvx agent-evidence-vectors==0.14.1 --corpus vectors-agent-audit-record`: 47 members (9 accept, 2 indeterminate, 36 reject), every member behaves as MANIFEST.json declares, exit 0. That reproduces the published corpus with the packaged reference reader. It isn't an independent verification of the 47 rows, which would need a separate implementation run over the statements with the observer key.\n",
           "createdAt": "2026-09-29T01:14:30Z",
           "updatedAt": "2026-09-29T01:14:30Z"
+        },
+        {
+          "author": "Mayur021",
+          "authorAssociation": "NONE",
+          "body": "@astrogilda, picking up @aeoess's point about what an independent run would take, N1 and N2 are where it bites.\n\nBoth list two readings a conforming verifier may take, one valid and one indeterminate, and expected.verdict is indeterminate for both. The note says a conforming verifier is scored on expected.verdict. So a second implementation that takes the first listed reading, the one the manifest itself calls conforming, is scored as not matching. readings appears nowhere in check_vectors.py, and the mutation sweep branches only on accept and reject, so nothing in the committed checks catches the case.\n\nThat is 2 rows of 47, but they are the 2 an independent run exists to test. Accept and reject each have one right answer. These two are the rows whose nature is that two answers are both correct, which is the thing a single expected verdict cannot carry. Either score an indeterminate member as passing on any listed reading, or name which reading is authoritative and why the other is still conforming.\n\nOnce those two are pinned, I can put a second reader over the statements with the published observer key and report where it lands. That is the run that has not happened yet.",
+          "createdAt": "2026-09-30T06:49:44Z",
+          "updatedAt": "2026-09-30T06:49:44Z"
         }
       ]
     },
