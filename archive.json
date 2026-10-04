@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-10-01T04:41:02.383790+00:00",
+  "timestamp": "2026-10-04T04:46:57.747106+00:00",
   "repo": "ietf-wg-wimse/draft-ietf-wimse-aims",
   "labels": [
     {
@@ -2498,7 +2498,7 @@
       "labels": [],
       "body": "1. Human-in-the-loop - how to request users to grant additional authorization in an out-of-band manner.\n2. Agent credential handling - Define architectures and patterns for agents using credentials at their disposal",
       "createdAt": "2026-06-30T10:39:38Z",
-      "updatedAt": "2026-09-30T06:49:44Z",
+      "updatedAt": "2026-10-01T15:42:57Z",
       "closedAt": null,
       "comments": [
         {
@@ -2626,6 +2626,20 @@
           "body": "@astrogilda, picking up @aeoess's point about what an independent run would take, N1 and N2 are where it bites.\n\nBoth list two readings a conforming verifier may take, one valid and one indeterminate, and expected.verdict is indeterminate for both. The note says a conforming verifier is scored on expected.verdict. So a second implementation that takes the first listed reading, the one the manifest itself calls conforming, is scored as not matching. readings appears nowhere in check_vectors.py, and the mutation sweep branches only on accept and reject, so nothing in the committed checks catches the case.\n\nThat is 2 rows of 47, but they are the 2 an independent run exists to test. Accept and reject each have one right answer. These two are the rows whose nature is that two answers are both correct, which is the thing a single expected verdict cannot carry. Either score an indeterminate member as passing on any listed reading, or name which reading is authoritative and why the other is still conforming.\n\nOnce those two are pinned, I can put a second reader over the statements with the published observer key and report where it lands. That is the run that has not happened yet.",
           "createdAt": "2026-09-30T06:49:44Z",
           "updatedAt": "2026-09-30T06:49:44Z"
+        },
+        {
+          "author": "astrogilda",
+          "authorAssociation": "NONE",
+          "body": "@Mayur021, thank you for catching this. You were right about N1 and N2, and 5 members in two sibling corpora carried the same pinned verdict; https://github.com/probityai/agent-evidence-vectors/pull/25 fixes all 7 in v0.16.0.\n\nAn indeterminate member now lists its readings and no expected verdict, so either listed reading conforms, and CI refuses a pinned verdict.\n\nWhen your second reader runs against `uvx agent-evidence-vectors==0.16.0 --corpus vectors-agent-audit-record`, I'll add its result to the corpus README as the first independent run.\n",
+          "createdAt": "2026-10-01T14:26:54Z",
+          "updatedAt": "2026-10-01T14:26:54Z"
+        },
+        {
+          "author": "Mayur021",
+          "authorAssociation": "NONE",
+          "body": "@astrogilda the run is done against 0.16.0. 47 of 47 agree: 9 accept valid, 36 reject malformed, and N1 and N2 both reached valid, which each lists as a conforming reading.\n\nThe reader is at https://github.com/Mayur021/agent-audit-record-reader. Written from the draft text, RFC 8785, RFC 7493 and DSSE. It shares no code with the reference verifier, and none with jcs-admit, dsse or agent-evidence-vocabulary either, which is the part that makes the number mean anything: the corpus, the reader that scores it, the canonicaliser and the envelope library all come from one place, and this is the first reading from outside it. It does not vendor the corpus, fetch_corpus.sh pulls it at run time.\n\nOn N1 and N2, the fix is what made the run reportable. This reader takes the valid reading on both. Against 0.14.1's pinned expected.verdict of indeterminate it would have scored as two mismatches out of forty-seven, on the two rows whose nature is that two answers are both right.\n\nOne finding, and it is about the draft rather than the corpus.\n\nSection 4.4 lists the ordered write chain as one of the three recomputes, 5.3 says it MUST reproduce the after-state root from the before-state root, and 4.6 says a verifier replays it. No section defines the replay, and Appendix A is rationale rather than mechanism. I recovered it from the accept members: each write's preStateDigest must equal the running root and its postStateDigest becomes the new root, starting at beforeRoot and ending at afterRoot. A1 and A7 each carry one write whose pre-state is the before-root and whose post-state is the after-root, and A2 and A9 carry none and have equal roots.\n\nSo it is recoverable, but from Appendix B rather than from the body. That makes the corpus load-bearing as specification: an implementer working from the normative text alone cannot perform a recompute that the text requires. Worth stating the chain rule in 5.3 beside the sentence that requires it.\n\nA smaller one. 4.6 puts the signature first and the JSON profile second, but 4.1.2 says a verifier MUST NOT retain any one occurrence of a repeated member name, and deriving the canonical bytes to check the signature requires parsing, which retains one. So the duplicate check has to precede canonicalisation and therefore the signature. Your reader reports duplicate-member on T3, so it does the same. 4.6 closes by requiring no particular order, so it is not a contradiction, but that sentence is carrying more weight than it looks.\n\nAnd two vectors caught me, which is what they are for. T2 caught a first pass that verified over the payload as transmitted, which is what standard DSSE does and what an off-the-shelf DSSE verifier will do. 4.1.1 and 6.7 are both clear and I had not read them closely enough. T3 caught the ordering above. Both are written up in FINDINGS.md, because a second implementation is only worth something if it reports where it was wrong as well as where it differed.\n\nHappy to put this in the interop record shape you use for the E2 run if that is more useful than a comment.",
+          "createdAt": "2026-10-01T15:41:28Z",
+          "updatedAt": "2026-10-01T15:42:57Z"
         }
       ]
     },
