@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-10-04T04:46:57.747106+00:00",
+  "timestamp": "2026-10-06T05:21:11.769653+00:00",
   "repo": "ietf-wg-wimse/draft-ietf-wimse-aims",
   "labels": [
     {
@@ -1330,9 +1330,17 @@
       "labels": [],
       "body": "The AIMS stack in Figure 2 has implicit trust dependencies that I think should be called out in Security Considerations.\n\nBasically if attestation gets compromised, everything above it inherits that - provisioning, authn, authz, all of it. Few things:\n\n- Compromised SPIRE agent (or equivalent) means all creds it provisions are suspect. IMO this is a high-value target worth naming explicitly.\n- No guidance on what happens when you can't determine attestation status. Fail open or closed? I'd argue closed but either way the draft should take a position.\n- The monitoring layer (Section 11) should ideally catch inconsistencies across AIMS layers, like an agent with valid creds behaving in ways that don't match its attestation claims. Not sure how prescriptive we want to be here tho.\n\nMore broadly, might be worth walking through failure modes at each layer and how they cascade upward through the stack.",
       "createdAt": "2026-03-22T18:57:56Z",
-      "updatedAt": "2026-03-22T18:57:56Z",
+      "updatedAt": "2026-10-05T15:31:16Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "imran-siddique",
+          "authorAssociation": "NONE",
+          "body": "PR #115 has since folded attestation into provisioning, and the new text makes this sharper. The posture signal list puts \"trusted execution environment (TEE) evidence\" and \"operator assertions\" in one enumeration, then says \"Depending on the risk involved, a single signal may be sufficient.\" So in a lower risk deployment the guarantee everything above inherits can be the operator's word. Nothing has to be compromised for that.\n\nGiven the editors' position on #123 about not adding requirements, one sentence may be enough: separate signals a relying party can check without trusting whoever operates the workload from assertions by that operator, and say which kind \"higher layers depend on guarantees provided by lower layers\" means. The alternative is to soften that sentence.\n",
+          "createdAt": "2026-10-05T15:31:16Z",
+          "updatedAt": "2026-10-05T15:31:16Z"
+        }
+      ]
     },
     {
       "number": 83,
