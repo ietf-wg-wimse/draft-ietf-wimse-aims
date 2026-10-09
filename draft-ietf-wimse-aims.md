@@ -102,17 +102,16 @@ normative:
   RISC:
     title: OpenID Risk Incident Sharing and Coordination Profile 1.0
     target: https://openid.net/specs/openid-risc-1_0-final.html
+  WISE:
+    title: "OpenID WISE Profile Specification 1.0 - draft 03"
+    target: https://github.com/openid/ssf-wise-profile/blob/main/openid-wise-profile-1_0.md
   SPIFFE-X509-SVID:
     title: "The X.509 SPIFFE Verifiable Identity Document"
     target: https://github.com/spiffe/spiffe/blob/main/standards/X509-SVID.md
-
   SPIFFE-JWT-SVID:
     title: "The JWT SPIFFE Verifiable Identity Document"
     target: https://github.com/spiffe/spiffe/blob/main/standards/JWT-SVID.md
 
-  SPIFFE-WIT-SVID:
-    title: "The WIT SPIFFE Verifiable Identity Document"
-    target: https://github.com/spiffe/spiffe/blob/draft-wit-svid/standards/WIT-SVID.md
 informative:
   MissionShaping:
     title: "The Mission Shaping Problem"
@@ -384,7 +383,7 @@ As an alternative, entities acting as OAuth clients MAY register their capabilit
 # Agent Monitoring, Observability and Remediation {#agent_monitoring_and_remediation}
 Because agents may perform sensitive actions autonomously or on behalf of users, deployments MUST maintain sufficient monitoring and observability to reconstruct agent behavior and authorization context after execution. Observability is therefore a security control, not solely an operational feature.
 
-Any participant in the system, including the Agent, Tool, System, LLM or other resources and service MAY subscribe to change notifications using eventing mechanisms such as the OpenID Shared Signals Framework {{SSF}} with either the Continuous Access Evaluation Profile {{CAEP}} or Risk Incident Sharing and Coordination {{RISC}} to receive security and authorization-relevant signals. Upon receipt of a relevant signal (e.g., session revoked, risk level change, subject disabled, token replay suspected, risk elevated), the recipient SHOULD remediate by attenuating access, such as terminating local sessions, discarding cached tokens, re-acquiring tokens with updated constraints, reducing privileges, or re-running policy evaluation before continuing to allow access. Recipients of such signals MUST ensure that revoked or downgraded authorization is enforced without undue delay. Cached authorization decisions and tokens that are no longer valid MUST NOT continue to be used after a revocation or risk notification is received.
+Any participant in the system, including the Agent, Tool, System, LLM or other resources and service MAY subscribe to change notifications using eventing mechanisms such as the OpenID Shared Signals Framework {{SSF}} with either the Continuous Access Evaluation Profile {{CAEP}}, Risk Incident Sharing and Coordination {{RISC}} or Workload Identity Security Events {{WISE}} to receive security and authorization-relevant signals. Upon receipt of a relevant signal (e.g., session revoked, risk level change, subject disabled, token replay suspected, risk elevated), the recipient SHOULD remediate by attenuating access, such as terminating local sessions, discarding cached tokens, re-acquiring tokens with updated constraints, reducing privileges, or re-running policy evaluation before continuing to allow access. Recipients of such signals MUST ensure that revoked or downgraded authorization is enforced without undue delay. Cached authorization decisions and tokens that are no longer valid MUST NOT continue to be used after a revocation or risk notification is received.
 
 To support detection, investigation, and accountability, deployments MUST produce durable audit logs covering authorization decisions and subsequent remediations. Audit records MUST be tamper-evident and retained according to the security policy of the deployment.
 
@@ -444,6 +443,7 @@ The authors would like to thank:
    * Clarify relationship between WIMSE and SPIFFE credentials (https://github.com/PieterKas/agent2agent-auth-framework/issues/136)
    * Clarify that LLMs should not have access to Agent credentials: https://github.com/PieterKas/agent2agent-auth-framework/issues/127
    * Update use of normative language (https://github.com/PieterKas/agent2agent-auth-framework/issues/123)
+   * Added reference to newly adopted WISE draft (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/153)
 
   -03
 
