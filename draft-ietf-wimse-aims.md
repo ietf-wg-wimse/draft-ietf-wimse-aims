@@ -318,6 +318,10 @@ When a User delegates authorization to an Agent, the Authorization Code Grant as
 
 The Agent, acting as an OAuth client, then makes a token request to the authorization server to redeem the authorization code for an access token. When making this token request, the Agent authenticates itself directly to the authorization server using the credentials described in {{agent_credentials}} with a compatible OAuth client authentication mechanism, and not with the use of static, long-lived client secrets. Compatible OAuth client authentication mechanisms are defined in {{!OAUTH-CLIENTAUTH-JWT=RFC7523}}, {{!OAUTH-CLIENTAUTH-MTLS=RFC8705}} and {{!OAUTH-SPIFFE=I-D.ietf-oauth-spiffe-client-auth}}. The OAuth client authentication step is distinct from, and occurs after, the user authentication and approval described above. The resulting access token reflects the authorization delegated to the Agent by the User and can be used by the Agent to access resources on behalf of the user. The use of OAuth negates the need for the Agent to have access to a User's credentials when accessing a resource on the User's behalf.
 
+The User's grant to the first Agent establishes the permitted access and any limits on further delegation. For operations performed under this grant, those limits continue to apply to the subsequent interactions described in {{agents-accessed-by-systems-or-other-agents}}, {{txn-tokens-risk-reduction}}, {{cross-domain-access}}, and {{tool-to-service-access}}, alongside the restrictions at each target resource. The 'sub' claim identifies the User in the issuer's context; it does not by itself establish that the requested action is within that grant.
+
+Suppose the User's initial grant permits only reading particular reports. A later token from another Authorization Server, with 'sub' identifying that User and scope permitting writes to those reports, does not show that the initial grant covered the write. The write may instead depend on a different or additional authorization under the applicable policy.
+
 ### Agent Obtains Own Authorization {#agent_obtains_own_access_token}
 Agents obtaining access tokens on their own behalf can use the Client Credentials Grant as described in {{Section 4.4 of OAUTH-FRAMEWORK}} or the JWT Authorization Grant as described in {{Section 2.1 of OAUTH-CLIENTAUTH-JWT}}. When using the Client Credentials Grant, the Agent authenticates itself using the credentials described in {{agent_credentials}} with a compatible OAuth client authentication mechanism listed in previous section, and not with the use of static, long-lived client secrets. When using the JWT Authorization Grant, the Agent will be identified in the subject of the JWT assertion.
 
@@ -433,6 +437,7 @@ The authors would like to thank:
 
 * Sean O'Dell for providing valuable input and feedback on this work.
 * Karl McGuinness for his blog posts on mission shaping as a pre-cursor to authorization {{MissionShaping}}
+* Mikhail Sergeev, Blake Morrison, and Kieran Sweeney for clarifying User grants, subject identification, and subsequent authorization.
 
 --- back
 
