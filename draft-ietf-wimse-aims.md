@@ -398,7 +398,7 @@ At a minimum, audit events MUST record:
 * posture assessment or risk state influencing the decision
 * remediation or revocation events and their cause
 
-An audit record MAY be carried as a signed in-toto statement whose predicate is the agent audit record of {{?AGENT-AUDIT-RECORD=I-D.gilda-wimse-agent-audit-record}}. That format records the fields above, whether the decision point could evaluate the request and, where it could not, which input it lacked, and whether a human reviewed the action. Because the record is signed and its digests are recomputed by the verifier, an auditor can check it without trusting the system that produced it.
+An audit record MAY be carried as a signed in-toto statement whose predicate is the agent audit record of {{?AGENT-AUDIT-RECORD=I-D.gilda-wimse-agent-audit-record}}. That format records the fields above, whether the decision point could evaluate the request and, where it could not, which input it lacked, and any reported human oversight act. Because the record is signed and its digests are recomputed by the verifier, an auditor can check its integrity and internal consistency without trusting the system that produced it; that check does not by itself establish that the reported events occurred or that the actors had the claimed authority.
 
 Monitoring / Observability systems SHOULD correlate events across Agents, Tools, Services, Resources and LLMs to detect misuse patterns such as replay, confused deputy behavior, privilege escalation, or unexpected action sequences.
 
