@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-10-08T05:00:11.111302+00:00",
+  "timestamp": "2026-10-11T04:34:49.638389+00:00",
   "repo": "ietf-wg-wimse/draft-ietf-wimse-aims",
   "labels": [
     {
@@ -1016,15 +1016,15 @@
       "id": "I_kwDOQP22qc70rV3k",
       "title": "Authorization layer for AIMS: scoped delegation chains with formal narrowing properties",
       "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/70",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "aeoess",
       "authorAssociation": "NONE",
       "assignees": [],
       "labels": [],
       "body": "The AIMS framework does the hard part right \u2014 composing WIMSE, SPIFFE, and OAuth for agent authentication gives you a solid identity foundation.\n\nBut as the blog analysis noted, authorization is still an open problem. Authentication tells you who the agent is. Authorization tells you what the agent can do, and crucially, what it can delegate to sub-agents.\n\nWe've been working on exactly that layer. The Agent Passport System implements scoped delegation chains with four formal properties:\n\n- Scope can only narrow at each delegation transfer (never widen)\n- Spend limits can only decrease\n- Delegation depth increments toward a maximum\n- Revoking a parent cascades to all descendants\n\nThese are the same invariants that IETF DAAP (draft-mishra-oauth-agent-grants-01) arrived at independently from the OAuth side. The convergence suggests these are necessary properties for agent delegation, not design choices specific to any one system.\n\nThe interesting integration question: AIMS handles the identity and authentication layer. APS handles the delegation and authorization layer. They compose naturally \u2014 AIMS-authenticated identity feeds into APS delegation chains. The gateway enforcement boundary could sit behind an AIMS-authenticated endpoint.\n\nSDK is at `npm install agent-passport-system` (866 tests). Paper on the formal invariants is on Zenodo. Happy to discuss the integration surface if there's interest.\n\nhttps://aeoess.com\nhttps://github.com/aeoess/agent-passport-system",
       "createdAt": "2026-03-20T00:40:09Z",
-      "updatedAt": "2026-03-20T00:40:09Z",
-      "closedAt": null,
+      "updatedAt": "2026-10-09T23:37:37Z",
+      "closedAt": "2026-10-09T23:37:37Z",
       "comments": []
     },
     {
@@ -2514,7 +2514,7 @@
       "labels": [],
       "body": "1. Human-in-the-loop - how to request users to grant additional authorization in an out-of-band manner.\n2. Agent credential handling - Define architectures and patterns for agents using credentials at their disposal",
       "createdAt": "2026-06-30T10:39:38Z",
-      "updatedAt": "2026-10-07T23:46:02Z",
+      "updatedAt": "2026-10-09T14:36:45Z",
       "closedAt": null,
       "comments": [
         {
@@ -2663,6 +2663,20 @@
           "body": "@Mayur021, thank you for both catches, the replay and the order.\n\nThe pull request writing your chain rule into the corpus README and listing your 47 of 47 as the first independent run is https://github.com/probityai/agent-evidence-vectors/pull/79. Its reject vectors E4 and E5 break the start and the end of the chain, and E6 is an empty write set with unequal roots.\n\nThe 5.3 rule and the 4.6 order are in my draft's revision 03, which follows the -02 on the datatracker and is not posted yet.\n",
           "createdAt": "2026-10-07T23:46:01Z",
           "updatedAt": "2026-10-07T23:46:01Z"
+        },
+        {
+          "author": "Mayur021",
+          "authorAssociation": "NONE",
+          "body": "@astrogilda the README states the replay more precisely than I did. I gave it as three comparisons; you have four, and separating the empty case is the right call even though A2 and A9 already carry it, because a rule that holds implicitly in two accept members is not the same as a rule stated. The part I had not pinned at all is the array-order and attribution clause.\n\nThe clause worth pinning is \"whatever its attribution or inScope\". That is a decision rather than a derivation, and it puts the chain deliberately out of step with agreement. A7 and A8 made agreement attribution-scoped: a competing write attributed elsewhere does not disturb it, and an in-scope write the observer cannot attribute gives indeterminate. The chain now reads every write regardless. I think that asymmetry is correct, and for a reason worth writing down rather than leaving implicit: the chain is a property of the record's state integrity, so a write that happened has to appear in it whoever caused it, while agreement is a property of this request's decision, so a write it cannot be tied to must not speak for it. Two different questions over the same array.\n\nNothing tests it though. No member added here carries an unattributed or out-of-scope write, so a verifier that filtered the chain to attributed writes, by analogy with A8, agrees on all 47 and on E4, E2, E5 and E6 as well. It would diverge only on a record where the two scopes differ, which is the case the corpus does not contain. That is the same shape as the replay itself: a rule that holds in the text and has no member that fails without it.\n\nSo one more reject member, if you agree: a chain whose middle write is unattributed, or in-scope but unattributable, where dropping it leaves the next preStateDigest unequal to the running root. A verifier that scopes the chain the way it scopes agreement fails that member, and one that reads the README fails nothing.\n\nMy reader takes the unfiltered reading already: the chain iterates every element of effect.writes in array order, and the attribution split is used only for agreement. So it would pass the member I am asking for. That is one implementation agreeing with your text, which is also why the member is worth having, since nothing in the corpus would have told me if I had chosen the other way.\n\nThe clause wants to be in 5.3 as well, not only in the corpus README. You have the replay itself in revision 03 already; this is the sentence that decides how it is read, and a conforming verifier is written from the draft rather than from the corpus. That is how the replay went missing in the first place.\n\nOnce 79 lands I will rerun the reader against the new corpus and report where it comes out, which extends the outside run past v0.16.0 to E4, E5 and E6.\n",
+          "createdAt": "2026-10-08T06:36:42Z",
+          "updatedAt": "2026-10-08T06:36:42Z"
+        },
+        {
+          "author": "astrogilda",
+          "authorAssociation": "NONE",
+          "body": "@PieterKas I opened #157 for a third item on this list:\n\n3. Audit evidence - an audit record MAY be carried as a signed in-toto statement in the format of draft-gilda-wimse-agent-audit-record, which @aeoess and @Mayur021 have already checked against its test vectors here.\n",
+          "createdAt": "2026-10-09T14:36:45Z",
+          "updatedAt": "2026-10-09T14:36:45Z"
         }
       ]
     },
@@ -6614,7 +6628,7 @@
       "labels": [],
       "body": "Clarified the use of OAuth 2.0 Token Introspection and its role in validating opaque tokens, ensuring the framework supports various token formats while maintaining authorization semantics. See issue #151",
       "createdAt": "2026-09-21T14:20:48Z",
-      "updatedAt": "2026-09-23T00:40:29Z",
+      "updatedAt": "2026-10-09T13:44:32Z",
       "baseRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
       "baseRefName": "main",
       "baseRefOid": "bfff2ebf382eb0e8de156ee1e818c84c5f8c0ba2",
@@ -6676,6 +6690,92 @@
           ]
         }
       ]
+    },
+    {
+      "number": 155,
+      "id": "PR_kwDOQP22qc8AAAABHgnQHw",
+      "title": "Clarify initial User grant boundaries across subsequent authorization",
+      "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/pull/155",
+      "state": "OPEN",
+      "author": "MikhailSergeev369",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "The same User identity in a downstream token does not by itself show that the requested action falls within the initial User grant.\n\nThis PR incorporates the two Section 10.4.1 paragraphs proposed in [the 8 October WIMSE message](https://mailarchive.ietf.org/arch/msg/wimse/pAF3675hQyr2ydIbtv-1CD61Rmw/) and [the existing #86 comment](https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/86#issuecomment-6050513140). It:\n\n- States that, for operations performed under the initial grant, its access and delegation limits continue to apply alongside restrictions at each target resource.\n- Separates subject identification from coverage by that grant, with the proposed read/write example allowing for different or additional authorization.\n- Replaces literal section numbers with existing symbolic references and adds attribution in Acknowledgments.\n\n### Coordination and scope\n\nBadal Bhushan is preparing the multi-hop example. [Blake Morrison's 8 October reply](https://mailarchive.ietf.org/arch/msg/wimse/wGjbc06JqD7ougtpAncemdUZXhk/) supports both proposed additions and offers to fold the Section 11 wording into Hop 0. The Section 11 insertion remains pending and is left for coordinated integration with that work. General status-evaluation guidance can remain in Section 11, with the example applying it at Hop 0 and other relevant decisions.\n\n[Kieran Sweeney's reply](https://mailarchive.ietf.org/arch/msg/wimse/aVWtfGvHXkMeXPcbCu5kLTcIrGY/) also supports both additions and distinguishes subject/actor identification from grant coverage. These replies express participant support; acceptance of the text remains for WG review.\n\nThis contribution concerns authorization boundaries. Authorization evidence and a recorded status evaluation do not by themselves establish that an operation was executed. Grant representation and audit-record formats remain outside this change.\n\nRelated to #86; this is a partial clarification, and does not close the multi-hop composition issue.\n\n### Validation\n\n- Checked against upstream main at bfff2ebf382eb0e8de156ee1e818c84c5f8c0ba2 and open PR #152.\n- Checked the proposed wording against the sent message and existing issue comment, with only the section-reference substitution.\n- Verified all four reference targets against the published document.\n",
+      "createdAt": "2026-10-09T10:02:05Z",
+      "updatedAt": "2026-10-09T10:02:05Z",
+      "baseRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
+      "baseRefName": "main",
+      "baseRefOid": "bfff2ebf382eb0e8de156ee1e818c84c5f8c0ba2",
+      "headRepository": "MikhailSergeev369/draft-ietf-wimse-aims",
+      "headRefName": "clarify-initial-user-grant-boundaries",
+      "headRefOid": "1c2814372862b8ca51da07165fba4c28c2a1c569",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 156,
+      "id": "PR_kwDOQP22qc8AAAABHjDsFg",
+      "title": "Update document to include WISE reference and changes",
+      "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/pull/156",
+      "state": "OPEN",
+      "author": "PieterKas",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Added reference to the WISE draft in the document and updated the eventing mechanisms to include WISE. see #153",
+      "createdAt": "2026-10-09T14:02:21Z",
+      "updatedAt": "2026-10-09T14:02:21Z",
+      "baseRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
+      "baseRefName": "main",
+      "baseRefOid": "bfff2ebf382eb0e8de156ee1e818c84c5f8c0ba2",
+      "headRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
+      "headRefName": "PieterKas-patch-26",
+      "headRefOid": "7064d94e45ee40a516a4856c8500379174240e51",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 157,
+      "id": "PR_kwDOQP22qc8AAAABHjXQSA",
+      "title": "Point audit records at a verifiable record format",
+      "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/pull/157",
+      "state": "OPEN",
+      "author": "astrogilda",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "This adds one paragraph to Agent Monitoring, Observability and Remediation: an audit record MAY be carried as a signed in-toto statement in the agent audit record format of [draft-gilda-wimse-agent-audit-record](https://datatracker.ietf.org/doc/draft-gilda-wimse-agent-audit-record/), which covers the minimum fields the section lists plus whether the decision point could evaluate the request and whether a human reviewed the action. It is the third work item for [#144](https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/144), after the human-in-the-loop and credential-handling items already listed there.\n\nThe reference is informative, so nothing here becomes a requirement on implementers. The format's test records, each one a record a verifier must accept or reject, are published on PyPI as [agent-evidence-vectors](https://pypi.org/project/agent-evidence-vectors/), and two people on #144 have already run them. `uvx agent-evidence-vectors==0.17.5 --corpus vectors-agent-audit-record` runs the same check on any machine.\n",
+      "createdAt": "2026-10-09T14:29:52Z",
+      "updatedAt": "2026-10-09T15:40:44Z",
+      "baseRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
+      "baseRefName": "main",
+      "baseRefOid": "bfff2ebf382eb0e8de156ee1e818c84c5f8c0ba2",
+      "headRepository": "astrogilda-forks/draft-ietf-wimse-aims",
+      "headRefName": "audit-record-format",
+      "headRefOid": "6651557c82534ec5ccc28557f0e31752379b3f21",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "Mayur021",
+          "authorAssociation": "NONE",
+          "body": "Ran this against the version the issue points at, v0.17.5. 55 of 55 agree.\r\n\r\nGetting there took extending the reader from -01 to -02, and it is worth saying how. The six that failed on the first pass were EV1 to EV4 and OV1, OV2, all one cause: evaluation and oversight do not exist in -01, and an unknown member was ignored rather than refused. I wrote the new rules from the -02 text, Sections 4, 5.4 and 5.5, and not from the eight statements that carry those members. Taking them from the vectors would have fitted the reader to the corpus and made 55 of 55 prove nothing.\r\n\r\nWhat moved since my last run is the reason this was worth doing at all. The 47 of 47 was 0.16.0 against -01. At 0.17.5 the corpus targets -02, carries 55 members, and corpusDigest moved from 9617291f to 048ddde8. Eight rows are new, none were removed, and all 47 carried-over rows changed content, so not one member was byte-identical to what I had run. They all still agree, so the regeneration is behaviour-preserving, but it had to be re-run to know that.\r\n\r\nWriting from the text rather than the vectors surfaced one thing. Of the checks -02 states for these two members, the corpus exercises seven and not the rest. No vector carries an empty unavailableInput, though 5.4 requires \"a non-empty array\". None repeats a value, though it says \"each at most once\". None tests a non-array. EV2 tests the canonical spelling only, so the part of \"MUST NOT carry unavailableInput in any spelling\" that makes it unusual is untested. And no vector omits oversight.act, though 5.5 says it \"is required in the member\".\r\n\r\nThe closed sets are the sharper case. standing-source is the only one of the three unavailableInput values that appears anywhere, and check is the only one of the four oversight.act values, with approval present solely as OV1's reject. So a verifier that hard-coded {standing-source} and {check} scores 55 of 55 as well. The corpus cannot currently tell that reader apart from one that read the closed sets.",
+          "createdAt": "2026-10-09T15:31:34Z",
+          "updatedAt": "2026-10-09T15:40:44Z"
+        }
+      ],
+      "reviews": []
     }
   ]
 }
