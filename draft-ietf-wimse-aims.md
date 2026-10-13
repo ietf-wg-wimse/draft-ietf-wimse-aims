@@ -111,6 +111,9 @@ normative:
   SPIFFE-JWT-SVID:
     title: "The JWT SPIFFE Verifiable Identity Document"
     target: https://github.com/spiffe/spiffe/blob/main/standards/JWT-SVID.md
+  SPIFFE-WIT-SVID:
+    title: "The WIT SPIFFE Verifiable Identity Document"
+    target: https://github.com/spiffe/spiffe/blob/draft-wit-svid/standards/WIT-SVID.md
 
 informative:
   MissionShaping:
