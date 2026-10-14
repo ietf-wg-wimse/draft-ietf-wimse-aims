@@ -104,7 +104,7 @@ normative:
     target: https://openid.net/specs/openid-risc-1_0-final.html
   WISE:
     title: "OpenID WISE Profile Specification 1.0 - draft 03"
-    target: https://github.com/openid/ssf-wise-profile/blob/main/openid-wise-profile-1_0.md
+    target: https://openid.github.io/ssf-wise-profile/
   SPIFFE-X509-SVID:
     title: "The X.509 SPIFFE Verifiable Identity Document"
     target: https://github.com/spiffe/spiffe/blob/main/standards/X509-SVID.md
