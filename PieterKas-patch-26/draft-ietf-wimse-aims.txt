@@ -5,7 +5,7 @@
 WIMSE                                                       P. Kasselman
 Internet-Draft                                          Defakto Security
 Intended status: Informational                               J. Lombardo
-Expires: 16 April 2027                                               AWS
+Expires: 17 April 2027                                               AWS
                                                             Y. Rosomakho
                                                                  Zscaler
                                                              B. Campbell
@@ -14,7 +14,7 @@ Expires: 16 April 2027                                               AWS
                                                                   OpenAI
                                                               A. Parecki
                                                                     Okta
-                                                         13 October 2026
+                                                         14 October 2026
 
 
                      AI Identity Management System
@@ -65,7 +65,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 16 April 2027.
+   This Internet-Draft will expire on 17 April 2027.
 
 Copyright Notice
 
@@ -1280,8 +1280,7 @@ Table of Contents
               wpt-02>.
 
    [WISE]     "OpenID WISE Profile Specification 1.0 - draft 03", n.d.,
-              <https://github.com/openid/ssf-wise-profile/blob/main/
-              openid-wise-profile-1_0.md>.
+              <https://openid.github.io/ssf-wise-profile/>.
 
 18.2.  Informative References
 
