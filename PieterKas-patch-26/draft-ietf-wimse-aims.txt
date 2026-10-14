@@ -938,9 +938,9 @@ Table of Contents
    or other resources and service MAY subscribe to change notifications
    using eventing mechanisms such as the OpenID Shared Signals Framework
    [SSF] and its profiles to receive security and authorization-relevant
-   signals, such as those defined by the Continuous Access Evaluation
+   signals including but not limited to Continuous Access Evaluation
    Profile [CAEP], Risk Incident Sharing and Coordination [RISC] or
-   Workload Identity Security Events [WISE].  Upon receipt of a relevant
+   Workload Identity Security Events [WISE] . Upon receipt of a relevant
    signal (e.g., session revoked, risk level change, subject disabled,
    token replay suspected, risk elevated), the recipient SHOULD
    remediate by attenuating access, such as terminating local sessions,
