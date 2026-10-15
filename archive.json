@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-10-13T05:52:59.543026+00:00",
+  "timestamp": "2026-10-15T03:38:00.890019+00:00",
   "repo": "ietf-wg-wimse/draft-ietf-wimse-aims",
   "labels": [
     {
@@ -2514,15 +2514,15 @@
       "id": "I_kwDOQP22qc8AAAABHKuZxA",
       "title": "List of new work that may be needed based on this draft",
       "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/144",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "PieterKas",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "1. Human-in-the-loop - how to request users to grant additional authorization in an out-of-band manner.\n2. Agent credential handling - Define architectures and patterns for agents using credentials at their disposal",
       "createdAt": "2026-06-30T10:39:38Z",
-      "updatedAt": "2026-10-12T20:02:47Z",
-      "closedAt": null,
+      "updatedAt": "2026-10-13T16:51:28Z",
+      "closedAt": "2026-10-13T16:51:28Z",
       "comments": [
         {
           "author": "aeoess",
@@ -2691,6 +2691,27 @@
           "body": "I feel like perhaps the content and direction of the commentary on this issue has strayed somewhat from the original intent of the issue. ",
           "createdAt": "2026-10-12T17:20:56Z",
           "updatedAt": "2026-10-12T20:02:47Z"
+        },
+        {
+          "author": "PieterKas",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@bc-pi - agreed the intent was to identify gaps and enumerate them, not solve them in this issue. Perhaps we need a different approach and have one new issue per item that gets identified as a gap rather than an append-list? Either way, the discussion on this issue has drifted away from the original intent. Perhaps we close this and take a different approach?",
+          "createdAt": "2026-10-13T14:51:09Z",
+          "updatedAt": "2026-10-13T14:51:09Z"
+        },
+        {
+          "author": "Mayur021",
+          "authorAssociation": "NONE",
+          "body": "One issue per gap is the right shape, and closing this is fine by me.\n\nOne item to carry out of the thread, and it should not become an AIMS issue because it is not an AIMS gap. The replay finding from 1 October is in draft-gilda-wimse-agent-audit-record. 4.4 requires three recomputes, one of them the ordered write chain. 4.6 says a verifier \"replays the write chain from the before-state root and compares the result with the second subject\" entry, and 5.3 requires that entry's digest to equal the after-state root. But preStateDigest and postStateDigest each appear exactly once in the document, both inside the example on page 10, and no section defines how a write's pre-state relates to the running root.\n\nSo the replay is recoverable from Appendix B, and it is now stated in the corpus README, but not from the normative text that requires it.\n\n@astrogilda that one is yours rather than this tracker's. Putting it here so it is on the record before the close rather than lost in it.",
+          "createdAt": "2026-10-13T14:59:17Z",
+          "updatedAt": "2026-10-13T14:59:17Z"
+        },
+        {
+          "author": "bc-pi",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@PieterKas maybe. I don't honestly know. But I do know how I feel every time I get a notification of a new comment here. And it's not great. ",
+          "createdAt": "2026-10-13T16:07:25Z",
+          "updatedAt": "2026-10-13T16:07:25Z"
         }
       ]
     },
@@ -6642,7 +6663,7 @@
       "labels": [],
       "body": "Clarified the use of OAuth 2.0 Token Introspection and its role in validating opaque tokens, ensuring the framework supports various token formats while maintaining authorization semantics. See issue #151",
       "createdAt": "2026-09-21T14:20:48Z",
-      "updatedAt": "2026-10-12T17:30:35Z",
+      "updatedAt": "2026-10-13T14:54:39Z",
       "baseRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
       "baseRefName": "main",
       "baseRefOid": "bfff2ebf382eb0e8de156ee1e818c84c5f8c0ba2",
@@ -6667,6 +6688,13 @@
           "body": "in the LI thread referenced by issue #151, Joe DeCock said the \"dry irony\" of the text \"(the mechanism is called introspection despite the word having nearly the opposite meaning)\" made him laugh. \r\n\r\nI hope we can agree that laughter is good. And the truth is also good. \r\n\r\nDo we need to preemptively expunge statements of truth?",
           "createdAt": "2026-10-12T17:30:35Z",
           "updatedAt": "2026-10-12T17:30:35Z"
+        },
+        {
+          "author": "PieterKas",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I for one am in favour of truth. I also don't have context on the naming decision for \"introspection\" and want to take care not to unnecessarily re-visit old debates. Happy to hear from co-authors, but if there is agreement that the current text is not unduly controversial, changing it may not serve a great purpose.",
+          "createdAt": "2026-10-13T14:54:39Z",
+          "updatedAt": "2026-10-13T14:54:39Z"
         }
       ],
       "reviews": [
@@ -6763,13 +6791,13 @@
       "labels": [],
       "body": "Added reference to the WISE draft in the document and updated the eventing mechanisms to include WISE. see #153",
       "createdAt": "2026-10-09T14:02:21Z",
-      "updatedAt": "2026-10-12T12:56:23Z",
+      "updatedAt": "2026-10-14T15:58:52Z",
       "baseRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
       "baseRefName": "main",
       "baseRefOid": "bfff2ebf382eb0e8de156ee1e818c84c5f8c0ba2",
       "headRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
       "headRefName": "PieterKas-patch-26",
-      "headRefOid": "7064d94e45ee40a516a4856c8500379174240e51",
+      "headRefOid": "fdd134f679197ca398e50796908417e4e26d8437",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -6793,6 +6821,112 @@
               "body": "looks like this being removed is maybe why it's failing\n```\ndraft-ietf-wimse-aims.xml(0): Error: IDREF attribute target references an unknown ID \"SPIFFE-WIT-SVID\", at None\n/github/workspace/draft-ietf-wimse-aims.xml(10): Error: Invalid document before running preptool.\nUnable to complete processing draft-ietf-wimse-aims.xml\n```\n\n",
               "createdAt": "2026-10-12T12:56:23Z",
               "updatedAt": "2026-10-12T12:56:23Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOQP22qc8AAAABSCf4kg",
+          "commit": {
+            "abbreviatedOid": "7064d94"
+          },
+          "author": "PieterKas",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-13T14:56:32Z",
+          "updatedAt": "2026-10-13T14:56:33Z",
+          "comments": [
+            {
+              "originalPosition": 17,
+              "body": "Thanks for flagging it Brian - it should not be removed.",
+              "createdAt": "2026-10-13T14:56:32Z",
+              "updatedAt": "2026-10-13T14:56:33Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOQP22qc8AAAABSC-3hw",
+          "commit": {
+            "abbreviatedOid": "2bbdb05"
+          },
+          "author": "identitymonk",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Proposal of rewording",
+          "createdAt": "2026-10-13T15:31:24Z",
+          "updatedAt": "2026-10-13T15:33:38Z",
+          "comments": [
+            {
+              "originalPosition": 6,
+              "body": "Should it be the .md file of the HTML page? https://openid.github.io/ssf-wise-profile/",
+              "createdAt": "2026-10-13T15:31:24Z",
+              "updatedAt": "2026-10-13T15:33:38Z"
+            },
+            {
+              "originalPosition": 27,
+              "body": "Any participant in the system, including the Agent, Tool, System, LLM or other resources and service MAY subscribe to change notifications using eventing mechanisms such as the OpenID Shared Signals Framework {{SSF}} and its profiles to receive security and authorization-relevant signals including but not limited to Continuous Access Evaluation Profile {{CAEP}}, Risk Incident Sharing and Coordination {{RISC}} or Workload Identity Security Events {{WISE}} . Upon receipt of a relevant signal (e.g., session revoked, risk level change, subject disabled, token replay suspected, risk elevated), the recipient SHOULD remediate by attenuating access, such as terminating local sessions, discarding cached tokens, re-acquiring tokens with updated constraints, reducing privileges, or re-running policy evaluation before continuing to allow access. Recipients of such signals MUST ensure that revoked or downgraded authorization is enforced without undue delay. Cached authorization decisions and tokens that are no longer valid MUST NOT continue to be used after a revocation or risk notification is received.",
+              "createdAt": "2026-10-13T15:33:06Z",
+              "updatedAt": "2026-10-13T15:33:38Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOQP22qc8AAAABSPiHYQ",
+          "commit": {
+            "abbreviatedOid": "2bbdb05"
+          },
+          "author": "PieterKas",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-14T14:05:22Z",
+          "updatedAt": "2026-10-14T14:05:22Z",
+          "comments": [
+            {
+              "originalPosition": 6,
+              "body": "```suggestion\n    target: https://openid.github.io/ssf-wise-profile/\n```",
+              "createdAt": "2026-10-14T14:05:22Z",
+              "updatedAt": "2026-10-14T14:05:22Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOQP22qc8AAAABSPmfzg",
+          "commit": {
+            "abbreviatedOid": "b622f45"
+          },
+          "author": "PieterKas",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-14T14:10:33Z",
+          "updatedAt": "2026-10-14T14:10:34Z",
+          "comments": [
+            {
+              "originalPosition": 27,
+              "body": "```suggestion\nAny participant in the system, including the Agent, Tool, System, LLM or other resources and service MAY subscribe to change notifications using eventing mechanisms such as the OpenID Shared Signals Framework {{SSF}} and its profiles to receive security and authorization-relevant signals, such as those defined by the Continuous Access Evaluation Profile {{CAEP}}, Risk Incident Sharing and Coordination {{RISC}} or Workload Identity Security Events {{WISE}}. Upon receipt of a relevant signal (e.g., session revoked, risk level change, subject disabled, token replay suspected, risk elevated), the recipient SHOULD remediate by attenuating access, such as terminating local sessions, discarding cached tokens, re-acquiring tokens with updated constraints, reducing privileges, or re-running policy evaluation before continuing to allow access. Recipients of such signals MUST ensure that revoked or downgraded authorization is enforced without undue delay. Cached authorization decisions and tokens that are no longer valid MUST NOT continue to be used after a revocation or risk notification is received.\n```",
+              "createdAt": "2026-10-14T14:10:33Z",
+              "updatedAt": "2026-10-14T14:10:34Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOQP22qc8AAAABSRAAAQ",
+          "commit": {
+            "abbreviatedOid": "bb913cf"
+          },
+          "author": "identitymonk",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Suggestion instead of comments",
+          "createdAt": "2026-10-14T15:53:24Z",
+          "updatedAt": "2026-10-14T15:53:41Z",
+          "comments": [
+            {
+              "originalPosition": 27,
+              "body": "```suggestion\nAny participant in the system, including the Agent, Tool, System, LLM or other resources and service MAY subscribe to change notifications using eventing mechanisms such as the OpenID Shared Signals Framework {{SSF}} and its profiles to receive security and authorization-relevant signals including but not limited to Continuous Access Evaluation Profile {{CAEP}}, Risk Incident Sharing and Coordination {{RISC}} or Workload Identity Security Events {{WISE}} . Upon receipt of a relevant signal (e.g., session revoked, risk level change, subject disabled, token replay suspected, risk elevated), the recipient SHOULD remediate by attenuating access, such as terminating local sessions, discarding cached tokens, re-acquiring tokens with updated constraints, reducing privileges, or re-running policy evaluation before continuing to allow access. Recipients of such signals MUST ensure that revoked or downgraded authorization is enforced without undue delay. Cached authorization decisions and tokens that are no longer valid MUST NOT continue to be used after a revocation or risk notification is received.\n```",
+              "createdAt": "2026-10-14T15:53:24Z",
+              "updatedAt": "2026-10-14T15:53:42Z"
             }
           ]
         }
