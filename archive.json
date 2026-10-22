@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-10-15T03:38:00.890019+00:00",
+  "timestamp": "2026-10-22T03:42:03.257483+00:00",
   "repo": "ietf-wg-wimse/draft-ietf-wimse-aims",
   "labels": [
     {
@@ -203,7 +203,7 @@
       "id": "I_kwDOQP22qc7khEjJ",
       "title": "Add RFC 7523",
       "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/7",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "PieterKas",
       "authorAssociation": "COLLABORATOR",
       "assignees": [
@@ -212,8 +212,8 @@
       "labels": [],
       "body": "> For this, the client MUST use one of the grant types described in {{RFC6749}} as follows:\n\nAdd RFC 7523 assertion grant as one of the options",
       "createdAt": "2026-01-20T14:01:47Z",
-      "updatedAt": "2026-02-02T13:53:40Z",
-      "closedAt": null,
+      "updatedAt": "2026-10-20T13:38:12Z",
+      "closedAt": "2026-10-20T13:38:12Z",
       "comments": [
         {
           "author": "PieterKas",
@@ -688,7 +688,7 @@
       ],
       "body": "How to distinguish between an AI Agent and a regular Oauth client. Some feedback that the Microsoft model makes it explicit  through claims, that say \"this is an agent\" or \"this is an agent acting obo\"\n\nMy mental model for this (could be wrong) is that the RS andAS needs to know that certain identifiers are assigned to agents and treat them differently. The claim name is mostly orthogonal to this, even if there was a separate claim name for agents, you would still need to know which agent and how to treat it differently when making authorisation decisions at the AS or RS.\n\nThe AS and RS will both have to know which identifiers are assigned to agents. This is needed, regardless of which claim is used to express the identifier. Sometimes the client_id is associated with an agent, sometimes not. \n\nThe AS can manage this via registration (e.g. could be metadata in CIMD) and aplpy different policies when issuing access tokens (more restricted, narrower scopes, shorter lived). The RS could use the same mechanism (with caching and so forth) and apply additional restrictions. I can also imagine the actual identifiers in either the credential used to authenticate or in the client_id being structured in a specific way (works inside an enterprise or closed eco-system, needs standard to do it more broadly).\n\nThe messy bit is that in an agentic world the AS and the RS needs to make decisions on the workload/client/agent identifier, which they did not have to do in the past, regardless of the claim name used. If using a different claim name is used as a logic switch in validation logic, that can also be achieved by just having a claim that says \"agent=true\" in the token (or the metadata). \n\nIt may be useful to point which mechanisms needs to be in place to tell if a client is and agent, or just a client (goes a little against the AI is just a workload...)",
       "createdAt": "2026-03-04T14:02:21Z",
-      "updatedAt": "2026-04-07T10:20:15Z",
+      "updatedAt": "2026-10-20T21:49:12Z",
       "closedAt": null,
       "comments": [
         {
@@ -739,6 +739,13 @@
           "body": "One idea is to use the act claims as described here: https://notes.karlmcguinness.com/notes/standardize-act-across-assertion-grants-and-jwt-access-tokens/",
           "createdAt": "2026-04-07T10:20:15Z",
           "updatedAt": "2026-04-07T10:20:15Z"
+        },
+        {
+          "author": "mcguinness",
+          "authorAssociation": "NONE",
+          "body": "Following up on the `act` idea in the blog post linked above, I'd recommend AIMS have the token say explicitly when the client or subject is an agent, and when an agent is acting on behalf of someone, rather than leaving the RS to work it out from client registration. The AS still decides which identifiers are agents, as this issue says; the claim carries that decision to the RS, which then doesn't have to look up the client's registration, something it often can't do across domains.\n\nTwo individual drafts address this: [draft-mora-oauth-entity-profiles](https://datatracker.ietf.org/doc/draft-mora-oauth-entity-profiles/) and my [draft-mcguinness-oauth-actor-profile](https://datatracker.ietf.org/doc/draft-mcguinness-oauth-actor-profile/). They map onto the two claims this issue describes:\n\n- \"This is an agent\": the AS classifies the client and the subject, and tokens carry the result as `client_profile` and `sub_profile`, with `ai_agent` as a value the draft registers.\n- \"This is an agent acting on behalf of someone\": the agent goes in `act` (see my comment on #61), with `act.sub_profile` set to `ai_agent`.\n\nFor example, an agent calling an API as itself (other claims omitted):\n\n```json\n{\n  \"iss\": \"https://as.example.com\",\n  \"sub\": \"https://agents.example.com/inventory-bot\",\n  \"sub_profile\": \"ai_agent\",\n  \"client_id\": \"https://agents.example.com/inventory-bot\",\n  \"client_profile\": \"ai_agent\",\n  \"scope\": \"inventory:read\"\n}\n```\n\nAnd an agent on a shared platform acting for alice, where `client_id` names the platform and `act` names the agent:\n\n```json\n{\n  \"iss\": \"https://as.example.com\",\n  \"sub\": \"https://idp.example.com/users/alice\",\n  \"sub_profile\": \"user\",\n  \"client_id\": \"https://platform.example.com\",\n  \"client_profile\": \"service\",\n  \"act\": {\n    \"iss\": \"https://platform.example.com\",\n    \"sub\": \"https://platform.example.com/agents/travel-assistant\",\n    \"sub_profile\": \"ai_agent\"\n  },\n  \"scope\": \"booking:create\"\n}\n```\n\nWhen the AS emits these claims and advertises that it does, an RS can tell the two apart, and tell either from a non-agent client, from the token alone.\n\nThe AS decides through registration: a client declares `client_profile`, and the AS validates it and can change it. A pending change lets a Client ID Metadata Document declare it too, with the AS still deciding whether to accept it ([Sreyanth/draft-mora-oauth-entity-profiles#5](https://github.com/Sreyanth/draft-mora-oauth-entity-profiles/pull/5)).\n\nConcretely, one sentence in \"Use of OAuth 2.0 Access Tokens\", next to the text proposed in #61:\n\n> The Authorization Server can indicate that the client or the subject is an Agent with the `client_profile` and `sub_profile` claims and the `ai_agent` value [ENTITY-PROFILES]; when an Agent acts on behalf of a subject, `act.sub_profile` classifies the Agent [ENTITY-PROFILES][ACTOR-PROFILE].\n",
+          "createdAt": "2026-10-20T21:49:12Z",
+          "updatedAt": "2026-10-20T21:49:12Z"
         }
       ]
     },
@@ -754,7 +761,7 @@
       "labels": [],
       "body": "Relating to https://datatracker.ietf.org/doc/html/draft-klrc-aiagent-auth-00#section-10.2 I think, I had the question, \"didn't see explicit recommendation to lean on the act claim to carry agent identity, and the sub claim to carry user identity.\u00a0 I think we're aligned that this is a fundamental requirement to express delegation, right?\" \n\nI think the answer is \"no\" but the reasons are somewhat murky (regular old oauth delegation is expressed somewhat implicitly by it being oauth and possibly/probably the client identifier in the access token while token exchange came along later with the act claim). And it might be worthwhile to give a little more explanation in the draft.  ",
       "createdAt": "2026-03-05T17:58:29Z",
-      "updatedAt": "2026-04-07T10:22:21Z",
+      "updatedAt": "2026-10-20T21:38:37Z",
       "closedAt": null,
       "comments": [
         {
@@ -791,6 +798,13 @@
           "body": "Stapling this blog post to the issue as input to the discussion: https://notes.karlmcguinness.com/notes/standardize-act-across-assertion-grants-and-jwt-access-tokens/",
           "createdAt": "2026-04-07T10:22:21Z",
           "updatedAt": "2026-04-07T10:22:21Z"
+        },
+        {
+          "author": "mcguinness",
+          "authorAssociation": "NONE",
+          "body": "Building on the blog post Pieter linked: I've since written it up as [draft-mcguinness-oauth-actor-profile](https://datatracker.ietf.org/doc/draft-mcguinness-oauth-actor-profile/), and its goal is to make the actor explicit in the token rather than leaving it to be inferred from client registration, which is the implicit-versus-explicit question this issue raises. Plain OAuth expresses delegation implicitly, through the `client_id` in the access token; token exchange made it explicit with `act`. The draft keeps both.\n\nI'd recommend AIMS do the same: keep `client_id` as the agent identifier when the agent is its own OAuth client in one trust domain, and convey the agent explicitly in `act` when `client_id` can't identify it, with an informative reference to the draft. Implicit delegation breaks down when:\n\n- one client registration serves many agents, so `client_id` names the platform rather than the agent (#145);\n- intermediaries exchange the token, so `client_id` names only the latest client and loses who acted before it;\n- the token crosses a trust domain, where a `client_id` is only meaningful to the AS that registered it (#113).\n\nExplicit `act` fills those gaps: it names the agent, records the chain of who acted, and `act.iss` gives the agent's identifier a namespace other domains can interpret, while `client_id` keeps identifying the client. The draft also covers migration (Section 12.1.2): issuers can emit both forms during a transition, and deployments without `act` can keep their client-based policy.\n\nConcretely, in \"Use of OAuth 2.0 Access Tokens\", qualify the existing sentence and add two:\n\n> When the Agent is the OAuth client, the access token includes the Agent identity as the 'client_id' claim as defined in Section 2.2 of RFC 9068. When the Agent is not the OAuth client, or the token is exchanged by intermediaries or across trust domains, the Agent is conveyed in the `act` claim per [ACTOR-PROFILE], and `client_id` continues to identify the client. A resource server receiving a token with `act` uses the actor identified there, together with `sub`, when determining whether access should be allowed.\n",
+          "createdAt": "2026-10-20T21:38:37Z",
+          "updatedAt": "2026-10-20T21:38:37Z"
         }
       ]
     },
@@ -924,9 +938,17 @@
       "labels": [],
       "body": "From George Fletcher\n\nSection 10.4\n- given that a transaction token is a bearer token, I\u2019m not sure it can be the sole method of obtaining a new access token via token exchange. I think it can be good evidence in such an exchange. Regardless, I\u2019m not sure the security properties of such an exchange are well understood.",
       "createdAt": "2026-03-13T19:45:33Z",
-      "updatedAt": "2026-03-13T19:45:33Z",
+      "updatedAt": "2026-10-20T22:34:33Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "mcguinness",
+          "authorAssociation": "NONE",
+          "body": "As the issue suggests, I'd recommend AIMS treat the transaction token as evidence in that exchange rather than the credential that authorizes it, so a stolen transaction token isn't enough on its own to obtain an access token. The security properties are the ones both drafts below support:\n\n- the AS validates the transaction token's signature, expiry, and audience;\n- the requesting workload authenticates with its own credentials and is authorized by the AS;\n- the issued token's authority is capped at the transaction token's;\n- the access token should be sender-constrained to the workload.\n\nTwo individual drafts already work this way:\n\n- George's own [draft-fletcher-oauth-txn-token-chaining-profile](https://datatracker.ietf.org/doc/draft-fletcher-oauth-txn-token-chaining-profile/) covers crossing a trust domain: the workload presents the transaction token as `subject_token` and receives a JWT authorization grant no broader than the transaction token's `scope`, which it redeems at the target AS for a sender-constrained access token.\n- My [draft-mcguinness-oauth-actor-profile](https://datatracker.ietf.org/doc/draft-mcguinness-oauth-actor-profile/) covers a direct exchange for an access token (Section 6.3.1.3): the workload's own credential is the `actor_token` when it isn't already the transaction token's actor, `req_wl` stays out of the access token, and the AS rejects with `invalid_scope` when it can't map the transaction token's authority to the requested scope.\n\nProposed text, replacing the last sentence of \"Risk Reduction with Transaction Tokens\":\n\n> A transaction token MAY be presented as the subject token in an OAuth 2.0 Token Exchange to obtain an access token for another service. Because a transaction token is a bearer token scoped to one trust domain, the requesting workload authenticates with its own credentials, the issued access token conveys no more authority than the transaction token, and the access token SHOULD be sender-constrained to the requesting workload. To reach a service in another trust domain, the workload follows OAuth Identity and Authorization Chaining, for example with the Transaction Token chaining profile.\n",
+          "createdAt": "2026-10-20T22:34:33Z",
+          "updatedAt": "2026-10-20T22:34:33Z"
+        }
+      ]
     },
     {
       "number": 68,
@@ -1417,7 +1439,7 @@
       "labels": [],
       "body": "Reviewing the draft further, so this feels like the biggest gap in the security model right now. Section 10.4 handles single-service microservice chains via TxTokens. Section 10.3.3 covers agents accessed by other agents. But the full A-> B -> C delegation chain across domains isn't formally addressed.\n\nIMHO the security section should cover:\n\n**Scope narrowing** - at each delegation step, effective scope can only decrease or stay the same. Never increase. Well-established in capability security lit (Macaroons, Biscuit, consistent with RFC 8693 delegation semantics).\n\n**Scope derivation** - when A delegates to B, B's effective scope = A's delegatable scope intersected with B's own authorized scope intersected with the explicit delegation grant. Prevents privilege amplification through delegation.\n\n**Accountability chain** - each delegation step produces a verifiable record. Delegator, delegatee, timestamp, scope, crypto binding. You need this for forensics and honestly for any compliance story.\n\n**Depth limits** - unbounded chains get messy fast from an audit perspective. Configurable max depth makes sense. Sensitive ops should probably be restricted to direct invocation only.\n\nThese principles are grounded in capability security literature and consistent with RFC 8693 Token Exchange delegation semantics. They translate pretty naturally to TxToken chains in this framework.",
       "createdAt": "2026-03-23T20:04:39Z",
-      "updatedAt": "2026-10-13T02:59:47Z",
+      "updatedAt": "2026-10-21T04:00:15Z",
       "closedAt": null,
       "comments": [
         {
@@ -1433,6 +1455,20 @@
           "body": "The distinction here between multi-hop delegation integrity and changing authorization status is especially relevant to a boundary I am trying to understand.\n\nThe thread already notes that token signature and expiry do not, by themselves, evaluate revocation or another status input that may have changed since issuance.\n\nFor an A -> B -> C delegation spanning trust domains, where is the current transitive authority state expected to be resolved at the final effect boundary?\n\nFor example, if A revokes the upstream grant while B or C still holds a cryptographically valid downstream token, is the resource server expected to:\n\n- reconstruct and evaluate the full delegation chain;\n- rely on issuer/SSF status events and maintain its own current graph;\n- query the relevant authorization servers;\n- or consume a separate authority-state resolver?\n\nThere is also an alternate-path case: if C has two independent valid authority paths and one is revoked, revocation of that branch should not necessarily invalidate C globally.\n\nIs ownership of that live transitive resolution intentionally left to deployment architecture / companion work, or is there an existing WIMSE/OAuth component expected to provide it?\n\nI am trying to identify the responsibility boundary, not propose that AIMS itself needs to maintain global authority state.",
           "createdAt": "2026-10-13T02:59:47Z",
           "updatedAt": "2026-10-13T02:59:47Z"
+        },
+        {
+          "author": "mcguinness",
+          "authorAssociation": "NONE",
+          "body": "I'd recommend AIMS describe the four properties in this issue as expectations for a delegation chain, and leave the mechanisms to other specifications, following the properties-versus-mechanisms split discussed on the list. They could sit alongside Mikhail's first insertion, which ties later hops back to the user's initial grant, for example as a paragraph in Security Considerations:\n\n> When authority passes through a chain of Agents, possibly across trust domains, each issuer confirms that the new actor may act for the subject and limits the authority it grants to what the inbound token carried and what that actor is permitted to exercise. Each issuer also enforces a maximum chain depth, and each hop can be recorded in a form downstream parties can verify. A resource server can restrict sensitive operations to direct invocation.\n\nSeveral mechanisms can provide these properties, and AIMS doesn't need to pick one; Badal's example could show one of them end to end. Across domains, the OAuth-based ones can work with [OAuth identity chaining](https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-chaining/), which AIMS already uses for cross-domain access. Some examples, including individual drafts I've been working on:\n\n- Scope narrowing: Macaroon- and Biscuit-style capability tokens attenuate offline, and Transaction Tokens downscope within a trust domain. In [draft-mcguinness-oauth-actor-profile](https://datatracker.ietf.org/doc/draft-mcguinness-oauth-actor-profile/), each Token Exchange caps the issued token's scope at the authority of the inbound token, and [authority bounds](https://mcguinness.github.io/draft-mcguinness-oauth-actor-profile/#go.draft-mcguinness-oauth-actor-authority-bounds.html) (editor's copy) lets a downstream recipient check that no hop expanded it.\n- Scope derivation: this is policy at the issuing AS. The actor profile, for example, has that AS confirm the new actor is authorized to act for the subject before extending the chain.\n- Accountability chain: audit records such as [draft-gilda-wimse-agent-audit-record](https://datatracker.ietf.org/doc/draft-gilda-wimse-agent-audit-record/) capture each decision. Signed per-hop records let a recipient verify the chain itself rather than trust the latest issuer's `act`: [draft-mw-oauth-actor-chain](https://datatracker.ietf.org/doc/draft-mw-oauth-actor-chain/) pairs actor-signed evidence with AS acceptance at each step, and [draft-liu-oauth-chain-delegation](https://datatracker.ietf.org/doc/draft-liu-oauth-chain-delegation/) records each hop's constraints with confirmation from the delegating agent. My [actor receipts](https://datatracker.ietf.org/doc/draft-mcguinness-oauth-actor-receipts/) and [actor proofs](https://datatracker.ietf.org/doc/draft-mcguinness-oauth-actor-proofs/) add issuer-signed and actor-signed records per hop.\n- Depth limits: each issuer enforces a configured maximum, as the actor profile requires, and an RS can require direct invocation (no `act`, or depth 1) for sensitive operations.\n\nOn revoking an upstream grant while a downstream token is still valid, I think handling that falls to the issuers along the chain, not the RS, which shouldn't have to rebuild the chain to make a decision. Mikhail's second insertion, on status that changes after issuance, points the same way, and [draft-jackson-wimse-evaluation](https://datatracker.ietf.org/doc/draft-jackson-wimse-evaluation/) covers how a verifier treats status inputs that are stale or unavailable. An issuer that learns of a revocation should refuse new tokens at the next exchange, SSF events can carry that revocation to the parties that need it, and short token lifetimes plus introspection at sensitive resources bound what's left. Where a chain crosses domains through a common IdP, [ICA](https://datatracker.ietf.org/doc/draft-mcguinness-oauth-id-continuation-assertion/) is one way to keep the hop tree at the IdP: revoking a hop stops its subtree at the next continuation while sibling branches keep working, which covers the alternate-path case.\n",
+          "createdAt": "2026-10-20T22:15:48Z",
+          "updatedAt": "2026-10-20T22:15:48Z"
+        },
+        {
+          "author": "rafaelasor",
+          "authorAssociation": "NONE",
+          "body": "@mcguinness One more mechanism, for scope narrowing, a per-hop record the recipient verifies, and depth limits: [draft-asor-wimse-agent-delegation-chain-02](https://datatracker.ietf.org/doc/draft-asor-wimse-agent-delegation-chain/02/). Each hop is a token that commits to its parent by hash, with `sub` identical at every hop. From the chain alone a verifier establishes that each hop's authority is a subset of its parent's and that depth is within the bound the root set. Table 1 in Section 6.1 separates that from what needs the request. My Python and TypeScript implementations score the 35 published vectors to the same outcomes.\n\nOn revoking an upstream grant: in the -02 the grant behind the root is not in the chain. A revoked token anywhere in the chain fails step 7 against its status list, and a list that cannot be fetched also denies. Whether the grant behind the root still stands has to be looked up beside the chain, and the -02 does not define that lookup. I wrote the same on the WIMSE list on 20 October: https://mailarchive.ietf.org/arch/msg/wimse/TpPO2Kz6MpO9IzwXZudSgGf5mDQ/\n",
+          "createdAt": "2026-10-21T04:00:15Z",
+          "updatedAt": "2026-10-21T04:00:15Z"
         }
       ]
     },
@@ -1847,7 +1883,7 @@
       "labels": [],
       "body": "\nThe \"Cross Domain Access\" section describes the cross-domain exchange purely in\nterms of the user's identity assertion. The agent appears only as the\nauthenticated OAuth client performing the exchange; its own identity (which\n\"Agent Identifiers\" / \"Agent Credentials\" go to some trouble to establish) is\nnot carried into the issued authorization grant or the downstream access token.\nThat loses attribution at the resource server in the other domain, where it\nmatters for audit logs and per-agent policy.\n\n## Why this matters\n\nThe deployment I keep running into with Model Context Protocol servers: a\nuser has one or more assistant-style agents that act on their behalf against\nthe SaaS systems the user already signs into. Each agent is a distinct workload\nwith its own identifier and credential. The agents often run when the user\nisn't there (scheduled jobs, long background tasks).\n\nBecause no profile yet defines how the agent's identity is carried into the\ngrant, platforms hold a per-user refresh token for each downstream service and\nshare it across every agent on the platform. The downstream audit log\nattributes everything to the user. You can't scope one agent more narrowly than\nanother, and you can't revoke one agent without revoking the user's entire\ngrant to the platform.\n\n## What I'd like the section to say\n\nThe enterprise IdP (acting as the authorization server for the token exchange)\nis already the policy point for which users can reach which federated apps. The\nsame exchange can carry the agent: the resulting JWT authorization grant\nidentifies the user as the subject and the agent as the actor (`act`, RFC 8693\n\u00a74.1), the IdP applies policy to the (user, agent, audience) tuple, and the\nresource authorization server carries the actor through into the access token\nit issues. Requests outside what the user delegated to that agent are where the\nHuman in the Loop section's CIBA guidance applies. Per-invocation narrowing is\nalready expressible with `scope` / `authorization_details` on the exchange\nrequest.\n\nThis isn't specific to ID-JAG \u2014 the same gap exists if the agent uses Identity\nChaining, and the same RFC 8693 actor machinery is the answer in both cases.\nIt's also the cross-domain version of what #61 is asking for in the\nsingle-domain case (`act` for the agent, `sub` for the user); whatever that\nissue concludes should apply here too.\n\nID-JAG's current editor's draft already has the extension point: it defines\noptional `actor_token` / `actor_token_type` parameters on the token exchange\nrequest but states \"This specification does not define normative processing\nrequirements for `actor_token` or whether an `act` claim is included in the\nissued ID-JAG. Future profiles or extensions MAY define how `actor_token` is\nvalidated, how it influences policy evaluation, and whether it results in an\n`act` claim in the issued ID-JAG.\" Related discussion in\n[oauth-identity-assertion-authz-grant#73](https://github.com/oauth-wg/oauth-identity-assertion-authz-grant/issues/73)\nand draft-mcguinness-oauth-actor-profile.\n\n## The underspecified part, and where to put it\n\nThe user delegates while they're present, but the agent runs at 3am, at which\npoint their SSO session has expired. Something has to bridge that gap,\nand today it's a bunch of refresh tokens. The options I can see for\nwhat replaces them:\n\n1. An IdP-side delegation record. The agent authenticates as itself and asks\n   for a grant for subject U; the IdP checks its records. The agent never\n   holds anything that confers the user's authority outside a single\n   short-lived audience-restricted grant, and revocation is deleting a row.\n   The costs: RFC 8693 requires a `subject_token` \u2014 an actual security token\n   for the party you're acting for, not just their identifier \u2014 which the agent\n   doesn't have under this option. We need a way to just pass a subject identifier.\n2. A per-(user, agent) refresh token for the IdP, sender-constrained to the\n   agent's key. Works with the `refresh_token` subject token type ID-JAG\n   already allows, but each agent now holds a long-lived artifact carrying the\n   user's authority, which is the kind of artifact I'm trying to get rid of.\n3. An explicit delegation assertion presented as the subject token: a signed\n   statement that U authorized A for given scopes until T (`may_act`\n   territory, RFC 8693 \u00a74.4). The most auditable option, but would need more\n   specification.\n\nI lean towards (1), but I'd rather get agreement on where this gets specified\nthan on which option wins. It could be a subsection here (this document already\nstitches the relevant specs together and identifies gaps), the ID-JAG actor profile\nwork, or a separate companion profile. Open to feedback on which.\n\n## Asks\n\n1. Is \"agent acting on behalf of a user, as a distinct identifiable actor,\n   possibly while the user is offline\" in scope for the Cross Domain Access\n   section?\n2. Where should the actor processing rules and the standing-delegation\n   representation live \u2014 here, the ID-JAG actor profile, or a companion draft?\n3. Whichever way that lands, I'm happy to write the text: the small delta here\n   (carry the agent as the actor in the cross-domain grant and preserve it\n   into the issued access token), and/or contribute to the profile that\n   defines the mechanics.\n",
       "createdAt": "2026-05-22T21:48:06Z",
-      "updatedAt": "2026-06-02T19:30:44Z",
+      "updatedAt": "2026-10-20T19:11:08Z",
       "closedAt": null,
       "comments": [
         {
@@ -1884,6 +1920,13 @@
           "body": "@pcarleton - I feel like we might be talking past one another? I am not thinking of expanding the role of the workload identiy provider, but rather putting the responsibility of remembering the delegation on the IdP and letting the agent retrieve an access token for the user using its workload credentials. I don't think this expands the role of the workload IdP at all, but rather let it focus on what it is good at, while getting the access token from the IdP/AS which has the user context and history of the delegation that was performed. ",
           "createdAt": "2026-06-02T19:30:44Z",
           "updatedAt": "2026-06-02T19:30:44Z"
+        },
+        {
+          "author": "mcguinness",
+          "authorAssociation": "NONE",
+          "body": "Paul, late to this, but I've written two individual drafts that address both halves of what you describe, plus a third for the longer term. Together they cover who's acting, how the agent continues without the user, and what the user approved.\n\n[draft-mcguinness-oauth-actor-profile](https://datatracker.ietf.org/doc/draft-mcguinness-oauth-actor-profile/) carries the agent in the grant. ID-JAG leaves `actor_token` and `act` to \"future profiles or extensions,\" and this is meant to be one of them. The agent sends the user's ID Token as `subject_token` and its own (a WIMSE workload credential works) as `actor_token`, and the IdP issues an ID-JAG with the user in `sub` and the agent in `act`. The SaaS AS carries `act` into the access token, so the RS can see and authorize the (user, agent) pair. Appendix B walks through the user-present version of your flow. If you're still up for writing the AIMS text, a sentence and an informative reference should do it.\n\nThe 3am part, when the agent has no valid ID Token, is what [draft-mcguinness-oauth-id-continuation-assertion](https://datatracker.ietf.org/doc/draft-mcguinness-oauth-id-continuation-assertion/) (ICA) handles. Its background agent example, a daily calendar briefing after logout, is close to your scenario, though the topology differs. Mapped onto your options, it keeps option 1's IdP-side record, uses a refresh token's grant (option 2) only to anchor that record at setup so the record outlives the user's session, and swaps option 3's standing token for a single-use one minted per run.\n\nRoughly how it works:\n\n1. At setup, the agent exchanges the user's refresh token for an ID-JAG to the agent platform's own AS; ICA needs the platform to be an OAuth resource in its own right. When the IdP issues that ID-JAG, it records the delegation, including which agents can continue it and what they can access.\n2. At 3am, a Continuation Assertion Issuer (CAI) in the platform's domain vouches that the agent is acting under the ID-JAG the platform's AS accepted. It gives the agent a short-lived, key-bound assertion that points at the IdP's record by an opaque handle and doesn't name the user.\n3. The agent sends that assertion to the IdP as its `subject_token`, authenticating as itself, with a DPoP proof. That's the real token RFC 8693 was missing under your option 1.\n4. The IdP checks the record against current policy, works out the user's subject at the target, and issues an ID-JAG with the agent in `act`.\n5. The agent redeems that ID-JAG at the SaaS AS, which needs only normal ID-JAG support for DPoP-bound grants.\n\nRevoking the chain stops every agent on it; to cut off one agent, the IdP refuses that agent's next continuation, since every run is checked against the record and current policy. I think ICA should let the platform drop the refresh token after setup, but it doesn't say so yet.\n\nIt isn't free for a deployment like yours, though. The platform has to run that AS and CAI, and each agent needs a client identity at every SaaS AS it reaches, which Pieter was hoping to avoid; CIMD may make that cheap, but ICA doesn't address it yet. ICA's first open item asks whether the IdP could bind a credential directly to the agent and skip the CAI, which is close to your option 1 plus Pieter's direct approach. I'd like your read on that from the MCP side.\n\nReading Pieter's last comment, you two seem to agree the record belongs with whoever has the user context. What's still open is whether the agent gets an ID-JAG from the IdP or goes straight to the resource AS with its workload credential; the actor profile doesn't care where the record lives, but under RFC 8693 either route needs some `subject_token`, and ICA supplies one on the ID-JAG route.\n\nLonger term, the record behind your option 3 is what [draft-mcguinness-oauth-mission](https://datatracker.ietf.org/doc/draft-mcguinness-oauth-mission/) defines, though as AS state rather than a token the agent carries: a user-approved Mission with its derived authority and expiry, a `mission` claim in every token issued under it, and issuance that stops when the Mission is revoked. It already builds on AIMS for agent identity. Across domains, the IdP re-mints a fresh, audience-scoped ID-JAG for each crossing while the Mission is active, so nothing long-lived crosses a boundary; the agent asks with the Mission's refresh token, which resolves to that one Mission, close to Pieter's narrowly scoped refresh token idea. For your topology that path needs no platform AS or CAI, at the cost of the agent holding that Mission-scoped refresh token. A continuation companion in progress uses ICA as the transport.\n\nSo I think an agent acting for a user as a distinct, identifiable actor, even while the user is offline, belongs in the Cross Domain Access section, and that section can point at these drafts rather than specify the mechanics.\n",
+          "createdAt": "2026-10-20T19:11:08Z",
+          "updatedAt": "2026-10-20T19:11:08Z"
         }
       ]
     },
@@ -2084,7 +2127,7 @@
       "labels": [],
       "body": "_Source: email from Yaron Sheffer to the WIMSE mailing list, [Review of draft-klrc-aiagent-auth (editor's copy)](https://mailarchive.ietf.org/arch/msg/wimse/3baCsNZnK4XS5nH-iHWuaPJlbK0/). Quoted verbatim below._\n\nSection 9.5 describes exchanging access tokens for transaction tokens and then using transaction tokens to obtain access tokens (for downstream calls). This is architecturally circular and raises unresolved questions about how authorization scope is preserved or narrowed across this chain. Transaction tokens (draft-ietf-oauth-transaction-tokens) do not carry a standard `scope` claim, so it is unclear how scope semantics are maintained when re-obtaining an access token from a transaction token. This should be resolved or at least explicitly flagged as an open issue.\n",
       "createdAt": "2026-06-04T11:14:21Z",
-      "updatedAt": "2026-06-09T17:34:18Z",
+      "updatedAt": "2026-10-21T06:13:14Z",
       "closedAt": null,
       "comments": [
         {
@@ -2142,6 +2185,20 @@
           "body": "Pieter's law lands. The brownfield need is where the real authorization-decision pain lives. One reframe that may help bridge the views above: separate the carrier (token format) from the declaration (chain-level commitments + action class).\n\n  Greenfield carries the declaration as a token claim (TxnT, ID-JAG, Access Token chain). Brownfield carries it as a sidecar the gate reads, the legacy app never sees. Chain id + worst-case action class survive either path.\n\n  The 6-property chain audit schema (joint with Mallikarjunarao Sunke during CSA NHI peer review, under IAM WG review for v1.0) is carrier-agnostic for this reason. Properties bind at chain start and propagate independent of which token type carries them downstream. Different carriers, same chain-level commitments.\n\n  This means Section 9.5's resolution can stay format-flexible without losing scope continuity, and the brownfield/greenfield split becomes a carrier choice rather than a different-standards split.",
           "createdAt": "2026-06-09T17:34:18Z",
           "updatedAt": "2026-06-09T17:34:18Z"
+        },
+        {
+          "author": "mcguinness",
+          "authorAssociation": "NONE",
+          "body": "The sequence is circular only in token format. Each exchange from access token to transaction token and back to access token is bounded by its input, so authority can't grow along the way, and I'd recommend AIMS say that explicitly.\n\nMost of that is already in the Transaction Tokens draft. The TTS keeps the transaction token's scope within the scope of the subject token (Section 13.6), rejects the request when it can't determine that scope (Section 13.14), and a replacement transaction token can only reduce what's permitted (Section 13.15).\n\nThe step back to an access token is covered in my comment on #67; both drafts mentioned there cap it at the transaction token's authority. The case that matters most for scope semantics is when the authorization model inside the trust domain differs from the OAuth scopes used outside it, as Section 13.6 notes: the AS has to map the transaction token's authority to the requested scope or reject.\n\nA sentence in \"Risk Reduction with Transaction Tokens\" would make this explicit:\n\n> Each exchange in this sequence is bounded by its input: a transaction token conveys no more authority than the access token it was issued from, and an access token obtained with a transaction token conveys no more authority than that transaction token. An authorization server that cannot determine a transaction token's authority in the scope vocabulary of the requested access token rejects the request.\n",
+          "createdAt": "2026-10-20T22:34:34Z",
+          "updatedAt": "2026-10-20T22:34:34Z"
+        },
+        {
+          "author": "Mayur021",
+          "authorAssociation": "NONE",
+          "body": "The bounded-by-input framing is right and the proposed sentence is worth adding. One thing it does not reach, and I think AIMS should say which of the two it is claiming.\n\nBounding each exchange by its input gives non-amplification at every hop. Establishing that the bound held end to end is a different claim, and it needs the chain to be reconstructable after the carrier has changed. A verifier holding an access token obtained from a transaction token can check that this exchange was bounded. Showing that the same bound ran unbroken from the original access token requires something that survives each format transition and that a third party can join on.\n\nThat is the gap I raised earlier in this issue, and it is separable from Yaron's circularity point: the circularity is a format artifact, the reconstructability is not.\n\nCorrecting my own earlier comment on one detail. I cited AISVS C9.2.7 for the worst-case class chain rule. That was a pre-publication number. In the published standard the rule is 9.2.10, which requires an approval gate for a multi-step or multi-agent chain to enforce the highest-impact reversibility classification present anywhere in the chain, and 1.01 adds the clause that the chain must be established by a component outside the control of the agent being gated. 1.01 also adds 9.2.11, which blocks execution exceeding the approved chain until re-approval, enforced against the cumulative chain. The second clause is the one that matters here: without it the chain is whatever the presenting party declares it to be.\n\nSuggested addition to the proposed sentence, or as a following one:\n\n> Non-amplification at each exchange does not by itself establish that the bound held across the sequence. Where a deployment needs that end-to-end claim, the authority chain is identified independently of the token format carrying it, so that a relying party can reconstruct the sequence across exchanges rather than inferring it from the token it holds.",
+          "createdAt": "2026-10-21T06:13:14Z",
+          "updatedAt": "2026-10-21T06:13:14Z"
         }
       ]
     },
@@ -2837,15 +2894,15 @@
       "id": "I_kwDOQP22qc8AAAABSkG-jQ",
       "title": "Add reference to WISE",
       "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/153",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "PieterKas",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "The WISE draft was adopted by the OpenID Foundation, so we can reference it in AIMS.",
       "createdAt": "2026-09-22T14:11:27Z",
-      "updatedAt": "2026-09-22T14:11:27Z",
-      "closedAt": null,
+      "updatedAt": "2026-10-20T13:34:29Z",
+      "closedAt": "2026-10-20T13:34:29Z",
       "comments": []
     },
     {
@@ -2861,6 +2918,38 @@
       "body": "Section 10.10 describes OAuth discovery mechanisms that can help Agents operate in dynamic environments, including Authorization Server Metadata, Protected Resource Metadata, and Client ID Metadata Documents.\nWould it be useful to also mention draft-ietf-oauth-rar-metadata-remediation in this section?\nRAR (RFC 9396) allows clients to request structured authorization_details. In a dynamic Agent-to-Tool interaction, an Agent may already know the identity and authorization endpoints for a Tool, but still not know which RAR authorization_details types and structures are supported by the relevant Authorization Server.\ndraft-ietf-oauth-rar-metadata-remediation defines metadata that enables clients to discover supported authorization detail types and related schemas.\nWould it make sense for Section 10.10 to include a short informative reference to this work, perhaps under Authorization Server Capability Discovery?\nFor example:\nWhere fine-grained authorization is expressed using Rich Authorization Requests (RAR), an Agent may also need to discover the authorization detail types supported by an Authorization Server. OAuth RAR Metadata can provide metadata describing supported authorization detail types and their structure.\n\nI may be overlooking an existing section that already covers this relationship, so clarification would be helpful.",
       "createdAt": "2026-09-28T13:28:45Z",
       "updatedAt": "2026-09-28T13:28:45Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 159,
+      "id": "I_kwDOQP22qc8AAAABYhewbw",
+      "title": "Add reference to Deferred token Response",
+      "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/159",
+      "state": "OPEN",
+      "author": "PieterKas",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "https://datatracker.ietf.org/doc/draft-ietf-oauth-deferred-token-response/00/",
+      "createdAt": "2026-10-20T11:16:46Z",
+      "updatedAt": "2026-10-20T11:16:46Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 160,
+      "id": "I_kwDOQP22qc8AAAABYn8Dvw",
+      "title": "Section 6: no text for re-provisioning an agent under a new identifier",
+      "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/160",
+      "state": "OPEN",
+      "author": "astrogilda",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "Section 6 of -00 says audit records and delegation \"rely on this identifier remaining stable for the lifetime of the workload identity.\" Sections 6 to 8 do not cover an agent that comes back under a new identifier, which happens after a redeployment, after a lost or compromised key, or when the same software is registered again. #125 covers how the old identifier ends, and this issue covers what follows it. It is one issue for one gap, as Pieter asked on #144.\n\nWith no text, a deployment either starts the new identifier clean, so revocations and audit history stop following the agent, or lets it inherit grants, so re-provisioning can restore authority that a revocation removed. Sub-agents delegated from the old identifier also keep running unless something ends them.\n\nI propose this as a third phase in Section 8:\n\n> 3. *Re-provisioning*: When an agent is provisioned under a new identifier in place of a retired or revoked one, the issuing component SHOULD sign a continuity record that names both identifiers. Audit records, revocations and remediation events of the old identifier remain resolvable from the new one. Authorization, including delegations, does not carry over, and the agent obtains it again as described in Section 10. Sub-agents derived from the old identifier end with it.\n\nThese rules are test cases in agent-evidence-vectors 0.24.0, where twelve recovery cases and seven sub-agent cases each pair an accepted record with a refused twin:\n\n```sh\npip install agent-evidence-vectors==0.24.0\ngo install github.com/probityai/agent-evidence-vectors/cmd/aee-verify@v0.24.0\naee-verify \"$(python3 -c 'import agent_evidence_vectors, pathlib; print(pathlib.Path(agent_evidence_vectors.__file__).parent / \"corpora\" / \"vectors-delegation-lifecycle\")')\"\n```\n\nThe run exits 0 when every case matches its manifest. The corpus README is at https://github.com/probityai/agent-evidence-vectors/tree/v0.24.0/vectors-delegation-lifecycle, and https://github.com/aaif/wg-identity-and-trust/pull/20 runs the same cases in CI.\n",
+      "createdAt": "2026-10-20T18:41:25Z",
+      "updatedAt": "2026-10-20T18:41:25Z",
       "closedAt": null,
       "comments": []
     }
@@ -6784,24 +6873,26 @@
       "id": "PR_kwDOQP22qc8AAAABHjDsFg",
       "title": "Update document to include WISE reference and changes",
       "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/pull/156",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "PieterKas",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "Added reference to the WISE draft in the document and updated the eventing mechanisms to include WISE. see #153",
       "createdAt": "2026-10-09T14:02:21Z",
-      "updatedAt": "2026-10-14T15:58:52Z",
+      "updatedAt": "2026-10-20T13:34:12Z",
       "baseRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
       "baseRefName": "main",
       "baseRefOid": "bfff2ebf382eb0e8de156ee1e818c84c5f8c0ba2",
       "headRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
       "headRefName": "PieterKas-patch-26",
       "headRefOid": "fdd134f679197ca398e50796908417e4e26d8437",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2026-10-20T13:34:12Z",
+      "mergedAt": "2026-10-20T13:34:12Z",
+      "mergedBy": "PieterKas",
+      "mergeCommit": {
+        "oid": "4095365f74c7d4ab4402f6230eed46018d107458"
+      },
       "comments": [],
       "reviews": [
         {
