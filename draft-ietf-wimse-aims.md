@@ -400,6 +400,10 @@ At a minimum, audit events MUST record:
 * posture assessment or risk state influencing the decision
 * remediation or revocation events and their cause
 
+Infrastructure operation, identifier or credential issuance, and accountability for an agent's actions are distinct roles, even when held by one organization. Where deployment policy requires organizational attribution, audit records SHOULD identify the accountable organization, the evidence supporting that attribution, and the interval for which it applies. These may be recorded directly or through an authenticated mapping whose history is retained for the records' retention period.
+
+Where deployment policy requires verification by an authorized party outside the originating deployment, retained records and supporting evidence SHOULD enable that party to establish what the agent identifier denoted and which organization was accountable at the time of the recorded action. This verification needs to remain possible throughout the records' retention period, despite subsequent key or operator changes and without access to the originating deployment's live configuration. No storage or verification mechanism is prescribed.
+
 Monitoring / Observability systems SHOULD correlate events across Agents, Tools, Services, Resources and LLMs to detect misuse patterns such as replay, confused deputy behavior, privilege escalation, or unexpected action sequences.
 
 End-to-end audit is enabled when Agents, Users, Systems, LLMs, Tools, services and resources have stable, verifiable identifiers that allow auditors to trace "which entity did what, using which authorization context, and why access changed over time."
