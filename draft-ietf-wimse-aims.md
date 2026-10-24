@@ -229,6 +229,10 @@ The Secure Production Identity Framework for Everyone ({{SPIFFE}}) identifier is
 
 An agent participating in this framework MUST be assigned exactly one WIMSE identifier, which MAY be a SPIFFE ID.
 
+Audit records ({{agent_monitoring_and_remediation}}) can outlive agent credentials. An assigning deployment SHOULD NOT reassign an identifier to a different workload identity during the deployment's audit retention period, consistent with {{WIMSE-ID}}. If reassignment occurs, records need to distinguish each assignment interval. Deployments retaining records of identifiers assigned elsewhere need enough historical assignment context to interpret those identifiers at the time of the recorded action, independently of the assigner's reuse policy or live configuration.
+
+The trust domain component SHOULD use a name under a globally coordinated hierarchy, such as the fully qualified domain name recommended in {{WIMSE-ID}}. This applies even within a single deployment, since records, delegated grants ({{agent_authorization}}), or agents may later cross its boundary. Delegated portions of the hierarchy also allow disconnected allocation without collisions. Uniqueness alone does not preserve historical meaning when names are reassigned or a namespace changes hands. Exchanged records SHOULD contain or reference the assigning trust domain and enough assignment history to identify the workload identity denoted at the time of the recorded action. This does not change identifier assignment granularity under {{WIMSE-ID}}.
+
 # Agent Credentials {#agent_credentials}
 Agents MUST possess credentials that provide a cryptographic binding to the agent identifier. These credentials are considered primary credentials that are provisioned at runtime. An identifier alone is insufficient unless it can be verified to be controlled by the communicating agent through a cryptographic binding.
 
