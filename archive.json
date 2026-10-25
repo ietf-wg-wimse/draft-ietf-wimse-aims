@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-10-22T03:42:03.257483+00:00",
+  "timestamp": "2026-10-25T03:38:48.945506+00:00",
   "repo": "ietf-wg-wimse/draft-ietf-wimse-aims",
   "labels": [
     {
@@ -761,7 +761,7 @@
       "labels": [],
       "body": "Relating to https://datatracker.ietf.org/doc/html/draft-klrc-aiagent-auth-00#section-10.2 I think, I had the question, \"didn't see explicit recommendation to lean on the act claim to carry agent identity, and the sub claim to carry user identity.\u00a0 I think we're aligned that this is a fundamental requirement to express delegation, right?\" \n\nI think the answer is \"no\" but the reasons are somewhat murky (regular old oauth delegation is expressed somewhat implicitly by it being oauth and possibly/probably the client identifier in the access token while token exchange came along later with the act claim). And it might be worthwhile to give a little more explanation in the draft.  ",
       "createdAt": "2026-03-05T17:58:29Z",
-      "updatedAt": "2026-10-20T21:38:37Z",
+      "updatedAt": "2026-10-24T16:51:36Z",
       "closedAt": null,
       "comments": [
         {
@@ -805,6 +805,13 @@
           "body": "Building on the blog post Pieter linked: I've since written it up as [draft-mcguinness-oauth-actor-profile](https://datatracker.ietf.org/doc/draft-mcguinness-oauth-actor-profile/), and its goal is to make the actor explicit in the token rather than leaving it to be inferred from client registration, which is the implicit-versus-explicit question this issue raises. Plain OAuth expresses delegation implicitly, through the `client_id` in the access token; token exchange made it explicit with `act`. The draft keeps both.\n\nI'd recommend AIMS do the same: keep `client_id` as the agent identifier when the agent is its own OAuth client in one trust domain, and convey the agent explicitly in `act` when `client_id` can't identify it, with an informative reference to the draft. Implicit delegation breaks down when:\n\n- one client registration serves many agents, so `client_id` names the platform rather than the agent (#145);\n- intermediaries exchange the token, so `client_id` names only the latest client and loses who acted before it;\n- the token crosses a trust domain, where a `client_id` is only meaningful to the AS that registered it (#113).\n\nExplicit `act` fills those gaps: it names the agent, records the chain of who acted, and `act.iss` gives the agent's identifier a namespace other domains can interpret, while `client_id` keeps identifying the client. The draft also covers migration (Section 12.1.2): issuers can emit both forms during a transition, and deployments without `act` can keep their client-based policy.\n\nConcretely, in \"Use of OAuth 2.0 Access Tokens\", qualify the existing sentence and add two:\n\n> When the Agent is the OAuth client, the access token includes the Agent identity as the 'client_id' claim as defined in Section 2.2 of RFC 9068. When the Agent is not the OAuth client, or the token is exchanged by intermediaries or across trust domains, the Agent is conveyed in the `act` claim per [ACTOR-PROFILE], and `client_id` continues to identify the client. A resource server receiving a token with `act` uses the actor identified there, together with `sub`, when determining whether access should be allowed.\n",
           "createdAt": "2026-10-20T21:38:37Z",
           "updatedAt": "2026-10-20T21:38:37Z"
+        },
+        {
+          "author": "Silentpartnercoding",
+          "authorAssociation": "NONE",
+          "body": "A related case that this issue does not cover yet: a request between agents that is deliberately not delegation.\n\nAgent A asks agent B to perform one specific action. A is allowed to ask for that action. B is separately allowed to perform it under its own authorization (Section 10.4.2). A gives B no authority. B's resource server would still like to know that A asked, so it can check that A was allowed to ask and keep both parties in the audit record (Section 11).\n\nIf B carries A in act, or A ends up in sub, the token says B is acting for A, which is a different relationship and could let A's authority be read into the decision. If A is left out entirely, the resource server cannot verify who requested the action. draft-mcguinness-oauth-actor-profile treats a token without act as non-delegated, which fits B acting on its own authority, but I could not find a place there or in AIMS to record \"requested by A\" without implying delegation.\n\nShould AIMS say how this case is expressed, or note that it is out of scope? If it is in scope, is it better handled here or in the actor profile work?\n",
+          "createdAt": "2026-10-24T16:51:36Z",
+          "updatedAt": "2026-10-24T16:51:36Z"
         }
       ]
     },
@@ -891,9 +898,17 @@
       "labels": [],
       "body": "\u00a79.1.1 says proxies, API gateways, service meshes, and load balancers break TLS identity by terminating and re-establishing sessions. \u00a79.2 says application-layer authentication preserves identity across those hops.\n\nWhat's missing is the bridge between those two observations. In practice, every production deployment has at least one intermediary: a load balancer, an API gateway, a service mesh sidecar; and practitioners need to know who validates what credential and which identity is authoritative after intermediary processing.\n\nThere are at least three common patterns that need different guidance:\n\n- Pass-through proxy (transparent TCP proxy): TLS identity stays end-to-end, the proxy is invisible to the identity layer. Simple case, but worth calling out so people know when \u00a79.1.1 concerns don't apply\n- Terminating gateway (ALB, Cloudflare, Traefik, etc.): Gateway terminates TLS, possibly validates the agent's Workload proof token / Workload identity token, then re-establishes a connection to the backend\n  - The draft doesn't say if the backend trusts the gateway's transport identity, or if it must independently re-validate the agent's application-layer credential\n- Token-exchange gateway (API gateway acting as OAuth client): Gateway exchanges the incoming access token for a new one scoped to the backend. The original agent identity may or may not survive the exchange. If the `act` claim (RFC 8693) isn't used, the downstream service has no idea who originally initiated the request. The draft should clarify whether identity preservation through token exchange is a must or a should\n- Service mesh sidecar (Istio, Linkerd): mTLS between sidecars gives pod-level identity, but that's the sidecar's identity, not the agent's. The draft doesn't address how agent-level identity (WIMSE / SPIFFE) relates to sidecar identity\n\nI'd suggest either a new subsection under \u00a79 or an appendix that names these patterns and specifies the validation expectations for each. The audit section (\u00a711) should also be extended to say that logs need to capture both the original actor and any intermediary participation - otherwise we can't reconstruct the chain when a gateway was involved.",
       "createdAt": "2026-03-11T15:21:22Z",
-      "updatedAt": "2026-03-11T15:21:22Z",
+      "updatedAt": "2026-10-24T16:51:35Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "Silentpartnercoding",
+          "authorAssociation": "NONE",
+          "body": "Adding one concrete case for the gateway and token exchange patterns described above.\n\nSetup: an agent receives a task over A2A from an authenticated caller and completes it by calling one tool on an MCP server. Something in between (the agent itself or a gateway) turns the A2A task into the MCP tool call and presents its own credential downstream.\n\nWhat the MCP side can check today: the presenter is authenticated, the tool exists, and the arguments fit the schema. What it cannot check from anything standard it receives: who originally asked, which A2A task this call belongs to, whether the tool and arguments are the ones originally requested, and whether this exact call has already been used.\n\nI tried this with the A2A and MCP reference SDKs. It is a small test (one agent, one tool, A2A hop over HTTPS with real tokens, MCP hop in-process), not a survey. With only the built-in checks, five altered requests went through: a different authenticated caller, a swapped task or context ID, a changed tool or arguments, a replay, and a request whose authority had been marked expired. Adding a signed record tying the caller and task to the exact tool call and arguments stopped four of them. Replay was only stopped when the verifier kept shared replay state; per-instance memory was not enough.\n\nWrite-up: https://github.com/Silentpartnercoding/minority-prophet-border/blob/agent/ietf-aims-fit-001/experiments/a2a-mcp-crossing-001/RESULTS-TRANSPORT.md\n\nTwo questions for the guidance this issue asks for:\n\n1. In the token exchange gateway pattern, should the downstream service be able to see the original requester separately from the gateway that presents the request? If so, is act the expected way to carry it, even when the gateway is not acting on the requester's behalf?\n\n2. When a request is translated from one protocol to another (A2A to MCP here), should AIMS describe how the original request is bound to the exact downstream call, or is that expected to come from a separate profile?\n\nHappy to help with text if that is useful.\n",
+          "createdAt": "2026-10-24T16:51:34Z",
+          "updatedAt": "2026-10-24T16:51:34Z"
+        }
+      ]
     },
     {
       "number": 66,
@@ -2089,7 +2104,7 @@
       "labels": [],
       "body": "_Source: email from Yaron Sheffer to the WIMSE mailing list, [Review of draft-klrc-aiagent-auth (editor's copy)](https://mailarchive.ietf.org/arch/msg/wimse/3baCsNZnK4XS5nH-iHWuaPJlbK0/). Quoted verbatim below._\n\nThe document discusses credential provisioning and rotation (Section 7) but says nothing about deprovisioning. Section 7 should add a third phase \u2014 credential deprovisioning \u2014 even if it simply means stopping rotation when the agent is terminated. Beyond that, the identifier lifecycle is a distinct concern: when an agent is retired, its identifier needs to remain referenceable for forensic and audit purposes. The document should discuss how long an agent identifier should be retained, and in what registry, after the agent is gone.\n",
       "createdAt": "2026-06-04T11:13:19Z",
-      "updatedAt": "2026-06-05T15:51:59Z",
+      "updatedAt": "2026-10-24T02:36:39Z",
       "closedAt": null,
       "comments": [
         {
@@ -2112,6 +2127,13 @@
           "body": "Identifiers persist, credentials expire.\n\nIn terms of terminating exchanged credentials, I imagine that is the sort of thing that can be facilitated by SSF - as long as the credential isssuer knows which tokens were issued, it can signal status change.\n",
           "createdAt": "2026-06-05T15:51:59Z",
           "updatedAt": "2026-06-05T15:51:59Z"
+        },
+        {
+          "author": "naveedi",
+          "authorAssociation": "NONE",
+          "body": "I've opened #163 to address the identifier-lifetime part of this issue. Audit records need to remain interpretable after deprovisioning or identifier reassignment, including when records cross trust-domain boundaries. I'd welcome feedback on the proposed Section 6 text.",
+          "createdAt": "2026-10-24T02:36:39Z",
+          "updatedAt": "2026-10-24T02:36:39Z"
         }
       ]
     },
@@ -2829,9 +2851,17 @@
       "labels": [],
       "body": "Section 10.6 covers cross-domain access via OAuth Identity and Authorization Chaining and its derived profiles, all of which assume pre-established trust between the authorization servers involved.\n\nThe case where the interacting organizations have no prior relationship (counterparties discovered at runtime, no shared IdP, no federation agreement) has no path in the document. As agents transact with dynamically discovered services, this case grows more common, not less.\n\nSuggested resolution: name it as a gap in Section 10.6 or a dedicated gap section, per the document's stated goal of identifying gaps to guide future standardization. Requirements R1-R3 of draft-reece-wimse-cross-org-delegation are one attempt to state what a solution must provide; happy to contribute gap-analysis text.\n\nRaised in my Call for Adoption response on the WIMSE list.",
       "createdAt": "2026-08-25T01:46:50Z",
-      "updatedAt": "2026-08-25T01:46:50Z",
+      "updatedAt": "2026-10-24T03:20:15Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "naveedi",
+          "authorAssociation": "NONE",
+          "body": "Related PR #164 addresses historical organizational attribution. Separately, I propose this Section 11 text on evidence that can be verified independently of the credential issuer:\n\n> Where policy requires attribution to be verified independently of the credential issuer, supporting evidence SHOULD be available separately from the agent's credential and authenticated independently of the issuer's signing keys. It needs to identify the agent, organization and interval and be readable without a prior relationship with the issuer. An authenticated statement from the accountable organization is one possible source. A credential or operator assertion alone SHOULD NOT count as independent confirmation. Authentication establishes source, not truth; acceptance depends on the relying party's assurance policy.",
+          "createdAt": "2026-10-24T03:20:15Z",
+          "updatedAt": "2026-10-24T03:20:15Z"
+        }
+      ]
     },
     {
       "number": 147,
@@ -2845,9 +2875,17 @@
       "labels": [],
       "body": "Every authorization path in the document terminates at an authorization server or an introspection callback (Sections 10.2-10.6). Deployments with intermittent connectivity, edge enforcement, or cross-organizational verifiers that cannot depend on the issuing side's availability need the authorization decision to complete from carried, signed material.\n\nSuggested resolution: at minimum, a stated limitation that the composed framework assumes issuer-side availability on the decision path, so implementers with disconnected or availability-independent requirements know the boundary. A gap statement pointing at offline-verifiable approaches would be stronger.\n\nRaised in my Call for Adoption response on the WIMSE list.",
       "createdAt": "2026-08-25T01:48:30Z",
-      "updatedAt": "2026-08-25T01:48:30Z",
+      "updatedAt": "2026-10-24T03:20:49Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "naveedi",
+          "authorAssociation": "NONE",
+          "body": "I propose this Section 10.6 note to name the disconnected-verification limitation alongside the trust gap in #146:\n\n> **Note:** This document does not profile access without pre-existing trust between the parties, or verification when a relying party trusts the issuer but cannot reach required services, including under intermittent or controlled connectivity. Such disconnected verification requires locally verifiable authenticated evidence, with policy-defined freshness requirements for information that can change.\n\nA separate question, related to #164, is whether historical evidence remains available without depending on the organization being examined. I propose:\n\n> Policy may also require that a reader obtain the evidence, and its history, without relying on the organization under examination or on its operator to supply them. Where it does, the supporting evidence and its history SHOULD be retained so that the issuer, the operator and the accountable organization cannot alter, substitute or remove them without detection.",
+          "createdAt": "2026-10-24T03:20:49Z",
+          "updatedAt": "2026-10-24T03:20:49Z"
+        }
+      ]
     },
     {
       "number": 150,
@@ -2950,6 +2988,38 @@
       "body": "Section 6 of -00 says audit records and delegation \"rely on this identifier remaining stable for the lifetime of the workload identity.\" Sections 6 to 8 do not cover an agent that comes back under a new identifier, which happens after a redeployment, after a lost or compromised key, or when the same software is registered again. #125 covers how the old identifier ends, and this issue covers what follows it. It is one issue for one gap, as Pieter asked on #144.\n\nWith no text, a deployment either starts the new identifier clean, so revocations and audit history stop following the agent, or lets it inherit grants, so re-provisioning can restore authority that a revocation removed. Sub-agents delegated from the old identifier also keep running unless something ends them.\n\nI propose this as a third phase in Section 8:\n\n> 3. *Re-provisioning*: When an agent is provisioned under a new identifier in place of a retired or revoked one, the issuing component SHOULD sign a continuity record that names both identifiers. Audit records, revocations and remediation events of the old identifier remain resolvable from the new one. Authorization, including delegations, does not carry over, and the agent obtains it again as described in Section 10. Sub-agents derived from the old identifier end with it.\n\nThese rules are test cases in agent-evidence-vectors 0.24.0, where twelve recovery cases and seven sub-agent cases each pair an accepted record with a refused twin:\n\n```sh\npip install agent-evidence-vectors==0.24.0\ngo install github.com/probityai/agent-evidence-vectors/cmd/aee-verify@v0.24.0\naee-verify \"$(python3 -c 'import agent_evidence_vectors, pathlib; print(pathlib.Path(agent_evidence_vectors.__file__).parent / \"corpora\" / \"vectors-delegation-lifecycle\")')\"\n```\n\nThe run exits 0 when every case matches its manifest. The corpus README is at https://github.com/probityai/agent-evidence-vectors/tree/v0.24.0/vectors-delegation-lifecycle, and https://github.com/aaif/wg-identity-and-trust/pull/20 runs the same cases in CI.\n",
       "createdAt": "2026-10-20T18:41:25Z",
       "updatedAt": "2026-10-20T18:41:25Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 161,
+      "id": "I_kwDOQP22qc8AAAABZb5RDA",
+      "title": "don't think AIMS should go as far as requiring tamper-evident audit logs",
+      "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/161",
+      "state": "OPEN",
+      "author": "bc-pi",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "I wanted to push back on the statement that \"AIMS requires tamper-evident audit logs\" in https://mailarchive.ietf.org/arch/msg/wimse/7WwiusWW7wMZSuhkK1o5T_bBKpE/ because such a requirement isn't about interop and thus arguable out of place as a normative things. But I was somewhat disappointed to find that the statement was correct per https://datatracker.ietf.org/doc/html/draft-ietf-wimse-aims-00#section-11-3 \n\nI'd argue we should change that. \n\n",
+      "createdAt": "2026-10-23T16:52:33Z",
+      "updatedAt": "2026-10-23T16:52:33Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 162,
+      "id": "I_kwDOQP22qc8AAAABZgcd5g",
+      "title": "Section 10.7: preserve confirmed operation constraints through resource-server enforcement",
+      "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/162",
+      "state": "OPEN",
+      "author": "msaleme",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "Section 10.7 says a user confirmation, \"for example tool invocation approval or parameter confirmation\", \"MUST be bound to a verifiable authorization grant issued by the authorization server\", and that the agent SHOULD turn the confirmation into an OAuth authorization event before it accesses protected resources.\n\nThe section does not explain whether this binding preserves the confirmed operation and authorization-relevant parameters through access-token issuance and resource-server enforcement. Suppose a user confirms \"transfer 20 to account A\". If the resulting access token conveys only a broad transfer scope, and no additional control preserves the confirmed amount and recipient, the resource server may accept a different transfer.\n\nSection 10.5 already names this risk for tokens passed between services: a token reused \"to invoke a new transaction with different parameters (e.g. increase the transaction amount ...)\". The same reasoning applies to the authorization that a confirmation produces.\n\nThe authorization server and resource server need a shared interpretation of the confirmed constraints. Otherwise obtaining confirmation does not establish which later requests it authorizes.\n\nSuggested addition, after the \"MUST be bound\" sentence:\n\n> Where user confirmation is specific to an operation, the authorization server SHOULD preserve the confirmed operation and authorization-relevant parameter constraints in the resulting authorization and make those constraints available to the resource server. {{RFC9396}} provides one mechanism through `authorization_details`, conveyed in an access token or a token introspection response. The resource server SHOULD enforce those constraints when processing the request.\n\nThis would add RFC 9396 to the references; the draft does not currently cite it. #154 proposes RAR metadata for discovery in Section 10.10. This issue is about what the Section 10.7 binding preserves, and the two would share the reference.\n\n",
+      "createdAt": "2026-10-23T23:02:24Z",
+      "updatedAt": "2026-10-23T23:02:24Z",
       "closedAt": null,
       "comments": []
     }
@@ -7138,6 +7208,58 @@
           "comments": []
         }
       ]
+    },
+    {
+      "number": 163,
+      "id": "PR_kwDOQP22qc8AAAABKYjGuQ",
+      "title": "Keep agent identifiers interpretable across credential and deployment lifetimes",
+      "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/pull/163",
+      "state": "OPEN",
+      "author": "naveedi",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "Audit records can outlive credentials and deployments. A later reader needs to know which workload an identifier referred to at the time of an action, even after reassignment or changes in trust-domain ownership.\r\n\r\nThis adds Section 6 guidance on identifier reuse, trust-domain naming and retained assignment history. Identifier assignment granularity is unchanged.\r\n\r\nRelates to #125 and #145.\r\n\r\nValidation: rendered successfully; idnits unchanged from the base.",
+      "createdAt": "2026-10-24T02:31:09Z",
+      "updatedAt": "2026-10-24T02:45:06Z",
+      "baseRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
+      "baseRefName": "main",
+      "baseRefOid": "4095365f74c7d4ab4402f6230eed46018d107458",
+      "headRepository": "naveedi/draft-ietf-wimse-aims",
+      "headRefName": "aims-part-a-identifier",
+      "headRefOid": "2c7868ccacaff65fd026c2c84ece6c39c918d08f",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 164,
+      "id": "PR_kwDOQP22qc8AAAABKYxk3Q",
+      "title": "Preserve organizational attribution after deployment changes",
+      "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/pull/164",
+      "state": "OPEN",
+      "author": "naveedi",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "Section 11 already requires enough audit information to reconstruct agent behavior and authorization context. This PR adds guidance for establishing which organization was accountable at the time of an action, even after keys or operators change.\n\nThe requirements apply where deployment policy calls for organizational attribution or outside verification. No storage or verification mechanism is prescribed. This complements #163's identifier-history guidance.\n\nRelated to #146 and #147; issuer independence and evidence custody remain separate proposals.\n\nRendered with author-tools against main at 4095365f; idnits unchanged.",
+      "createdAt": "2026-10-24T03:13:02Z",
+      "updatedAt": "2026-10-24T03:13:02Z",
+      "baseRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
+      "baseRefName": "main",
+      "baseRefOid": "4095365f74c7d4ab4402f6230eed46018d107458",
+      "headRepository": "naveedi/draft-ietf-wimse-aims",
+      "headRefName": "aims-part-b-attribution",
+      "headRefOid": "1397bb4eaf0760c8f96cd3b52bd7238551d2d846",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
     }
   ]
 }
