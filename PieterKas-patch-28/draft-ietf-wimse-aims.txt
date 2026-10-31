@@ -291,7 +291,7 @@ Table of Contents
       behavior and system state.
 
    *  *Agent Authentication and Authorization Policy:* The configuration
-      and rules for each of the Agent Identity Management System.
+      and rules for each of the AIMS components.
 
    *  *Agent Compliance:* Measurement of the state and functioning of
       the system against the stated policies.
@@ -427,12 +427,12 @@ Table of Contents
    short-lived credentials for subsequent authentication and
    authorization.
 
-   An Agent Identity Management System may incorporate multiple posture
-   assessment mechanisms and implementations.  The selection of
-   mechanisms depends on deployment constraints, such as the underlying
-   platform, available identity signals, and desired level of trust
-   assurance.  This document does not require any particular posture
-   assessment mechanism, evidence format, or verifier architecture.
+   An AIMS implementation may incorporate multiple posture assessment
+   mechanisms and implementations.  The selection of mechanisms depends
+   on deployment constraints, such as the underlying platform, available
+   identity signals, and desired level of trust assurance.  This
+   document does not require any particular posture assessment
+   mechanism, evidence format, or verifier architecture.
 
    Agent credential provisioning must operate autonomously, scale to
    high-churn environments, and integrate closely with the posture
@@ -994,7 +994,8 @@ Table of Contents
    Section 8, Agent Authentication Section 9, Agent Authorization
    Section 10 and Agent Monitoring, Observability and Remediation
    Section 11 collectively constitute the authentication and
-   authorization policy within which the Agent operates.
+   authorization policy within which the Agent operates within an AIMS
+   implementation.
 
    Because these parameters are highly deployment and risk-model-
    specific (and often reflect local governance, regulatory, and
