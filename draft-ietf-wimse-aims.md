@@ -332,11 +332,13 @@ The Best Current Practice for OAuth 2.0 Security as described in {{!OAUTH-BCP=RF
 ## Risk Reduction with Transaction Tokens {#txn-tokens-risk-reduction}
 Resources servers, whether they are LLMs, Tools or Agents (in the Agent-to-Agent case) may be composed of multiple microservices that are invoked to complete a request. The access tokens presented to the Agent, LLM or Tools can typically be used with multiple transactions and consequently have broader scope than needed to complete any specific transaction. Passing the access token from one microservice to another within an invoked Agent, LLM or the Tools increases the risk of token theft and replay attacks. For example, an attacker may discover and access token passed between microservices in a log file or crash dump, exfiltrate it, and use it to invoke a new transaction with different parameters (e.g. increase the transaction amount, or invoke an unrelated call as part of executing a lateral move).
 
-To avoid passing access tokens between microservices, the Agent, LLM or Tools can exchange the received access token for a transaction token, as defined in the Transaction Token specification {{OAUTH-TXN-TOKENS}}. The transaction token allows for identity and authorization information to be passed along the internal call chain of microservices. The transaction token issuer enriches the transaction token with context of the caller that presented the access token (e.g. IP address, etc.), transaction context (transaction amount), identity information and a unique transaction identifier. This results in a downscoped token that is bound to a specific transaction and cannot be used as an access token, with another transaction, or within the same transaction with modified transaction details (e.g. change in transaction amount). Transaction tokens are typically short-lived, further limiting the risk in case they are obtained by an attacker by limiting the time window during which these tokens will be accepted.
+To avoid passing access tokens between microservices, the Agent, LLM or Tools can exchange the received access token for a transaction token, as defined in the Transaction Token specification {{OAUTH-TXN-TOKENS}}. The transaction token allows for identity and authorization information to be passed along the internal call chain of microservices. The transaction token issuer enriches the transaction token with context of the caller that presented the access token (e.g. IP address, etc.), transaction context (transaction amount), identity information and a unique transaction identifier. This results in a downscoped token that is bound to a specific transaction and cannot be used as an access token, with another transaction, or within the same transaction with modified transaction details (e.g. change in transaction amount). Transaction tokens are typically short-lived, further limiting the risk in case they are obtained by an attacker by limiting the time window during which these tokens will be accepted. The scope of access conveyed by each token in this sequence of exchanges can never exceed that of the token presented to obtain it. At each exchange the authorization server (or transaction token service) evaluates its authorization policy and makes the final decision on whether to issue a token and with what scope.
 
 A transaction token MAY be used to obtain an access token to call another service (e.g. another Agent, Tool or LLM) by using OAuth 2.0 Token Exchange as defined in {{OAUTH-TOKEN-EXCHANGE}}.
 
-## Cross Domain Access
+A transaction token may be presented in an OAuth 2.0 Token Exchange {{OAUTH-TOKEN-EXCHANGE}} to obtain an access token for another service (e.g. another Agent, Tool or LLM). Obtaining an access token for a service in another trust domain when the Agent has a transaction is described in {{cross_domain_access}}.
+
+## Cross Domain Access {#cross_domain_access}
 
 Agents often require access to resources that are protected by different OAuth 2.0 authorization servers. When the components in Figure 1 are protected by different logical authorization servers, an Agent SHOULD use OAuth Identity and Authorization Chaining Across Domains as defined in {{!OAUTH-ID-CHAIN=I-D.ietf-oauth-identity-chaining}}, or a derived specification such as the Identity Assertion JWT Authorization Grant {{!OAUTH-JWT-ASSERTION=I-D.ietf-oauth-identity-assertion-authz-grant}} or , Transaction Token Authorization Grant Profile for OAuth Identity and Authorization Chaining {{!OAUTH-TXN-ASSERTION=I-D.fletcher-transaction-token-chaining-profile}}, to obtain an access token from the relevant authorization servers. The agent first exchanges its current access token or transaction token for a JWT authorization grant (Section 2.3 of {{OAUTH-ID-CHAIN}}) and then presents that grant to obtain an access token for the target resource (Section 2.4 of {{OAUTH-ID-CHAIN}}).
 
@@ -440,13 +442,14 @@ The authors would like to thank:
 
 # Document History
    \[\[ To be removed from the final specification ]]
-  -03
+  -01
 
    * Editorial updates
    * Clarify relationship between WIMSE and SPIFFE credentials (https://github.com/PieterKas/agent2agent-auth-framework/issues/136)
    * Clarify that LLMs should not have access to Agent credentials: https://github.com/PieterKas/agent2agent-auth-framework/issues/127
    * Update use of normative language (https://github.com/PieterKas/agent2agent-auth-framework/issues/123)
    * Added reference to newly adopted WISE draft (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/153)
+   * Address concerns about circularity of using a transaction token to get an access token (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/126)
 
   -03
 
