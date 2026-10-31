@@ -5,7 +5,7 @@
 WIMSE                                                       P. Kasselman
 Internet-Draft                                          Defakto Security
 Intended status: Informational                               J. Lombardo
-Expires: 27 March 2027                                               AWS
+Expires: 4 May 2027                                                  AWS
                                                             Y. Rosomakho
                                                                  Zscaler
                                                              B. Campbell
@@ -14,7 +14,7 @@ Expires: 27 March 2027                                               AWS
                                                                   OpenAI
                                                               A. Parecki
                                                                     Okta
-                                                       23 September 2026
+                                                         31 October 2026
 
 
                      AI Identity Management System
@@ -65,7 +65,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 27 March 2027.
+   This Internet-Draft will expire on 4 May 2027.
 
 Copyright Notice
 
@@ -252,8 +252,8 @@ Table of Contents
    in audit trails.
 
    This document describes how AI Agents should leverage existing
-   standards defined by SPIFFE [SPIFFE], WIMSE, OAuth and OpenID SSF
-   [SSF].
+   standards defined by SPIFFE [SPIFFE], WIMSE, OAuth, OpenID Connect
+   and OpenID SSF [SSF].
 
 5.  Agent Identity Management System
 
@@ -649,16 +649,19 @@ Table of Contents
    policy based, attribute based or role based authorization systems)
    when enforcing access control.  JWT access tokens can be validated
    directly by resource servers while other formats that are opaque to
-   the resource server can be validated through token introspection that
-   calls back to the authorization server using OAuth 2.0 Token
-   Introspection [OAUTH-TOKEN-INTROSPECTION].  The introspection
-   response provides the active state of the token and associated
-   authorization attributes equivalent to those conveyed in structured
-   tokens.
-
+   the resource server can be validated through a mechanism that calls
+   back to the authorization server (the mechanism is called
+   introspection despite the word having nearly the opposite meaning).
    This framework supports both models and does not require a specific
    token format, provided that equivalent authorization semantics are
    maintained.
+
+   A resource server in receipt of tokens opaque to it are able to
+   obtain authorization and other information from the token through
+   OAuth 2.0 Token Introspection [OAUTH-TOKEN-INTROSPECTION].  The
+   introspection response provides the active state of the token and
+   associated authorization attributes equivalent to those conveyed in
+   structured tokens.
 
 10.4.  Obtaining an OAuth 2.0 Access Token
 
@@ -934,19 +937,20 @@ Table of Contents
    Any participant in the system, including the Agent, Tool, System, LLM
    or other resources and service MAY subscribe to change notifications
    using eventing mechanisms such as the OpenID Shared Signals Framework
-   [SSF] with either the Continuous Access Evaluation Profile [CAEP] or
-   Risk Incident Sharing and Coordination [RISC] to receive security and
-   authorization-relevant signals.  Upon receipt of a relevant signal
-   (e.g., session revoked, risk level change, subject disabled, token
-   replay suspected, risk elevated), the recipient SHOULD remediate by
-   attenuating access, such as terminating local sessions, discarding
-   cached tokens, re-acquiring tokens with updated constraints, reducing
-   privileges, or re-running policy evaluation before continuing to
-   allow access.  Recipients of such signals MUST ensure that revoked or
-   downgraded authorization is enforced without undue delay.  Cached
-   authorization decisions and tokens that are no longer valid MUST NOT
-   continue to be used after a revocation or risk notification is
-   received.
+   [SSF] and its profiles to receive security and authorization-relevant
+   signals including but not limited to Continuous Access Evaluation
+   Profile [CAEP], Risk Incident Sharing and Coordination [RISC] or
+   Workload Identity Security Events [WISE] . Upon receipt of a relevant
+   signal (e.g., session revoked, risk level change, subject disabled,
+   token replay suspected, risk elevated), the recipient SHOULD
+   remediate by attenuating access, such as terminating local sessions,
+   discarding cached tokens, re-acquiring tokens with updated
+   constraints, reducing privileges, or re-running policy evaluation
+   before continuing to allow access.  Recipients of such signals MUST
+   ensure that revoked or downgraded authorization is enforced without
+   undue delay.  Cached authorization decisions and tokens that are no
+   longer valid MUST NOT continue to be used after a revocation or risk
+   notification is received.
 
    To support detection, investigation, and accountability, deployments
    MUST produce durable audit logs covering authorization decisions and
@@ -1052,8 +1056,6 @@ Table of Contents
    *  Karl McGuinness for his blog posts on mission shaping as a pre-
       cursor to authorization [MissionShaping]
 
-   *  Joe DeCock for his feedback on the token introspection section.
-
 18.  References
 
 18.1.  Normative References
@@ -1125,9 +1127,9 @@ Table of Contents
               Parecki, A., McGuinness, K., and B. Campbell, "Identity
               Assertion JWT Authorization Grant", Work in Progress,
               Internet-Draft, draft-ietf-oauth-identity-assertion-authz-
-              grant-04, 21 May 2026,
+              grant-06, 30 October 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-oauth-
-              identity-assertion-authz-grant-04>.
+              identity-assertion-authz-grant-06>.
 
    [OAUTH-REGISTRATION]
               Richer, J., Ed., Jones, M., Bradley, J., Machulak, M., and
@@ -1254,22 +1256,22 @@ Table of Contents
               Campbell, B., Salowey, J. A., Schwenkschuster, A.,
               Sheffer, Y., and Y. Rosomakho, "WIMSE Workload
               Credentials", Work in Progress, Internet-Draft, draft-
-              ietf-wimse-workload-creds-02, 2 July 2026,
+              ietf-wimse-workload-creds-03, 30 October 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-wimse-
-              workload-creds-02>.
+              workload-creds-03>.
 
    [WIMSE-HTTPSIG]
               Salowey, J. A. and Y. Sheffer, "WIMSE Workload-to-Workload
               Authentication with HTTP Signatures", Work in Progress,
-              Internet-Draft, draft-ietf-wimse-http-signature-07, 20
-              September 2026, <https://datatracker.ietf.org/doc/html/
-              draft-ietf-wimse-http-signature-07>.
+              Internet-Draft, draft-ietf-wimse-http-signature-08, 20
+              October 2026, <https://datatracker.ietf.org/doc/html/
+              draft-ietf-wimse-http-signature-08>.
 
    [WIMSE-ID] Rosomakho, Y. and J. A. Salowey, "Workload Identifier",
               Work in Progress, Internet-Draft, draft-ietf-wimse-
-              identifier-03, 6 July 2026,
+              identifier-04, 23 October 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-wimse-
-              identifier-03>.
+              identifier-04>.
 
    [WIMSE-WPT]
               Campbell, B. and A. Schwenkschuster, "WIMSE Workload Proof
@@ -1277,6 +1279,9 @@ Table of Contents
               wimse-wpt-02, 27 August 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-wimse-
               wpt-02>.
+
+   [WISE]     "OpenID WISE Profile Specification 1.0 - draft 03", n.d.,
+              <https://openid.github.io/ssf-wise-profile/>.
 
 18.2.  Informative References
 
@@ -1287,13 +1292,7 @@ Table of Contents
 
 Appendix A.  Document History
 
-   [[ To be removed from the final specification ]] -00
-
-   *  Refine language about token introspection, acknowledge Joe DeCock
-      for pointing out the need to do so (https://github.com/ietf-wg-
-      wimse/draft-ietf-wimse-aims/issues/151)
-
-   -03
+   [[ To be removed from the final specification ]] -01
 
    *  Editorial updates
 
@@ -1306,6 +1305,12 @@ Appendix A.  Document History
 
    *  Update use of normative language (https://github.com/PieterKas/
       agent2agent-auth-framework/issues/123)
+
+   *  Added reference to newly adopted WISE draft (https://github.com/
+      ietf-wg-wimse/draft-ietf-wimse-aims/issues/153)
+
+   *  Added mention of OpenID Connect (https://github.com/ietf-wg-wimse/
+      draft-ietf-wimse-aims/issues/133)
 
    -03
 
