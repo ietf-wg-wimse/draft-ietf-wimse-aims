@@ -229,6 +229,8 @@ The Secure Production Identity Framework for Everyone ({{SPIFFE}}) identifier is
 
 An agent participating in this framework MUST be assigned exactly one WIMSE identifier, which MAY be a SPIFFE ID.
 
+The lifecycle of an agent identifier is distinct from the lifecycle of the credentials bound to it. Credentials are short-lived and expire while the identifier persists. When an agent is retired, its identifier must not be reassigned to a different agent, and the records that reference it (audit logs, authorization decisions, delegation records and security signals) remain interpretable for as long as the deployment's retention policy requires, which is typically longer than the agent's operational lifetime. The registry or namespace in which agent identifiers are allocated, and the retention period applied to retired identifiers, are deployment-specific and out of scope for this document.
+
 # Agent Credentials {#agent_credentials}
 Agents MUST possess credentials that provide a cryptographic binding to the agent identifier. These credentials are considered primary credentials that are provisioned at runtime. An identifier alone is insufficient unless it can be verified to be controlled by the communicating agent through a cryptographic binding.
 
@@ -259,6 +261,7 @@ Agent credential provisioning typically includes two phases:
 
 1. **Initial Provisioning**: The process by which an agent first acquires a credential bound to its identity. This often occurs immediately after deployment or instantiation and is based on verified properties of the agent (e.g., deployment context, posture assessment results, or orchestration metadata).
 2. **Rotation/Renewal**: The automatic refresh of short-lived credentials before expiration. Continuous rotation ensures that credentials remain valid only for the minimum necessary time and that authorization state reflects current operational conditions.
+3. **Deprovisioning**: The termination of an agent's credentials when the agent is retired, when its posture no longer satisfies policy, or when its identity is believed to be compromised. At a minimum, deprovisioning stops renewal so that outstanding short-lived credentials expire and are not replaced. Where the change must take effect before expiry, the issuer signals the status change to relying parties and to the issuers of any credentials derived from the agent's primary credential, so that the derived credentials are revoked or cease to be accepted as well.
 
 The use of short-lived credentials provides a significant improvement in the risk profile and risk of credential exposure. It provides an alternative to explicit revocation mechanisms and simplifies lifecycle management in large, automated environments while removing the risks of downtime as a result of credential expiry.
 
@@ -440,13 +443,14 @@ The authors would like to thank:
 
 # Document History
    \[\[ To be removed from the final specification ]]
-  -03
+  -01
 
    * Editorial updates
    * Clarify relationship between WIMSE and SPIFFE credentials (https://github.com/PieterKas/agent2agent-auth-framework/issues/136)
    * Clarify that LLMs should not have access to Agent credentials: https://github.com/PieterKas/agent2agent-auth-framework/issues/127
    * Update use of normative language (https://github.com/PieterKas/agent2agent-auth-framework/issues/123)
    * Added reference to newly adopted WISE draft (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/153)
+   * Make deprovisioning explicit (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/125)
 
   -03
 
