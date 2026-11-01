@@ -103,20 +103,21 @@ Table of Contents
      10.1.  Agent Mission
      10.2.  Leverage OAuth 2.0 as a Delegation Authorization Framework
      10.3.  Use of OAuth 2.0 Access Tokens
-     10.4.  Obtaining an OAuth 2.0 Access Token
-       10.4.1.  User Delegates Authorization
-       10.4.2.  Agent Obtains Own Authorization
-       10.4.3.  Agents Accessed by Systems or Other Agents
-       10.4.4.  OAuth 2.0 Security Best Practices
-     10.5.  Risk Reduction with Transaction Tokens
-     10.6.  Cross Domain Access
-     10.7.  Human in the Loop
-     10.8.  Tool-to-Service Access
-     10.9.  Privacy Considerations
-     10.10. OAuth 2.0 Discovery in Dynamic Environments
-       10.10.1.  Authorization Server Capability Discovery
-       10.10.2.  Protected Resource Capability Discovery
-       10.10.3.  Client Capability Discovery
+     10.4.  Interaction with Policy-Based Systems
+     10.5.  Obtaining an OAuth 2.0 Access Token
+       10.5.1.  User Delegates Authorization
+       10.5.2.  Agent Obtains Own Authorization
+       10.5.3.  Agents Accessed by Systems or Other Agents
+       10.5.4.  OAuth 2.0 Security Best Practices
+     10.6.  Risk Reduction with Transaction Tokens
+     10.7.  Cross Domain Access
+     10.8.  Human in the Loop
+     10.9.  Tool-to-Service Access
+     10.10. Privacy Considerations
+     10.11. OAuth 2.0 Discovery in Dynamic Environments
+       10.11.1.  Authorization Server Capability Discovery
+       10.11.2.  Protected Resource Capability Discovery
+       10.11.3.  Client Capability Discovery
    11. Agent Monitoring, Observability and Remediation
    12. Agent Authentication and Authorization Policy
    13. Agent Compliance
@@ -703,16 +704,15 @@ Table of Contents
    includes additional claims to convey contextual, attestation-derived,
    or policy-related information that enables fine-grained access
    control.  The resource server uses the access token and the
-   information it contains along with other authorization systems (e.g.
-   policy based, attribute based or role based authorization systems)
-   when enforcing access control.  JWT access tokens can be validated
-   directly by resource servers while other formats that are opaque to
-   the resource server can be validated through a mechanism that calls
-   back to the authorization server (the mechanism is called
-   introspection despite the word having nearly the opposite meaning).
-   This framework supports both models and does not require a specific
-   token format, provided that equivalent authorization semantics are
-   maintained.
+   information it contains along with other inputs, as described in
+   Section 10.4, when enforcing access control.  JWT access tokens can
+   be validated directly by resource servers while other formats that
+   are opaque to the resource server can be validated through a
+   mechanism that calls back to the authorization server (the mechanism
+   is called introspection despite the word having nearly the opposite
+   meaning).  This framework supports both models and does not require a
+   specific token format, provided that equivalent authorization
+   semantics are maintained.
 
    A resource server in receipt of tokens opaque to it are able to
    obtain authorization and other information from the token through
@@ -721,18 +721,46 @@ Table of Contents
    associated authorization attributes equivalent to those conveyed in
    structured tokens.
 
-   Access tokens may be sender-constrained to mitigate the risk of
-   accidental token leakage or deliberate token theft, so that a token
-   obtained by an attacker cannot be used without the corresponding key.
-   Sender-constraining may use certificate-bound access tokens
-   [OAUTH-CLIENTAUTH-MTLS], when the Agent presents an X.509 credential
-   over mutual TLS, or Demonstrating Proof of Possession (DPoP)
-   [OAUTH-DPOP], when transport-layer binding is not feasible.  The use
-   of sender-constrained access tokens is described in the OAuth 2.0
-   Security Best Current Practice [OAUTH-BCP] and in FAPI 2.0
-   [OpenIDConnect.FAPI].
+10.4.  Interaction with Policy-Based Systems
 
-10.4.  Obtaining an OAuth 2.0 Access Token
+   In some deployments the claims in an access token are sufficient for
+   a resource server to make an authorization decision on their own.
+   Where they are not, the access token becomes one input to a decision
+   made by a policy-based authorization system (for example a policy-,
+   attribute- or role-based system), which evaluates it together with
+   other inputs.  The authenticated identity of the requester
+   (Section 9), the resource and action requested, the delegated User or
+   System context, posture and risk signals (Section 8, Section 11), and
+   environmental attributes such as time or network location.  The
+   policy itself, and the language in which it is expressed, are local
+   to the resource server and its trust domain.
+
+   Within a trust domain the components are operated by one organization
+   and the use of a policy langugage within that domain is a deployment
+   choice.  Across trust domains, the mechanisms in Section 10.7 convey
+   the outcome of a policy decision made in one domain to another domain
+   as a token with defined claims and scope, rather than conveying the
+   policy itself.  Each domain continues to evaluate its own policy
+   against the tokens it receives.  A common policy language is
+   therefore not required for the mechanisms in this document to
+   interoperate across trust domains.
+
+   Where policy is managed centrally or shared by several resource
+   servers, a resource server may request decisions from an external
+   policy decision point rather than evaluating policy itself.  A common
+   interface for that interaction is defined by the OpenID AuthZEN
+   Authorization API [OpenIDConnect.AuthZEN].  Access tokens may be
+   sender-constrained to mitigate the risk of accidental token leakage
+   or deliberate token theft, so that a token obtained by an attacker
+   cannot be used without the corresponding key.  Sender-constraining
+   may use certificate-bound access tokens [OAUTH-CLIENTAUTH-MTLS], when
+   the Agent presents an X.509 credential over mutual TLS, or
+   Demonstrating Proof of Possession (DPoP) [OAUTH-DPOP], when
+   transport-layer binding is not feasible.  The use of sender-
+   constrained access tokens is described in the OAuth 2.0 Security Best
+   Current Practice [OAUTH-BCP] and in FAPI 2.0 [OpenIDConnect.FAPI].
+
+10.5.  Obtaining an OAuth 2.0 Access Token
 
    OAuth 2.0 defines a number authorization grant flows in support of
    different authorization scenarios.  The appropriate flow depends on
@@ -740,7 +768,7 @@ Table of Contents
    involvement.  The following subsections describe the most relevant
    flows for Agent authorization.
 
-10.4.1.  User Delegates Authorization
+10.5.1.  User Delegates Authorization
 
    When a User delegates authorization to an Agent, the Authorization
    Code Grant as described in Section 4.1 of [OAUTH-FRAMEWORK] is the
@@ -769,7 +797,7 @@ Table of Contents
    OAuth negates the need for the Agent to have access to a User's
    credentials when accessing a resource on the User's behalf.
 
-10.4.2.  Agent Obtains Own Authorization
+10.5.2.  Agent Obtains Own Authorization
 
    Agents obtaining access tokens on their own behalf can use the Client
    Credentials Grant as described in Section 4.4 of [OAUTH-FRAMEWORK] or
@@ -781,19 +809,19 @@ Table of Contents
    lived client secrets.  When using the JWT Authorization Grant, the
    Agent will be identified in the subject of the JWT assertion.
 
-10.4.3.  Agents Accessed by Systems or Other Agents
+10.5.3.  Agents Accessed by Systems or Other Agents
 
    Agents themselves can act in the role of an OAuth protected resource
    and be invoked by a System (e.g. a batch job or another Agent).  The
    System obtains an access token using an appropriate mechanism and
    then invokes the Agent presenting the access token.
 
-10.4.4.  OAuth 2.0 Security Best Practices
+10.5.4.  OAuth 2.0 Security Best Practices
 
    The Best Current Practice for OAuth 2.0 Security as described in
    [OAUTH-BCP] are applicable when requesting and using access tokens.
 
-10.5.  Risk Reduction with Transaction Tokens
+10.6.  Risk Reduction with Transaction Tokens
 
    Resources servers, whether they are LLMs, Tools or Agents (in the
    Agent-to-Agent case) may be composed of multiple microservices that
@@ -830,7 +858,7 @@ Table of Contents
    another service (e.g. another Agent, Tool or LLM) by using OAuth 2.0
    Token Exchange as defined in [OAUTH-TOKEN-EXCHANGE].
 
-10.6.  Cross Domain Access
+10.7.  Cross Domain Access
 
    Agents often require access to resources that are protected by
    different OAuth 2.0 authorization servers.  When the components in
@@ -865,7 +893,7 @@ Table of Contents
    deployments to simplify authorization delegation for multiple
    software-as-a-service offerings.
 
-10.7.  Human in the Loop
+10.8.  Human in the Loop
 
    An OAuth authorization server MAY conclude that the level of access
    requested by an Agent requires explicit user confirmation.  In such
@@ -900,13 +928,13 @@ Table of Contents
    initiation, which doesn't map well to cases that envision the need
    for User confirmation to occur mid-execution.
 
-10.8.  Tool-to-Service Access
+10.9.  Tool-to-Service Access
 
    Tools expose interfaces to underlying services and resources.  Access
    to the Tools can be controlled by OAuth and augmented by policy,
    attribute or role based authorization systems (amongst others).  If
    the Tools are implemented as one or more microservices, it should use
-   transaction tokens to reduce risk as described in Section 10.5 to
+   transaction tokens to reduce risk as described in Section 10.6 to
    avoid passing access tokens around within the Tool implementation.
 
    Access from the Tools to the resources and services MAY be controlled
@@ -924,7 +952,7 @@ Table of Contents
    received from the Agent to Services or Resources.  It increases the
    risk of credential theft and lateral attacks.
 
-10.9.  Privacy Considerations
+10.10.  Privacy Considerations
 
    Authorization tokens may contain user identifiers, agent identifiers,
    audience restrictions, transaction details, and contextual
@@ -946,7 +974,7 @@ Table of Contents
    authorization exchanges only disclose information required for the
    target authorization decision.
 
-10.10.  OAuth 2.0 Discovery in Dynamic Environments
+10.11.  OAuth 2.0 Discovery in Dynamic Environments
 
    In dynamic Agent deployments (e.g., ephemeral workloads, multi-tenant
    services, and frequently changing endpoint topology), Agents and
@@ -954,7 +982,7 @@ Table of Contents
    static configuration and to bind runtime decisions to verifiable
    metadata.
 
-10.10.1.  Authorization Server Capability Discovery
+10.11.1.  Authorization Server Capability Discovery
 
    An Agent that needs to obtain tokens can discover authorization
    server endpoints and capabilities using OAuth 2.0 Authorization
@@ -965,7 +993,7 @@ Table of Contents
    signing keys (via jwks_uri), and other relevant capabilities without
    preconfiguring them.
 
-10.10.2.  Protected Resource Capability Discovery
+10.11.2.  Protected Resource Capability Discovery
 
    When an Agent is invoking a Tool, the Agent MAY use OAuth 2.0
    Protected Resource Metadata [OAUTH-RESOURCE-METADATA] to discover how
@@ -980,7 +1008,7 @@ Table of Contents
    similar way as an Agent.  Similarly, a System may use
    [OAUTH-RESOURCE-METADATA] when accessing an Agent.
 
-10.10.3.  Client Capability Discovery
+10.11.3.  Client Capability Discovery
 
    Other actors (e.g., Authorization Servers, registrars, or policy
    systems) may need to learn about any entities (System, Agent, Tool)
@@ -1108,7 +1136,7 @@ Table of Contents
    This document composes existing specifications to enable
    authentication and authorization between AI agents.
 
-   In addition to the the privacy considerations in Section 10.9, the
+   In addition to the the privacy considerations in Section 10.10, the
    privacy considerations in each referenced specification apply in
    full.
 
@@ -1384,6 +1412,10 @@ Appendix A.  Document History
 
    *  Added reference to newly adopted WISE draft (https://github.com/
       ietf-wg-wimse/draft-ietf-wimse-aims/issues/153)
+
+   *  Explicit guidance on policy langugages and policy based systems
+      (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/
+      issues/124)
 
    *  Added text on sender constraining tokens (https://github.com/ietf-
       wg-wimse/draft-ietf-wimse-aims/issues/126)
