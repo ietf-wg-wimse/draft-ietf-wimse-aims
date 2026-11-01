@@ -98,6 +98,7 @@ Table of Contents
        9.2.1.  WIMSE Proof Tokens (WPTs)
        9.2.2.  HTTP Message Signatures
        9.2.3.  Limitations
+     9.3.  Long-Lived Sessions and Streams
    10. Agent Authorization
      10.1.  Agent Mission
      10.2.  Leverage OAuth 2.0 as a Delegation Authorization Framework
@@ -251,6 +252,11 @@ Table of Contents
    preserved and used as input to authorization decisions and recorded
    in audit trails.
 
+   Note: The arrows in Figure 1 indicate the direction in which
+   information flows between the participants and do not imply a
+   particular interaction style.  The model applies equally to request
+   and response exchanges and to streaming interactions.
+
    This document describes how AI Agents should leverage existing
    standards defined by SPIFFE [SPIFFE], WIMSE, OAuth and OpenID SSF
    [SSF].
@@ -266,10 +272,9 @@ Table of Contents
    providers, provisioning services, authorization servers, policy
    engines, and runtime enforcement points).
 
-   An Agent Identity Management System ensures that the right Agent has
-   access to the right resources and tools at the right time for the
-   right reason.  An Agent identity management system depends on the
-   following components to achieve its goals:
+   AIMS ensures that the right Agent has access to the right resources
+   and tools at the right time for the right reason.  Such a system
+   depends on the following components to achieve its goals:
 
    *  *Agent Identifiers:* Unique identifier assigned to every Agent.
 
@@ -292,7 +297,7 @@ Table of Contents
       behavior and system state.
 
    *  *Agent Authentication and Authorization Policy:* The configuration
-      and rules for each of the Agent Identity Management System.
+      and rules for each of the AIMS components.
 
    *  *Agent Compliance:* Measurement of the state and functioning of
       the system against the stated policies.
@@ -339,6 +344,18 @@ Table of Contents
 
    An agent participating in this framework MUST be assigned exactly one
    WIMSE identifier, which MAY be a SPIFFE ID.
+
+   The lifecycle of an agent identifier is distinct from the lifecycle
+   of the credentials bound to it.  Credentials are short-lived and
+   expire while the identifier persists.  When an agent is retired, its
+   identifier must not be reassigned to a different agent, and the
+   records that reference it (audit logs, authorization decisions,
+   delegation records and security signals) remain interpretable for as
+   long as the deployment's retention policy requires, which is
+   typically longer than the agent's operational lifetime.  The registry
+   or namespace in which agent identifiers are allocated, and the
+   retention period applied to retired identifiers, are deployment-
+   specific and out of scope for this document.
 
 7.  Agent Credentials
 
@@ -428,17 +445,32 @@ Table of Contents
    short-lived credentials for subsequent authentication and
    authorization.
 
-   An Agent Identity Management System may incorporate multiple posture
-   assessment mechanisms and implementations.  The selection of
-   mechanisms depends on deployment constraints, such as the underlying
-   platform, available identity signals, and desired level of trust
-   assurance.  This document does not require any particular posture
-   assessment mechanism, evidence format, or verifier architecture.
+   An AIMS implementation may incorporate multiple posture assessment
+   mechanisms and implementations.  The selection of mechanisms depends
+   on deployment constraints, such as the underlying platform, available
+   identity signals, and desired level of trust assurance.  This
+   document does not require any particular posture assessment
+   mechanism, evidence format, or verifier architecture.
 
    Agent credential provisioning must operate autonomously, scale to
    high-churn environments, and integrate closely with the posture
    assessment mechanisms used to establish trust in the Agent at each
    issuance or rotation event.
+
+   Posture assessment at provisioning time establishes trust at the
+   moment a credential is issued or renewed.  It does not by itself
+   establish that the posture still holds when a particular request is
+   made.  Higher-risk deployments, and interactions that cross trust
+   domain boundaries, may require posture evidence that is closer to the
+   time of the request.  Two approaches are available with existing
+   mechanisms:
+
+   1.  Shortening credential lifetimes so that renewal, and with it re-
+       assessment, occurs more frequently.
+
+   2.  Using the eventing mechanisms described in Section 11 so that a
+       change in posture detected after issuance results in revocation
+       or down-scoping of the agent's credentials and tokens.
 
    Agent credential provisioning typically includes two phases:
 
@@ -452,6 +484,16 @@ Table of Contents
        credentials before expiration.  Continuous rotation ensures that
        credentials remain valid only for the minimum necessary time and
        that authorization state reflects current operational conditions.
+
+   3.  *Deprovisioning*: The termination of an agent's credentials when
+       the agent is retired, when its posture no longer satisfies
+       policy, or when its identity is believed to be compromised.  At a
+       minimum, deprovisioning stops renewal so that outstanding short-
+       lived credentials expire and are not replaced.  Where the change
+       must take effect before expiry, the issuer signals the status
+       change to relying parties and to the issuers of any credentials
+       derived from the agent's primary credential, so that the derived
+       credentials are revoked or cease to be accepted as well.
 
    The use of short-lived credentials provides a significant improvement
    in the risk profile and risk of credential exposure.  It provides an
@@ -587,6 +629,22 @@ Table of Contents
    typically mitigate these risks through short token lifetimes,
    audience restrictions, nonce or unique identifier checks, and binding
    authentication to specific requests or transaction parameters.
+
+9.3.  Long-Lived Sessions and Streams
+
+   In a long lived session or a streaming connection, the Agent is
+   authenticated when the session is established, using the mechanisms
+   described above, and the authorization granted at that point is
+   bounded by the lifetime of the credential or token presented.
+   Because a session may outlive the credential or token used to
+   establish it, the Agent keeps its credentials current through the
+   automated rotation described in Section 8, the party accepting the
+   session re-validates authorization when the credential or token
+   expires, and both act on revocation or risk signals (Section 11) by
+   terminating or down-scoping the session rather than allowing it to
+   run to completion.  Where individual messages within a session
+   require their own proof of possession, WPTs (Section 9.2.1) can be
+   applied to those messages.
 
 10.  Agent Authorization
 
@@ -1006,7 +1064,8 @@ Table of Contents
    Section 8, Agent Authentication Section 9, Agent Authorization
    Section 10 and Agent Monitoring, Observability and Remediation
    Section 11 collectively constitute the authentication and
-   authorization policy within which the Agent operates.
+   authorization policy within which the Agent operates within an AIMS
+   implementation.
 
    Because these parameters are highly deployment and risk-model-
    specific (and often reflect local governance, regulatory, and
@@ -1328,6 +1387,20 @@ Appendix A.  Document History
 
    *  Added text on sender constraining tokens (https://github.com/ietf-
       wg-wimse/draft-ietf-wimse-aims/issues/126)
+
+   *  Make it explicit that the AIMS draft applies regardless of
+      streaming or request/response interactions (https://github.com/
+      ietf-wg-wimse/draft-ietf-wimse-aims/issues/129)
+
+   *  Added text to clarify that posture assessment is ongoing with
+      forward pointing references. (https://github.com/ietf-wg-wimse/
+      draft-ietf-wimse-aims/issues/128)
+
+   *  Make deprovisioning explicit (https://github.com/ietf-wg-wimse/
+      draft-ietf-wimse-aims/issues/125)
+
+   *  Re-use the AIMS term (https://github.com/ietf-wg-wimse/draft-ietf-
+      wimse-aims/issues/135)
 
    -03
 
