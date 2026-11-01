@@ -182,6 +182,8 @@ In this document, Tools, Services, and Resources are treated as a single categor
 
 As shown in {{fig-ai-agent-workload}}, the AI agent is a workload that needs an identifier and credentials so it can be authenticated by the Tools, Services, Resources, Large Language Model, System and the User (via the underlying operating system or platform, similar to existing applications and services). Once authenticated, these parties determine if the AI Agent is authorized to access the requested Large Language Model, Tools, Services or Resources. If the AI Agent is acting on behalf of a User or System, the User or System needs to delegate authority to the AI Agent, and the User or System context is preserved and used as input to authorization decisions and recorded in audit trails.
 
+Note: The arrows in {{fig-ai-agent-workload}} indicate the direction in which information flows between the participants and do not imply a particular interaction style. The model applies equally to request and response exchanges and to streaming interactions.
+
 This document describes how AI Agents should leverage existing standards defined by SPIFFE {{SPIFFE}}, WIMSE, OAuth and OpenID SSF {{SSF}}.
 
 # Agent Identity Management System
@@ -302,6 +304,9 @@ The WIMSE Workload-to-Workload Authentication with HTTP Signatures specification
 
 ### Limitations
 Unlike transport-layer authentication, application-layer authentication does not inherently provide channel binding to the underlying secure transport. As a result, implementations MUST consider the risk of message relay or replay if tokens or signed messages are accepted outside their intended context. Deployments typically mitigate these risks through short token lifetimes, audience restrictions, nonce or unique identifier checks, and binding authentication to specific requests or transaction parameters.
+
+## Long-Lived Sessions and Streams {#long_lived_sessions}
+In a long lived session or a streaming connection, the Agent is authenticated when the session is established, using the mechanisms described above, and the authorization granted at that point is bounded by the lifetime of the credential or token presented. Because a session may outlive the credential or token used to establish it, the Agent keeps its credentials current through the automated rotation described in {{agent_credential_provisioning}}, the party accepting the session re-validates authorization when the credential or token expires, and both act on revocation or risk signals ({{agent_monitoring_and_remediation}}) by terminating or down-scoping the session rather than allowing it to run to completion. Where individual messages within a session require their own proof of possession, WPTs ({{wpt}}) can be applied to those messages.
 
 # Agent Authorization {#agent_authorization}
 Agents act on behalf of a user, a system, or on their own behalf as shown in {{fig-ai-agent-workload}} and need to obtain authorization when interacting with protected resources.
@@ -455,6 +460,7 @@ The authors would like to thank:
    * Clarify that LLMs should not have access to Agent credentials: https://github.com/PieterKas/agent2agent-auth-framework/issues/127
    * Update use of normative language (https://github.com/PieterKas/agent2agent-auth-framework/issues/123)
    * Added reference to newly adopted WISE draft (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/153)
+   * Make it explicit that the AIMS draft applies regardless of streaming or request/response interactions (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/129)
    * Added text to clarify that posture assessment is ongoing with forward pointing references. (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/128)
    * Make deprovisioning explicit (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/125)
    * Re-use the AIMS term (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/135)
