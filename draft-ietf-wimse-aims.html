@@ -1568,21 +1568,30 @@ appear in all capitals, as shown here.<a href="#section-3-1" class="pilcrow">¶<
 <p id="section-8-4">Deployed workload identity systems commonly perform some form of posture assessment as part of credential provisioning. For example, SPIFFE implementations can evaluate platform and environment-specific information about a workload before binding it to a SPIFFE identifier and issuing an SVID. At a high level, a provisioning component gathers workload and execution context signals, verifies them according to local policy, and, if verification succeeds, issues short-lived credentials for subsequent authentication and authorization.<a href="#section-8-4" class="pilcrow">¶</a></p>
 <p id="section-8-5">An AIMS implementation may incorporate multiple posture assessment mechanisms and implementations. The selection of mechanisms depends on deployment constraints, such as the underlying platform, available identity signals, and desired level of trust assurance. This document does not require any particular posture assessment mechanism, evidence format, or verifier architecture.<a href="#section-8-5" class="pilcrow">¶</a></p>
 <p id="section-8-6">Agent credential provisioning must operate autonomously, scale to high-churn environments, and integrate closely with the posture assessment mechanisms used to establish trust in the Agent at each issuance or rotation event.<a href="#section-8-6" class="pilcrow">¶</a></p>
-<p id="section-8-7">Agent credential provisioning typically includes two phases:<a href="#section-8-7" class="pilcrow">¶</a></p>
+<p id="section-8-7">Posture assessment at provisioning time establishes trust at the moment a credential is issued or renewed. It does not by itself establish that the posture still holds when a particular request is made. Higher-risk deployments, and interactions that cross trust domain boundaries, may require posture evidence that is closer to the time of the request. Two approaches are available with existing mechanisms:<a href="#section-8-7" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-8-8">
 <li id="section-8-8.1">
-          <p id="section-8-8.1.1"><strong>Initial Provisioning</strong>: The process by which an agent first acquires a credential bound to its identity. This often occurs immediately after deployment or instantiation and is based on verified properties of the agent (e.g., deployment context, posture assessment results, or orchestration metadata).<a href="#section-8-8.1.1" class="pilcrow">¶</a></p>
+          <p id="section-8-8.1.1">Shortening credential lifetimes so that renewal, and with it re-assessment, occurs more frequently.<a href="#section-8-8.1.1" class="pilcrow">¶</a></p>
 </li>
         <li id="section-8-8.2">
-          <p id="section-8-8.2.1"><strong>Rotation/Renewal</strong>: The automatic refresh of short-lived credentials before expiration. Continuous rotation ensures that credentials remain valid only for the minimum necessary time and that authorization state reflects current operational conditions.<a href="#section-8-8.2.1" class="pilcrow">¶</a></p>
-</li>
-        <li id="section-8-8.3">
-          <p id="section-8-8.3.1"><strong>Deprovisioning</strong>: The termination of an agent's credentials when the agent is retired, when its posture no longer satisfies policy, or when its identity is believed to be compromised. At a minimum, deprovisioning stops renewal so that outstanding short-lived credentials expire and are not replaced. Where the change must take effect before expiry, the issuer signals the status change to relying parties and to the issuers of any credentials derived from the agent's primary credential, so that the derived credentials are revoked or cease to be accepted as well.<a href="#section-8-8.3.1" class="pilcrow">¶</a></p>
+          <p id="section-8-8.2.1">Using the eventing mechanisms described in <a href="#agent_monitoring_and_remediation" class="auto internal xref">Section 11</a> so that a change in posture detected after issuance results in revocation or down-scoping of the agent's credentials and tokens.<a href="#section-8-8.2.1" class="pilcrow">¶</a></p>
 </li>
       </ol>
-<p id="section-8-9">The use of short-lived credentials provides a significant improvement in the risk profile and risk of credential exposure. It provides an alternative to explicit revocation mechanisms and simplifies lifecycle management in large, automated environments while removing the risks of downtime as a result of credential expiry.<a href="#section-8-9" class="pilcrow">¶</a></p>
-<p id="section-8-10">Deployed frameworks such as <span>[<a href="#SPIFFE" class="cite xref">SPIFFE</a>]</span> provide proven mechanisms for automated, short-lived credential provisioning at runtime. In addition to issuing short-lived credentials, <span>[<a href="#SPIFFE" class="cite xref">SPIFFE</a>]</span> also provisions ephemeral cryptographic key material bound to each credential, further reducing the risks associated with compromising long-lived keys.<a href="#section-8-10" class="pilcrow">¶</a></p>
-<p id="section-8-11">The Large Language Model <span class="bcp14">MUST NOT</span> have access to an agent's credentials or to credentials that may be needed to access tools and services. This prevents the Large Language Model from using, exposing, or being manipulated via prompt injection into disclosing the credentials.<a href="#section-8-11" class="pilcrow">¶</a></p>
+<p id="section-8-9">Agent credential provisioning typically includes two phases:<a href="#section-8-9" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-8-10">
+<li id="section-8-10.1">
+          <p id="section-8-10.1.1"><strong>Initial Provisioning</strong>: The process by which an agent first acquires a credential bound to its identity. This often occurs immediately after deployment or instantiation and is based on verified properties of the agent (e.g., deployment context, posture assessment results, or orchestration metadata).<a href="#section-8-10.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-8-10.2">
+          <p id="section-8-10.2.1"><strong>Rotation/Renewal</strong>: The automatic refresh of short-lived credentials before expiration. Continuous rotation ensures that credentials remain valid only for the minimum necessary time and that authorization state reflects current operational conditions.<a href="#section-8-10.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-8-10.3">
+          <p id="section-8-10.3.1"><strong>Deprovisioning</strong>: The termination of an agent's credentials when the agent is retired, when its posture no longer satisfies policy, or when its identity is believed to be compromised. At a minimum, deprovisioning stops renewal so that outstanding short-lived credentials expire and are not replaced. Where the change must take effect before expiry, the issuer signals the status change to relying parties and to the issuers of any credentials derived from the agent's primary credential, so that the derived credentials are revoked or cease to be accepted as well.<a href="#section-8-10.3.1" class="pilcrow">¶</a></p>
+</li>
+      </ol>
+<p id="section-8-11">The use of short-lived credentials provides a significant improvement in the risk profile and risk of credential exposure. It provides an alternative to explicit revocation mechanisms and simplifies lifecycle management in large, automated environments while removing the risks of downtime as a result of credential expiry.<a href="#section-8-11" class="pilcrow">¶</a></p>
+<p id="section-8-12">Deployed frameworks such as <span>[<a href="#SPIFFE" class="cite xref">SPIFFE</a>]</span> provide proven mechanisms for automated, short-lived credential provisioning at runtime. In addition to issuing short-lived credentials, <span>[<a href="#SPIFFE" class="cite xref">SPIFFE</a>]</span> also provisions ephemeral cryptographic key material bound to each credential, further reducing the risks associated with compromising long-lived keys.<a href="#section-8-12" class="pilcrow">¶</a></p>
+<p id="section-8-13">The Large Language Model <span class="bcp14">MUST NOT</span> have access to an agent's credentials or to credentials that may be needed to access tools and services. This prevents the Large Language Model from using, exposing, or being manipulated via prompt injection into disclosing the credentials.<a href="#section-8-13" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="agent_authentication">
@@ -2118,10 +2127,13 @@ appear in all capitals, as shown here.<a href="#section-3-1" class="pilcrow">¶<
           <p id="appendix-A-2.5.1">Added reference to newly adopted WISE draft (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/153)<a href="#appendix-A-2.5.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-A-2.6">
-          <p id="appendix-A-2.6.1">Make deprovisioning explicit (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/125)<a href="#appendix-A-2.6.1" class="pilcrow">¶</a></p>
+          <p id="appendix-A-2.6.1">Added text to clarify that posture assessment is ongoing with forward pointing references. (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/128)<a href="#appendix-A-2.6.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-A-2.7">
-          <p id="appendix-A-2.7.1">Re-use the AIMS term (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/135)<a href="#appendix-A-2.7.1" class="pilcrow">¶</a></p>
+          <p id="appendix-A-2.7.1">Make deprovisioning explicit (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/125)<a href="#appendix-A-2.7.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-A-2.8">
+          <p id="appendix-A-2.8.1">Re-use the AIMS term (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/135)<a href="#appendix-A-2.8.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="appendix-A-3">-03<a href="#appendix-A-3" class="pilcrow">¶</a></p>
