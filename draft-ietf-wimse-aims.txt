@@ -5,7 +5,7 @@
 WIMSE                                                       P. Kasselman
 Internet-Draft                                          Defakto Security
 Intended status: Informational                               J. Lombardo
-Expires: 23 April 2027                                               AWS
+Expires: 5 May 2027                                                  AWS
                                                             Y. Rosomakho
                                                                  Zscaler
                                                              B. Campbell
@@ -14,7 +14,7 @@ Expires: 23 April 2027                                               AWS
                                                                   OpenAI
                                                               A. Parecki
                                                                     Okta
-                                                         20 October 2026
+                                                         1 November 2026
 
 
                      AI Identity Management System
@@ -65,7 +65,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 23 April 2027.
+   This Internet-Draft will expire on 5 May 2027.
 
 Copyright Notice
 
@@ -266,10 +266,9 @@ Table of Contents
    providers, provisioning services, authorization servers, policy
    engines, and runtime enforcement points).
 
-   An Agent Identity Management System ensures that the right Agent has
-   access to the right resources and tools at the right time for the
-   right reason.  An Agent identity management system depends on the
-   following components to achieve its goals:
+   AIMS ensures that the right Agent has access to the right resources
+   and tools at the right time for the right reason.  Such a system
+   depends on the following components to achieve its goals:
 
    *  *Agent Identifiers:* Unique identifier assigned to every Agent.
 
@@ -292,7 +291,7 @@ Table of Contents
       behavior and system state.
 
    *  *Agent Authentication and Authorization Policy:* The configuration
-      and rules for each of the Agent Identity Management System.
+      and rules for each of the AIMS components.
 
    *  *Agent Compliance:* Measurement of the state and functioning of
       the system against the stated policies.
@@ -428,12 +427,12 @@ Table of Contents
    short-lived credentials for subsequent authentication and
    authorization.
 
-   An Agent Identity Management System may incorporate multiple posture
-   assessment mechanisms and implementations.  The selection of
-   mechanisms depends on deployment constraints, such as the underlying
-   platform, available identity signals, and desired level of trust
-   assurance.  This document does not require any particular posture
-   assessment mechanism, evidence format, or verifier architecture.
+   An AIMS implementation may incorporate multiple posture assessment
+   mechanisms and implementations.  The selection of mechanisms depends
+   on deployment constraints, such as the underlying platform, available
+   identity signals, and desired level of trust assurance.  This
+   document does not require any particular posture assessment
+   mechanism, evidence format, or verifier architecture.
 
    Agent credential provisioning must operate autonomously, scale to
    high-churn environments, and integrate closely with the posture
@@ -995,7 +994,8 @@ Table of Contents
    Section 8, Agent Authentication Section 9, Agent Authorization
    Section 10 and Agent Monitoring, Observability and Remediation
    Section 11 collectively constitute the authentication and
-   authorization policy within which the Agent operates.
+   authorization policy within which the Agent operates within an AIMS
+   implementation.
 
    Because these parameters are highly deployment and risk-model-
    specific (and often reflect local governance, regulatory, and
@@ -1127,9 +1127,9 @@ Table of Contents
               Parecki, A., McGuinness, K., and B. Campbell, "Identity
               Assertion JWT Authorization Grant", Work in Progress,
               Internet-Draft, draft-ietf-oauth-identity-assertion-authz-
-              grant-04, 21 May 2026,
+              grant-06, 30 October 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-oauth-
-              identity-assertion-authz-grant-04>.
+              identity-assertion-authz-grant-06>.
 
    [OAUTH-REGISTRATION]
               Richer, J., Ed., Jones, M., Bradley, J., Machulak, M., and
@@ -1256,9 +1256,9 @@ Table of Contents
               Campbell, B., Salowey, J. A., Schwenkschuster, A.,
               Sheffer, Y., and Y. Rosomakho, "WIMSE Workload
               Credentials", Work in Progress, Internet-Draft, draft-
-              ietf-wimse-workload-creds-02, 2 July 2026,
+              ietf-wimse-workload-creds-03, 30 October 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-wimse-
-              workload-creds-02>.
+              workload-creds-03>.
 
    [WIMSE-HTTPSIG]
               Salowey, J. A. and Y. Sheffer, "WIMSE Workload-to-Workload
@@ -1269,9 +1269,9 @@ Table of Contents
 
    [WIMSE-ID] Rosomakho, Y. and J. A. Salowey, "Workload Identifier",
               Work in Progress, Internet-Draft, draft-ietf-wimse-
-              identifier-03, 6 July 2026,
+              identifier-04, 23 October 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-wimse-
-              identifier-03>.
+              identifier-04>.
 
    [WIMSE-WPT]
               Campbell, B. and A. Schwenkschuster, "WIMSE Workload Proof
@@ -1292,7 +1292,7 @@ Table of Contents
 
 Appendix A.  Document History
 
-   [[ To be removed from the final specification ]] -03
+   [[ To be removed from the final specification ]] -01
 
    *  Editorial updates
 
@@ -1308,6 +1308,9 @@ Appendix A.  Document History
 
    *  Added reference to newly adopted WISE draft (https://github.com/
       ietf-wg-wimse/draft-ietf-wimse-aims/issues/153)
+
+   *  Re-use the AIMS term (https://github.com/ietf-wg-wimse/draft-ietf-
+      wimse-aims/issues/135)
 
    -03
 
