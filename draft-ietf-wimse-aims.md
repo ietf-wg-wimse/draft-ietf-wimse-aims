@@ -187,7 +187,7 @@ This document describes how AI Agents should leverage existing standards defined
 # Agent Identity Management System
 This document defines the term Agent Identity Management System (AIMS) as a conceptual model describing the set of functions required to establish, maintain, and evaluate the identity and permissions of an agent workload. AIMS does not refer to a single product, protocol, or deployment architecture. AIMS may be implemented by one component or distributed across multiple systems (such as identity providers, provisioning services, authorization servers, policy engines, and runtime enforcement points).
 
-An Agent Identity Management System ensures that the right Agent has access to the right resources and tools at the right time for the right reason. An Agent identity management system depends on the following components to achieve its goals:
+AIMS ensures that the right Agent has access to the right resources and tools at the right time for the right reason. Such a system depends on the following components to achieve its goals:
 
 * **Agent Identifiers:** Unique identifier assigned to every Agent.
 * **Agent Credentials:** Cryptographic binding between the Agent Identifier and attributes of the Agent.
@@ -195,7 +195,7 @@ An Agent Identity Management System ensures that the right Agent has access to t
 * **Agent Authentication:** Protocols and mechanisms used by the Agent to authenticate itself to Large Language Models or Tools (resource or server) in the system.
 * **Agent Authorization:** Protocols and systems used to determine if an Agent is allowed to access a Large Language Model or Tool (resource or server).
 * **Agent Observability and Remediation:** Protocols and mechanisms to dynamically modify the authorization decisions based on observed behavior and system state.
-* **Agent Authentication and Authorization Policy:** The configuration and rules for each of the Agent Identity Management System.
+* **Agent Authentication and Authorization Policy:** The configuration and rules for each of the AIMS components.
 * **Agent Compliance:** Measurement of the state and functioning of the system against the stated policies.
 
 The components form a logical stack in which higher layers depend on guarantees provided by lower layers, as illustrated in {{fig-agent-identity-management-system}}.
@@ -253,7 +253,7 @@ Posture assessment mechanisms are deployment and risk specific. They may include
 
 Deployed workload identity systems commonly perform some form of posture assessment as part of credential provisioning. For example, SPIFFE implementations can evaluate platform and environment-specific information about a workload before binding it to a SPIFFE identifier and issuing an SVID. At a high level, a provisioning component gathers workload and execution context signals, verifies them according to local policy, and, if verification succeeds, issues short-lived credentials for subsequent authentication and authorization.
 
-An Agent Identity Management System may incorporate multiple posture assessment mechanisms and implementations. The selection of mechanisms depends on deployment constraints, such as the underlying platform, available identity signals, and desired level of trust assurance. This document does not require any particular posture assessment mechanism, evidence format, or verifier architecture.
+An AIMS implementation may incorporate multiple posture assessment mechanisms and implementations. The selection of mechanisms depends on deployment constraints, such as the underlying platform, available identity signals, and desired level of trust assurance. This document does not require any particular posture assessment mechanism, evidence format, or verifier architecture.
 
 Agent credential provisioning must operate autonomously, scale to high-churn environments, and integrate closely with the posture assessment mechanisms used to establish trust in the Agent at each issuance or rotation event.
 
@@ -410,7 +410,7 @@ End-to-end audit is enabled when Agents, Users, Systems, LLMs, Tools, services a
 Implementations SHOULD provide operators the ability to reconstruct a complete execution chain of an agent task, including delegated authority, intermediate calls, and resulting actions across service boundaries.
 
 # Agent Authentication and Authorization Policy {#agent_auhtentication_and_authorization_policy}
-The configuration and runtime parameters for Agent Identifiers {{agent_identifiers}}, Agent Credentials {{agent_credentials}}, Agent Credential Provisioning {{agent_credential_provisioning}}, Agent Authentication {{agent_authentication}}, Agent Authorization {{agent_authorization}} and Agent Monitoring, Observability and Remediation {{agent_monitoring_and_remediation}} collectively constitute the authentication and authorization policy within which the Agent operates.
+The configuration and runtime parameters for Agent Identifiers {{agent_identifiers}}, Agent Credentials {{agent_credentials}}, Agent Credential Provisioning {{agent_credential_provisioning}}, Agent Authentication {{agent_authentication}}, Agent Authorization {{agent_authorization}} and Agent Monitoring, Observability and Remediation {{agent_monitoring_and_remediation}} collectively constitute the authentication and authorization policy within which the Agent operates within an AIMS implementation.
 
 Because these parameters are highly deployment and risk-model-specific (and often reflect local governance, regulatory, and operational constraints), the policy model and document format are out of scope for this framework and are not recommended as a target for standardization within this specification. Implementations MAY represent policy in any suitable “policy-as-code” or configuration format (e.g., JSON/YAML), provided it is versioned, reviewable, and supports consistent evaluation across the components participating in the end-to-end flow.
 
@@ -451,6 +451,7 @@ The authors would like to thank:
    * Update use of normative language (https://github.com/PieterKas/agent2agent-auth-framework/issues/123)
    * Added reference to newly adopted WISE draft (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/153)
    * Make deprovisioning explicit (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/125)
+   * Re-use the AIMS term (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/135)
 
   -03
 
