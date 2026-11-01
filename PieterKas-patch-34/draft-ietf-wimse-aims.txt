@@ -667,11 +667,11 @@ Table of Contents
    accidental token leakage or deliberate token theft, so that a token
    obtained by an attacker cannot be used without the corresponding key.
    Sender-constraining may use certificate-bound access tokens
-   [OAUTH-CLIENTAUTH-MTLS], when the Agent presents its X.509 workload
-   credential over mutual TLS, or Demonstrating Proof of Possession
-   (DPoP) [OAUTH-DPOP], when transport-layer binding is not feasible.
-   The use of sender-constrained access tokens is described in the OAuth
-   2.0 Security Best Current Practice [OAUTH-BCP] and in FAPI 2.0
+   [OAUTH-CLIENTAUTH-MTLS], when the Agent presents an X.509 credential
+   over mutual TLS, or Demonstrating Proof of Possession (DPoP)
+   [OAUTH-DPOP], when transport-layer binding is not feasible.  The use
+   of sender-constrained access tokens is described in the OAuth 2.0
+   Security Best Current Practice [OAUTH-BCP] and in FAPI 2.0
    [OpenIDConnect.FAPI].
 
 10.4.  Obtaining an OAuth 2.0 Access Token
