@@ -798,10 +798,6 @@ Table of Contents
    policy and makes the final decision on whether to issue a token and
    with what scope.
 
-   A transaction token MAY be used to obtain an access token to call
-   another service (e.g. another Agent, Tool or LLM) by using OAuth 2.0
-   Token Exchange as defined in [OAUTH-TOKEN-EXCHANGE].
-
    A transaction token may be presented in an OAuth 2.0 Token Exchange
    [OAUTH-TOKEN-EXCHANGE] to obtain an access token for another service
    (e.g. another Agent, Tool or LLM).  Obtaining an access token for a
