@@ -255,7 +255,7 @@ An Agent Identity Management System may incorporate multiple posture assessment 
 
 Agent credential provisioning must operate autonomously, scale to high-churn environments, and integrate closely with the posture assessment mechanisms used to establish trust in the Agent at each issuance or rotation event.
 
-Posture assessment at provisioning time establishes trust at the moment a credential is issued or renewed. It does not by itself establish that the posture still holds when a particular request is made. Higher-risk deployments, and interactions that cross trust domain boundaries, may require posture evidence that is closer to the time of the request. Two approaches are available with existing mechanisms: 
+Posture assessment at provisioning time establishes trust at the moment a credential is issued or renewed. It does not by itself establish that the posture still holds when a particular request is made. Higher-risk deployments, and interactions that cross trust domain boundaries, may require posture evidence that is closer to the time of the request. Two approaches are available with existing mechanisms:
 
 1. Shortening credential lifetimes so that renewal, and with it re-assessment, occurs more frequently.
 2. Using the eventing mechanisms described in {{agent_monitoring_and_remediation}} so that a change in posture detected after issuance results in revocation or down-scoping of the agent's credentials and tokens.
