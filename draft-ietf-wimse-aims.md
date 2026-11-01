@@ -257,6 +257,11 @@ An AIMS implementation may incorporate multiple posture assessment mechanisms an
 
 Agent credential provisioning must operate autonomously, scale to high-churn environments, and integrate closely with the posture assessment mechanisms used to establish trust in the Agent at each issuance or rotation event.
 
+Posture assessment at provisioning time establishes trust at the moment a credential is issued or renewed. It does not by itself establish that the posture still holds when a particular request is made. Higher-risk deployments, and interactions that cross trust domain boundaries, may require posture evidence that is closer to the time of the request. Two approaches are available with existing mechanisms:
+
+1. Shortening credential lifetimes so that renewal, and with it re-assessment, occurs more frequently.
+2. Using the eventing mechanisms described in {{agent_monitoring_and_remediation}} so that a change in posture detected after issuance results in revocation or down-scoping of the agent's credentials and tokens.
+
 Agent credential provisioning typically includes two phases:
 
 1. **Initial Provisioning**: The process by which an agent first acquires a credential bound to its identity. This often occurs immediately after deployment or instantiation and is based on verified properties of the agent (e.g., deployment context, posture assessment results, or orchestration metadata).
@@ -450,6 +455,7 @@ The authors would like to thank:
    * Clarify that LLMs should not have access to Agent credentials: https://github.com/PieterKas/agent2agent-auth-framework/issues/127
    * Update use of normative language (https://github.com/PieterKas/agent2agent-auth-framework/issues/123)
    * Added reference to newly adopted WISE draft (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/153)
+   * Added text to clarify that posture assessment is ongoing with forward pointing references. (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/128)
    * Make deprovisioning explicit (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/125)
    * Re-use the AIMS term (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/135)
 
