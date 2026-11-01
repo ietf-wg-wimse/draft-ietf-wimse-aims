@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-10-25T03:38:48.945506+00:00",
+  "timestamp": "2026-11-01T04:52:37.799611+00:00",
   "repo": "ietf-wg-wimse/draft-ietf-wimse-aims",
   "labels": [
     {
@@ -126,7 +126,7 @@
       "id": "I_kwDOQP22qc7kg9up",
       "title": "Transacction tokens",
       "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/4",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "PieterKas",
       "authorAssociation": "COLLABORATOR",
       "assignees": [
@@ -135,8 +135,8 @@
       "labels": [],
       "body": ">{{OAuth.TRAT}} is new specification for formattting pieces of authorization in the form of transaction bound bearer tokens. \n\nHow about this: \n\n{{OAuth.TRAT}}  defines short-lived, cryptographically protected tokens that carry and preserve a requester\u2019s identity and authorization context across all internal service calls in a trusted domain during an external API-initiated transaction. It allows for downscoping access and binding authorisation data to a specific transaction, reducing the risks of token theft and replay attacks.",
       "createdAt": "2026-01-20T13:54:48Z",
-      "updatedAt": "2026-01-20T15:51:04Z",
-      "closedAt": null,
+      "updatedAt": "2026-10-30T14:34:53Z",
+      "closedAt": "2026-10-30T14:34:53Z",
       "comments": []
     },
     {
@@ -615,15 +615,15 @@
       "id": "I_kwDOQP22qc7un8qn",
       "title": "CIBA != HITL",
       "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/50",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "bc-pi",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "> I am aware it's commonly positioned this way but CIBA isn\u2019t a great fit for agentic HITL scenarios \n\n _Originally posted by @bc-pi in [#42](https://github.com/PieterKas/agent2agent-auth-framework/pull/42/changes#r2866768994)_",
       "createdAt": "2026-02-28T00:40:35Z",
-      "updatedAt": "2026-02-28T00:40:35Z",
-      "closedAt": null,
+      "updatedAt": "2026-10-30T14:35:48Z",
+      "closedAt": "2026-10-30T14:35:48Z",
       "comments": []
     },
     {
@@ -953,7 +953,7 @@
       "labels": [],
       "body": "From George Fletcher\n\nSection 10.4\n- given that a transaction token is a bearer token, I\u2019m not sure it can be the sole method of obtaining a new access token via token exchange. I think it can be good evidence in such an exchange. Regardless, I\u2019m not sure the security properties of such an exchange are well understood.",
       "createdAt": "2026-03-13T19:45:33Z",
-      "updatedAt": "2026-10-20T22:34:33Z",
+      "updatedAt": "2026-10-31T20:25:05Z",
       "closedAt": null,
       "comments": [
         {
@@ -962,6 +962,13 @@
           "body": "As the issue suggests, I'd recommend AIMS treat the transaction token as evidence in that exchange rather than the credential that authorizes it, so a stolen transaction token isn't enough on its own to obtain an access token. The security properties are the ones both drafts below support:\n\n- the AS validates the transaction token's signature, expiry, and audience;\n- the requesting workload authenticates with its own credentials and is authorized by the AS;\n- the issued token's authority is capped at the transaction token's;\n- the access token should be sender-constrained to the workload.\n\nTwo individual drafts already work this way:\n\n- George's own [draft-fletcher-oauth-txn-token-chaining-profile](https://datatracker.ietf.org/doc/draft-fletcher-oauth-txn-token-chaining-profile/) covers crossing a trust domain: the workload presents the transaction token as `subject_token` and receives a JWT authorization grant no broader than the transaction token's `scope`, which it redeems at the target AS for a sender-constrained access token.\n- My [draft-mcguinness-oauth-actor-profile](https://datatracker.ietf.org/doc/draft-mcguinness-oauth-actor-profile/) covers a direct exchange for an access token (Section 6.3.1.3): the workload's own credential is the `actor_token` when it isn't already the transaction token's actor, `req_wl` stays out of the access token, and the AS rejects with `invalid_scope` when it can't map the transaction token's authority to the requested scope.\n\nProposed text, replacing the last sentence of \"Risk Reduction with Transaction Tokens\":\n\n> A transaction token MAY be presented as the subject token in an OAuth 2.0 Token Exchange to obtain an access token for another service. Because a transaction token is a bearer token scoped to one trust domain, the requesting workload authenticates with its own credentials, the issued access token conveys no more authority than the transaction token, and the access token SHOULD be sender-constrained to the requesting workload. To reach a service in another trust domain, the workload follows OAuth Identity and Authorization Chaining, for example with the Transaction Token chaining profile.\n",
           "createdAt": "2026-10-20T22:34:33Z",
           "updatedAt": "2026-10-20T22:34:33Z"
+        },
+        {
+          "author": "PieterKas",
+          "authorAssociation": "COLLABORATOR",
+          "body": "On whether a transaction token can be the sole basis for obtaining an access token: it can\u2019t, and the existing specifications already say so. RFC 8693 requires the requesting client to authenticate at the token endpoint, so the workload presents its own credentials regardless of what it passes as the subject token. The Transaction Token draft (-11) states that a transaction token is not an authentication credential (Section 13.12) and not an access token (13.13), that a token service must reject a request when it cannot determine the subject token\u2019s scope (13.14), and that a replacement may never expand scope (13.15). Taken together, those give the properties Karl lists: the AS validates the transaction token, the workload authenticates with its own credentials, and the resulting token\u2019s scope is capped by the transaction token\u2019s. I\u2019d rather not restate them in AIMS, so the draft now states the end-to-end property and defers the detail to those documents.\n\nOn whether a dedicated profile for transaction-token-to-access-token exchange is needed: I don\u2019t think AIMS should define one. If the WG believes the security properties need their own treatment beyond Sections 13.12\u201313.15 of the Transaction Token draft and the actor/chaining profiles Karl mentions, that is new work for OAuth rather than this document, and I\u2019d add it to the list of future work. \n\nOn sender-constraining: that is a property every access token an Agent obtains should have, not something specific to this exchange, so I don\u2019t want to attach it to the transaction token text. It is implied by the reference to the Security BCP, but perhaps some text can be added to catcch the readers eye and then refer them to the BCP.",
+          "createdAt": "2026-10-31T20:25:05Z",
+          "updatedAt": "2026-10-31T20:25:05Z"
         }
       ]
     },
@@ -2104,7 +2111,7 @@
       "labels": [],
       "body": "_Source: email from Yaron Sheffer to the WIMSE mailing list, [Review of draft-klrc-aiagent-auth (editor's copy)](https://mailarchive.ietf.org/arch/msg/wimse/3baCsNZnK4XS5nH-iHWuaPJlbK0/). Quoted verbatim below._\n\nThe document discusses credential provisioning and rotation (Section 7) but says nothing about deprovisioning. Section 7 should add a third phase \u2014 credential deprovisioning \u2014 even if it simply means stopping rotation when the agent is terminated. Beyond that, the identifier lifecycle is a distinct concern: when an agent is retired, its identifier needs to remain referenceable for forensic and audit purposes. The document should discuss how long an agent identifier should be retained, and in what registry, after the agent is gone.\n",
       "createdAt": "2026-06-04T11:13:19Z",
-      "updatedAt": "2026-10-24T02:36:39Z",
+      "updatedAt": "2026-10-30T14:44:53Z",
       "closedAt": null,
       "comments": [
         {
@@ -2134,6 +2141,13 @@
           "body": "I've opened #163 to address the identifier-lifetime part of this issue. Audit records need to remain interpretable after deprovisioning or identifier reassignment, including when records cross trust-domain boundaries. I'd welcome feedback on the proposed Section 6 text.",
           "createdAt": "2026-10-24T02:36:39Z",
           "updatedAt": "2026-10-24T02:36:39Z"
+        },
+        {
+          "author": "PieterKas",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@yaronf - I was thinking about this more and am curious about what the \"deprovisioning\" seection would say? My current thinking is that there is some kind of \"distrust\" event that causes one or more agents to no longer be trusted, in which case a signal is emitted by the ITDR (or similar) system. This event goes to the credential issuer, AS, RS and PIP/PDP/PEPs, which then use that informatuuon to stop issueing credentiall, access tokens or just deny access.\n\nI think this all implies that there is a system somewhere in the background that keeps track of all the agents you have (a registry perhaps?) as well as their state.",
+          "createdAt": "2026-10-30T14:44:53Z",
+          "updatedAt": "2026-10-30T14:44:53Z"
         }
       ]
     },
@@ -2149,7 +2163,7 @@
       "labels": [],
       "body": "_Source: email from Yaron Sheffer to the WIMSE mailing list, [Review of draft-klrc-aiagent-auth (editor's copy)](https://mailarchive.ietf.org/arch/msg/wimse/3baCsNZnK4XS5nH-iHWuaPJlbK0/). Quoted verbatim below._\n\nSection 9.5 describes exchanging access tokens for transaction tokens and then using transaction tokens to obtain access tokens (for downstream calls). This is architecturally circular and raises unresolved questions about how authorization scope is preserved or narrowed across this chain. Transaction tokens (draft-ietf-oauth-transaction-tokens) do not carry a standard `scope` claim, so it is unclear how scope semantics are maintained when re-obtaining an access token from a transaction token. This should be resolved or at least explicitly flagged as an open issue.\n",
       "createdAt": "2026-06-04T11:14:21Z",
-      "updatedAt": "2026-10-21T06:13:14Z",
+      "updatedAt": "2026-10-31T20:14:20Z",
       "closedAt": null,
       "comments": [
         {
@@ -2221,6 +2235,13 @@
           "body": "The bounded-by-input framing is right and the proposed sentence is worth adding. One thing it does not reach, and I think AIMS should say which of the two it is claiming.\n\nBounding each exchange by its input gives non-amplification at every hop. Establishing that the bound held end to end is a different claim, and it needs the chain to be reconstructable after the carrier has changed. A verifier holding an access token obtained from a transaction token can check that this exchange was bounded. Showing that the same bound ran unbroken from the original access token requires something that survives each format transition and that a third party can join on.\n\nThat is the gap I raised earlier in this issue, and it is separable from Yaron's circularity point: the circularity is a format artifact, the reconstructability is not.\n\nCorrecting my own earlier comment on one detail. I cited AISVS C9.2.7 for the worst-case class chain rule. That was a pre-publication number. In the published standard the rule is 9.2.10, which requires an approval gate for a multi-step or multi-agent chain to enforce the highest-impact reversibility classification present anywhere in the chain, and 1.01 adds the clause that the chain must be established by a component outside the control of the agent being gated. 1.01 also adds 9.2.11, which blocks execution exceeding the approved chain until re-approval, enforced against the cumulative chain. The second clause is the one that matters here: without it the chain is whatever the presenting party declares it to be.\n\nSuggested addition to the proposed sentence, or as a following one:\n\n> Non-amplification at each exchange does not by itself establish that the bound held across the sequence. Where a deployment needs that end-to-end claim, the authority chain is identified independently of the token format carrying it, so that a relying party can reconstruct the sequence across exchanges rather than inferring it from the token it holds.",
           "createdAt": "2026-10-21T06:13:14Z",
           "updatedAt": "2026-10-21T06:13:14Z"
+        },
+        {
+          "author": "PieterKas",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Thanks all. I\u2019ve addressed this in the editor\u2019s copy as follows.\n\nOn the circularity: I don\u2019t believe the pattern is circular in the architectural sense. An access token is exchanged for a transaction token to carry authorization context between workloads inside a trust domain; when one of those workloads then needs to call a service that requires an access token (a service in another trust domain, or a legacy service that only accepts access tokens), it obtains one by presenting the transaction token in a token exchange. The token format repeats, but the authorization context flows in one direction and is never widened.\n\nOn scope: transaction tokens do carry a scope claim, and the Transaction Token draft already constrains the chain in the way this issue asks for. Section 13.12 (-11) states that a transaction token is not an authentication credential, 13.13 that it is not an access token, 13.14 that the TTS must reject a request when it cannot determine the subject token\u2019s scope, and 13.15 that a replacement transaction token may never expand scope. RFC 8693 separately requires the requesting client to authenticate at the token endpoint, so the transaction token is never the sole basis for the exchange. I\u2019d rather not restate those requirements here, so the draft now makes the end-to-end property explicit and defers the detail to those specifications.\n\nChanges to \u201cRisk Reduction with Transaction Tokens\u201d:\n\nAppended to the paragraph that describes the exchange: \u201cThe scope of access conveyed by each token in this sequence of exchanges can never exceed that of the token presented to obtain it. At each exchange the authorization server (or transaction token service) evaluates its authorization policy and makes the final decision on whether to issue a token and with what scope.\u201d\nReplaced the closing sentence with: \u201cA transaction token may be presented in an OAuth 2.0 Token Exchange to obtain an access token for another service (e.g. another Agent, Tool or LLM). Obtaining an access token for a service in another trust domain when the Agent has a transaction token is described in the Cross Domain Access section.\u201d The cross-domain case, including the transaction token chaining profile, stays in that section rather than being repeated here.\n\nKarl\u2019s point about the resulting access token being sender-constrained is a general property of every access token an Agent obtains, not specific to this exchange, and I\u2019m handling it separately (see #67). The chain-identifier and action-class proposals in this thread would be new mechanism rather than application of existing specifications, which is outside what this document sets out to do; they belong on the list of new work - once that work is adopted by an SDO or WG, we can reference it.",
+          "createdAt": "2026-10-31T20:14:20Z",
+          "updatedAt": "2026-10-31T20:14:20Z"
         }
       ]
     },
@@ -2288,7 +2309,7 @@
       "labels": [],
       "body": "_Source: email from Yaron Sheffer to the WIMSE mailing list, [Review of draft-klrc-aiagent-auth (editor's copy)](https://mailarchive.ietf.org/arch/msg/wimse/3baCsNZnK4XS5nH-iHWuaPJlbK0/). Quoted verbatim below._\n\nSection 7 discusses posture assessment only in the context of credential issuance and rotation. The document should also mention the possibility of continuous or live posture assessment, bound to individual workload-to-workload messages \u2014 for example, including a fresh attestation assertion in a WPT or HTTP Message Signature. This is particularly relevant in high-risk or cross-domain scenarios.\n",
       "createdAt": "2026-06-04T11:16:10Z",
-      "updatedAt": "2026-06-04T15:03:46Z",
+      "updatedAt": "2026-10-31T19:45:40Z",
       "closedAt": null,
       "comments": [
         {
@@ -2297,6 +2318,13 @@
           "body": "cc @yaronf",
           "createdAt": "2026-06-04T15:03:46Z",
           "updatedAt": "2026-06-04T15:03:46Z"
+        },
+        {
+          "author": "PieterKas",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Added text to emphasis the need for ongoing posture management.\n\nI did not include text about sending posture information at the application layer for a relying party to review. I am not aware of standards we can reference here either. In terms of desirability of such behaviour, it is certainly possible, but my observvations have been that outside of very narrow high security use cases, the overheads of managing systems that carry this kind of information creates significant overhead and are operationally brittle. \n\nNothing in the AIMs draft precludes doing this, but it feels like we need more evidence that is a common practivce, or perhaps have standards we can refer to on how this might be achieved.",
+          "createdAt": "2026-10-31T19:45:40Z",
+          "updatedAt": "2026-10-31T19:45:40Z"
         }
       ]
     },
@@ -2419,7 +2447,7 @@
       "labels": [],
       "body": "_Source: email from Yaron Sheffer to the WIMSE mailing list, [Review of draft-klrc-aiagent-auth (editor's copy)](https://mailarchive.ietf.org/arch/msg/wimse/3baCsNZnK4XS5nH-iHWuaPJlbK0/). Quoted verbatim below._\n\nThe reference to MCP's user-solicitation pattern should point to a specific section or feature of the MCP specification rather than the top-level spec URL.\n",
       "createdAt": "2026-06-04T11:20:15Z",
-      "updatedAt": "2026-06-04T15:03:53Z",
+      "updatedAt": "2026-10-31T19:21:20Z",
       "closedAt": null,
       "comments": [
         {
@@ -2428,6 +2456,13 @@
           "body": "cc @yaronf",
           "createdAt": "2026-06-04T15:03:53Z",
           "updatedAt": "2026-06-04T15:03:53Z"
+        },
+        {
+          "author": "PieterKas",
+          "authorAssociation": "COLLABORATOR",
+          "body": "From many cconversations over the years, I came to the conclusion that \"consent\" is a legal term, rather than a technical one, hence the use of \"user confirmation\". Defining user consent is not something I beleive is in the scope off the AIMS spec to define. We can only  point to specifications and protocols that may involve some form of user agreement or confirmation.",
+          "createdAt": "2026-10-31T19:21:20Z",
+          "updatedAt": "2026-10-31T19:21:20Z"
         }
       ]
     },
@@ -3022,6 +3057,51 @@
       "updatedAt": "2026-10-23T23:02:24Z",
       "closedAt": null,
       "comments": []
+    },
+    {
+      "number": 165,
+      "id": "I_kwDOQP22qc8AAAABa6qo-Q",
+      "title": "Context as an additional identity for authorization and auditability",
+      "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/165",
+      "state": "OPEN",
+      "author": "guilhermefaleixo",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "In the documentation, Context is described as:\n\n> The AI Agent provides the available context to the LLM. Context is implementation, and deployment, specific and may include User or System input, system prompts, Tool descriptions, prior Tool, Service and Resource outputs, and other relevant state.\n\nIn my opinion, the Agent identity is too broad, as a single agent can perform many different tasks. This makes it difficult to enforce granular policies and properly audit its actions.\n\nWhile the Agent acts on behalf of a User or System, I think we should also consider having an identity associated with the **Context** in which the agent is operating.\n\nFor example, consider this prompt:\n\n> Create an order for this user and pay with my credit card.\n\nToday, we can identify the Agent and the User on whose behalf it is acting, but we don't necessarily have an identity representing the specific context that triggered the action.\n\nHaving a context-specific identity could help us:\n\n- **Enforce more granular policies**, based on what the agent is actually trying to accomplish.\n- **Improve auditability**, by linking actions to the context or task that triggered them, rather than only to the agent.\n- **Introduce better guardrails**, potentially categorizing contexts or tasks and applying different security policies.\n\nThe idea is not to replace the Agent identity, but to complement it with a context-specific identity that could be propagated through the authorization flow.\n\nWould it make sense to consider Context as an additional identity or security principal in this architecture?",
+      "createdAt": "2026-10-29T14:02:52Z",
+      "updatedAt": "2026-10-30T10:03:22Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "23A91A6183",
+          "authorAssociation": "NONE",
+          "body": "Thanks for raising this; tying an agent's action to the task that triggered it, and not only to the agent and the user, is a useful distinction for audit. I'd value your view in writing on three things, and if you run agents yourself, from how that works today:\n1. In a case like your example (an order paid with the user's card), who should approve the action before it runs, and would that approval be per action or per task?\n2. Do your agents call the tools and services they act on locally within your own environment, or over the network to hosted services?\n3. For each such action, what has to be recorded, where should that record live, and who checks it later?\n\nHappy to share an early look at what we're exploring if useful. Written replies here are perfect.\n\nRajesh, Shagun Labs\n",
+          "createdAt": "2026-10-30T04:56:18Z",
+          "updatedAt": "2026-10-30T04:56:18Z"
+        },
+        {
+          "author": "guilhermefaleixo",
+          "authorAssociation": "NONE",
+          "body": ">In a case like your example (an order paid with the user's card), who should approve the action before it runs, and would that approval be per action or per task?\n\nThe approval can be by both, it all depends on the policy. The task is the user intention while the action is the agent operation to complete that task. My main point around Context Identity is that we should be able to associate all those actions with the specific task that triggered them, rather than just the broader Agent identity.\nThis would allow us to enforce policies at the action level while keeping the task context for auditability and traceability. \n\n>Do your agents call the tools and services they act on locally within your own environment, or over the network to hosted services?\n\nEither, they can call internally or externally, the starting point is in our boundary.\nMy concern is that when an agent calls different services, those services may only see the agent identity and the user on whose behalf it is acting, without knowing which specific task or context triggered the request.\n\n>For each such action, what has to be recorded, where should that record live, and who checks it later?\n\nIdeally, each action should be traceable to the Agent Identity, the User/System it acts on behalf of, and the Context/Task Identity that triggered it.\nI don't think the draft necessarily needs to define where audit logs should be stored, as that could remain implementation-specific.\nWhat I would like to see is a way to correlate actions across different tools and services using a common context/task identifier.\nThis would allow security teams, auditors, or automated monitoring systems to reconstruct what happened, why an action was performed, and under which authorization context.\nThe main goal is to avoid having an agent identity that is too broad to provide meaningful auditability, especially when the same agent performs many unrelated tasks.\n \n\n",
+          "createdAt": "2026-10-30T09:47:41Z",
+          "updatedAt": "2026-10-30T09:48:20Z"
+        },
+        {
+          "author": "23A91A6183",
+          "authorAssociation": "NONE",
+          "body": "Thanks, that's very clear, especially the point that downstream services see the agent and the user but not the task that caused the call. One short follow-up if you have a moment: before an agent may act on production data or payments where you work, does a security review have to sign off, and who runs it?\n\nHappy to share an early look at what we're exploring if useful. Written replies here are perfect.\n\nRajesh, Shagun Labs\n",
+          "createdAt": "2026-10-30T09:51:00Z",
+          "updatedAt": "2026-10-30T09:51:00Z"
+        },
+        {
+          "author": "guilhermefaleixo",
+          "authorAssociation": "NONE",
+          "body": "> before an agent may act on production data or payments where you work, does a security review have to sign off, and who runs it?\n\nThat is part of the policy, but I believe this enforcement is necessary, it varies from company to company",
+          "createdAt": "2026-10-30T10:03:22Z",
+          "updatedAt": "2026-10-30T10:03:22Z"
+        }
+      ]
     }
   ],
   "pulls": [
@@ -7254,6 +7334,136 @@
       "headRepository": "naveedi/draft-ietf-wimse-aims",
       "headRefName": "aims-part-b-attribution",
       "headRefOid": "1397bb4eaf0760c8f96cd3b52bd7238551d2d846",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 166,
+      "id": "PR_kwDOQP22qc8AAAABMAS_3g",
+      "title": "Update OpenID reference to OpenID Connect",
+      "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/pull/166",
+      "state": "OPEN",
+      "author": "PieterKas",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "See issue #133",
+      "createdAt": "2026-10-31T18:57:45Z",
+      "updatedAt": "2026-10-31T18:57:45Z",
+      "baseRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
+      "baseRefName": "main",
+      "baseRefOid": "4095365f74c7d4ab4402f6230eed46018d107458",
+      "headRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
+      "headRefName": "PieterKas-patch-27",
+      "headRefOid": "2341c71fde420563be7b936d91f5ed290a20d6e2",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 167,
+      "id": "PR_kwDOQP22qc8AAAABMAYgpg",
+      "title": "Re-use AIMS definition and update document history",
+      "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/pull/167",
+      "state": "OPEN",
+      "author": "PieterKas",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "see issue #135",
+      "createdAt": "2026-10-31T19:10:27Z",
+      "updatedAt": "2026-10-31T19:15:03Z",
+      "baseRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
+      "baseRefName": "main",
+      "baseRefOid": "4095365f74c7d4ab4402f6230eed46018d107458",
+      "headRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
+      "headRefName": "PieterKas-patch-28",
+      "headRefOid": "4db28d96b72739a1bc824f137ed39efeca1b093b",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 168,
+      "id": "PR_kwDOQP22qc8AAAABMAi9Jg",
+      "title": "Enhance agent credential lifecycle with deprovisioning",
+      "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/pull/168",
+      "state": "OPEN",
+      "author": "PieterKas",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Added deprovisioning phase to agent credential lifecycle and clarified its implications. Updated document history to reflect recent changes and clarifications regarding WIMSE and SPIFFE credentials. see issue #125",
+      "createdAt": "2026-10-31T19:32:36Z",
+      "updatedAt": "2026-10-31T19:32:36Z",
+      "baseRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
+      "baseRefName": "main",
+      "baseRefOid": "4095365f74c7d4ab4402f6230eed46018d107458",
+      "headRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
+      "headRefName": "PieterKas-patch-29",
+      "headRefOid": "9b25141eeffb96c89afcbb5e8931304cc98b60f4",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 169,
+      "id": "PR_kwDOQP22qc8AAAABMAnUzQ",
+      "title": "Clarify ongoing posture assessment in credential provisioning",
+      "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/pull/169",
+      "state": "OPEN",
+      "author": "PieterKas",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Added clarification on ongoing posture assessment and its implications for credential provisioning. See issue #128",
+      "createdAt": "2026-10-31T19:41:28Z",
+      "updatedAt": "2026-10-31T19:45:57Z",
+      "baseRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
+      "baseRefName": "main",
+      "baseRefOid": "4095365f74c7d4ab4402f6230eed46018d107458",
+      "headRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
+      "headRefName": "PieterKas-patch-30",
+      "headRefOid": "e1ce87ecd96c74067bab0dfb7143f2600716dc2e",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 170,
+      "id": "PR_kwDOQP22qc8AAAABMA3D3Q",
+      "title": "Enhance transaction token and cross-domain access sections",
+      "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/pull/170",
+      "state": "OPEN",
+      "author": "PieterKas",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Added details on transaction tokens and cross-domain access for agents, including clarifications on OAuth 2.0 Token Exchange and related specifications. See issue #128 ",
+      "createdAt": "2026-10-31T20:15:48Z",
+      "updatedAt": "2026-10-31T20:16:07Z",
+      "baseRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
+      "baseRefName": "main",
+      "baseRefOid": "4095365f74c7d4ab4402f6230eed46018d107458",
+      "headRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
+      "headRefName": "PieterKas-patch-31",
+      "headRefOid": "80cb50e5f846e165e973fa153b45a0812c7f60a3",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
