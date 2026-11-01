@@ -1220,6 +1220,9 @@ svg {
 </li>
                 </ul>
 </li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.3">
+                <p id="section-toc.1-1.9.2.3.1"><a href="#section-9.3" class="auto internal xref">9.3</a>.  <a href="#name-long-lived-sessions-and-str" class="internal xref">Long-Lived Sessions and Streams</a></p>
+</li>
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
@@ -1456,7 +1459,8 @@ appear in all capitals, as shown here.<a href="#section-3-1" class="pilcrow">¶<
 </li>
       </ol>
 <p id="section-4-5">As shown in <a href="#fig-ai-agent-workload" class="auto internal xref">Figure 1</a>, the AI agent is a workload that needs an identifier and credentials so it can be authenticated by the Tools, Services, Resources, Large Language Model, System and the User (via the underlying operating system or platform, similar to existing applications and services). Once authenticated, these parties determine if the AI Agent is authorized to access the requested Large Language Model, Tools, Services or Resources. If the AI Agent is acting on behalf of a User or System, the User or System needs to delegate authority to the AI Agent, and the User or System context is preserved and used as input to authorization decisions and recorded in audit trails.<a href="#section-4-5" class="pilcrow">¶</a></p>
-<p id="section-4-6">This document describes how AI Agents should leverage existing standards defined by SPIFFE <span>[<a href="#SPIFFE" class="cite xref">SPIFFE</a>]</span>, WIMSE, OAuth and OpenID SSF <span>[<a href="#SSF" class="cite xref">SSF</a>]</span>.<a href="#section-4-6" class="pilcrow">¶</a></p>
+<p id="section-4-6">Note: The arrows in <a href="#fig-ai-agent-workload" class="auto internal xref">Figure 1</a> indicate the direction in which information flows between the participants and do not imply a particular interaction style. The model applies equally to request and response exchanges and to streaming interactions.<a href="#section-4-6" class="pilcrow">¶</a></p>
+<p id="section-4-7">This document describes how AI Agents should leverage existing standards defined by SPIFFE <span>[<a href="#SPIFFE" class="cite xref">SPIFFE</a>]</span>, WIMSE, OAuth and OpenID SSF <span>[<a href="#SSF" class="cite xref">SSF</a>]</span>.<a href="#section-4-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="agent-identity-management-system">
@@ -1650,6 +1654,14 @@ appear in all capitals, as shown here.<a href="#section-3-1" class="pilcrow">¶<
 <p id="section-9.2.3-1">Unlike transport-layer authentication, application-layer authentication does not inherently provide channel binding to the underlying secure transport. As a result, implementations <span class="bcp14">MUST</span> consider the risk of message relay or replay if tokens or signed messages are accepted outside their intended context. Deployments typically mitigate these risks through short token lifetimes, audience restrictions, nonce or unique identifier checks, and binding authentication to specific requests or transaction parameters.<a href="#section-9.2.3-1" class="pilcrow">¶</a></p>
 </section>
 </div>
+</section>
+</div>
+<div id="long_lived_sessions">
+<section id="section-9.3">
+        <h3 id="name-long-lived-sessions-and-str">
+<a href="#section-9.3" class="section-number selfRef">9.3. </a><a href="#name-long-lived-sessions-and-str" class="section-name selfRef">Long-Lived Sessions and Streams</a>
+        </h3>
+<p id="section-9.3-1">In a long lived session or a streaming connection, the Agent is authenticated when the session is established, using the mechanisms described above, and the authorization granted at that point is bounded by the lifetime of the credential or token presented. Because a session may outlive the credential or token used to establish it, the Agent keeps its credentials current through the automated rotation described in <a href="#agent_credential_provisioning" class="auto internal xref">Section 8</a>, the party accepting the session re-validates authorization when the credential or token expires, and both act on revocation or risk signals (<a href="#agent_monitoring_and_remediation" class="auto internal xref">Section 11</a>) by terminating or down-scoping the session rather than allowing it to run to completion. Where individual messages within a session require their own proof of possession, WPTs (<a href="#wpt" class="auto internal xref">Section 9.2.1</a>) can be applied to those messages.<a href="#section-9.3-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2127,13 +2139,16 @@ appear in all capitals, as shown here.<a href="#section-3-1" class="pilcrow">¶<
           <p id="appendix-A-2.5.1">Added reference to newly adopted WISE draft (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/153)<a href="#appendix-A-2.5.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-A-2.6">
-          <p id="appendix-A-2.6.1">Added text to clarify that posture assessment is ongoing with forward pointing references. (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/128)<a href="#appendix-A-2.6.1" class="pilcrow">¶</a></p>
+          <p id="appendix-A-2.6.1">Make it explicit that the AIMS draft applies regardless of streaming or request/response interactions (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/129)<a href="#appendix-A-2.6.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-A-2.7">
-          <p id="appendix-A-2.7.1">Make deprovisioning explicit (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/125)<a href="#appendix-A-2.7.1" class="pilcrow">¶</a></p>
+          <p id="appendix-A-2.7.1">Added text to clarify that posture assessment is ongoing with forward pointing references. (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/128)<a href="#appendix-A-2.7.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-A-2.8">
-          <p id="appendix-A-2.8.1">Re-use the AIMS term (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/135)<a href="#appendix-A-2.8.1" class="pilcrow">¶</a></p>
+          <p id="appendix-A-2.8.1">Make deprovisioning explicit (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/125)<a href="#appendix-A-2.8.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-A-2.9">
+          <p id="appendix-A-2.9.1">Re-use the AIMS term (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/135)<a href="#appendix-A-2.9.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="appendix-A-3">-03<a href="#appendix-A-3" class="pilcrow">¶</a></p>

@@ -98,6 +98,7 @@ Table of Contents
        9.2.1.  WIMSE Proof Tokens (WPTs)
        9.2.2.  HTTP Message Signatures
        9.2.3.  Limitations
+     9.3.  Long-Lived Sessions and Streams
    10. Agent Authorization
      10.1.  Agent Mission
      10.2.  Leverage OAuth 2.0 as a Delegation Authorization Framework
@@ -250,6 +251,11 @@ Table of Contents
    delegate authority to the AI Agent, and the User or System context is
    preserved and used as input to authorization decisions and recorded
    in audit trails.
+
+   Note: The arrows in Figure 1 indicate the direction in which
+   information flows between the participants and do not imply a
+   particular interaction style.  The model applies equally to request
+   and response exchanges and to streaming interactions.
 
    This document describes how AI Agents should leverage existing
    standards defined by SPIFFE [SPIFFE], WIMSE, OAuth and OpenID SSF
@@ -623,6 +629,22 @@ Table of Contents
    typically mitigate these risks through short token lifetimes,
    audience restrictions, nonce or unique identifier checks, and binding
    authentication to specific requests or transaction parameters.
+
+9.3.  Long-Lived Sessions and Streams
+
+   In a long lived session or a streaming connection, the Agent is
+   authenticated when the session is established, using the mechanisms
+   described above, and the authorization granted at that point is
+   bounded by the lifetime of the credential or token presented.
+   Because a session may outlive the credential or token used to
+   establish it, the Agent keeps its credentials current through the
+   automated rotation described in Section 8, the party accepting the
+   session re-validates authorization when the credential or token
+   expires, and both act on revocation or risk signals (Section 11) by
+   terminating or down-scoping the session rather than allowing it to
+   run to completion.  Where individual messages within a session
+   require their own proof of possession, WPTs (Section 9.2.1) can be
+   applied to those messages.
 
 10.  Agent Authorization
 
@@ -1345,6 +1367,10 @@ Appendix A.  Document History
 
    *  Added reference to newly adopted WISE draft (https://github.com/
       ietf-wg-wimse/draft-ietf-wimse-aims/issues/153)
+
+   *  Make it explicit that the AIMS draft applies regardless of
+      streaming or request/response interactions (https://github.com/
+      ietf-wg-wimse/draft-ietf-wimse-aims/issues/129)
 
    *  Added text to clarify that posture assessment is ongoing with
       forward pointing references. (https://github.com/ietf-wg-wimse/
