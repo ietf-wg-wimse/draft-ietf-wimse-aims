@@ -1696,6 +1696,7 @@ appear in all capitals, as shown here.<a href="#section-3-1" class="pilcrow">¶<
 <p id="section-10.3-1">An OAuth access token represents the authorization granted to the Agent. In many deployments, access tokens are structured as JSON Web Tokens (JWTs) <span>[<a href="#OAUTH-ACCESSTOKEN-JWT" class="cite xref">OAUTH-ACCESSTOKEN-JWT</a>]</span>, which include claims such as 'client_id', 'sub', 'aud', 'scope', and other attributes relevant to authorization. The access token includes the Agent identity as the 'client_id' claim as defined in <span><a href="https://rfc-editor.org/rfc/rfc9068#section-2.2" class="relref">Section 2.2</a> of [<a href="#OAUTH-ACCESSTOKEN-JWT" class="cite xref">OAUTH-ACCESSTOKEN-JWT</a>]</span>.<a href="#section-10.3-1" class="pilcrow">¶</a></p>
 <p id="section-10.3-2">When the Agent is acting on-behalf of another User or System, the User or System identifier is conveyed in the 'sub' claim as defined in <span><a href="https://rfc-editor.org/rfc/rfc9068#section-2.2" class="relref">Section 2.2</a> of [<a href="#OAUTH-ACCESSTOKEN-JWT" class="cite xref">OAUTH-ACCESSTOKEN-JWT</a>]</span>. These identifiers <span class="bcp14">MUST</span> be used by resource servers protected by the OAuth 2.0 authorization service, along with other claims in the access token, to determine if access to a resource should be allowed. The access token typically includes additional claims to convey contextual, attestation-derived, or policy-related information that enables fine-grained access control. The resource server uses the access token and the information it contains along with other authorization systems (e.g. policy based, attribute based or role based authorization systems) when enforcing access control. JWT access tokens can be validated directly by resource servers while other formats that are opaque to the resource server can be validated through a mechanism that calls back to the authorization server (the mechanism is called introspection despite the word having nearly the opposite meaning). This framework supports both models and does not require a specific token format, provided that equivalent authorization semantics are maintained.<a href="#section-10.3-2" class="pilcrow">¶</a></p>
 <p id="section-10.3-3">A resource server in receipt of tokens opaque to it are able to obtain authorization and other information from the token through OAuth 2.0 Token Introspection <span>[<a href="#OAUTH-TOKEN-INTROSPECTION" class="cite xref">OAUTH-TOKEN-INTROSPECTION</a>]</span>. The introspection response provides the active state of the token and associated authorization attributes equivalent to those conveyed in structured tokens.<a href="#section-10.3-3" class="pilcrow">¶</a></p>
+<p id="section-10.3-4">Access tokens may be sender-constrained to mitigate the risk of accidental token leakage or deliberate token theft, so that a token obtained by an attacker cannot be used without the corresponding key. Sender-constraining may use certificate-bound access tokens <span>[<a href="#OAUTH-CLIENTAUTH-MTLS" class="cite xref">OAUTH-CLIENTAUTH-MTLS</a>]</span>, when the Agent presents an X.509 credential over mutual TLS, or Demonstrating Proof of Possession (DPoP) <span>[<a href="#OAUTH-DPOP" class="cite xref">OAUTH-DPOP</a>]</span>, when transport-layer binding is not feasible. The use of sender-constrained access tokens is described in the OAuth 2.0 Security Best Current Practice <span>[<a href="#OAUTH-BCP" class="cite xref">OAUTH-BCP</a>]</span> and in FAPI 2.0 <span>[<a href="#OpenIDConnect.FAPI" class="cite xref">OpenIDConnect.FAPI</a>]</span>.<a href="#section-10.3-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="obtaining-an-oauth-20-access-token">
@@ -1977,6 +1978,10 @@ appear in all capitals, as shown here.<a href="#section-3-1" class="pilcrow">¶<
         <dd>
 <span class="refAuthor">Campbell, B.</span>, <span class="refAuthor">Bradley, J.</span>, <span class="refAuthor">Sakimura, N.</span>, and <span class="refAuthor">T. Lodderstedt</span>, <span class="refTitle">"OAuth 2.0 Mutual-TLS Client Authentication and Certificate-Bound Access Tokens"</span>, <span class="seriesInfo">RFC 8705</span>, <span class="seriesInfo">DOI 10.17487/RFC8705</span>, <time datetime="2020-02" class="refDate">February 2020</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8705">https://www.rfc-editor.org/rfc/rfc8705</a>&gt;</span>. </dd>
 <dd class="break"></dd>
+<dt id="OAUTH-DPOP">[OAUTH-DPOP]</dt>
+        <dd>
+<span class="refAuthor">Fett, D.</span>, <span class="refAuthor">Campbell, B.</span>, <span class="refAuthor">Bradley, J.</span>, <span class="refAuthor">Lodderstedt, T.</span>, <span class="refAuthor">Jones, M.</span>, and <span class="refAuthor">D. Waite</span>, <span class="refTitle">"OAuth 2.0 Demonstrating Proof of Possession (DPoP)"</span>, <span class="seriesInfo">RFC 9449</span>, <span class="seriesInfo">DOI 10.17487/RFC9449</span>, <time datetime="2023-09" class="refDate">September 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9449">https://www.rfc-editor.org/rfc/rfc9449</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="OAUTH-FRAMEWORK">[OAUTH-FRAMEWORK]</dt>
         <dd>
 <span class="refAuthor">Hardt, D., Ed.</span>, <span class="refTitle">"The OAuth 2.0 Authorization Framework"</span>, <span class="seriesInfo">RFC 6749</span>, <span class="seriesInfo">DOI 10.17487/RFC6749</span>, <time datetime="2012-10" class="refDate">October 2012</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc6749">https://www.rfc-editor.org/rfc/rfc6749</a>&gt;</span>. </dd>
@@ -2139,16 +2144,19 @@ appear in all capitals, as shown here.<a href="#section-3-1" class="pilcrow">¶<
           <p id="appendix-A-2.5.1">Added reference to newly adopted WISE draft (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/153)<a href="#appendix-A-2.5.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-A-2.6">
-          <p id="appendix-A-2.6.1">Make it explicit that the AIMS draft applies regardless of streaming or request/response interactions (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/129)<a href="#appendix-A-2.6.1" class="pilcrow">¶</a></p>
+          <p id="appendix-A-2.6.1">Added text on sender constraining tokens (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/126)<a href="#appendix-A-2.6.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-A-2.7">
-          <p id="appendix-A-2.7.1">Added text to clarify that posture assessment is ongoing with forward pointing references. (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/128)<a href="#appendix-A-2.7.1" class="pilcrow">¶</a></p>
+          <p id="appendix-A-2.7.1">Make it explicit that the AIMS draft applies regardless of streaming or request/response interactions (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/129)<a href="#appendix-A-2.7.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-A-2.8">
-          <p id="appendix-A-2.8.1">Make deprovisioning explicit (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/125)<a href="#appendix-A-2.8.1" class="pilcrow">¶</a></p>
+          <p id="appendix-A-2.8.1">Added text to clarify that posture assessment is ongoing with forward pointing references. (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/128)<a href="#appendix-A-2.8.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-A-2.9">
-          <p id="appendix-A-2.9.1">Re-use the AIMS term (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/135)<a href="#appendix-A-2.9.1" class="pilcrow">¶</a></p>
+          <p id="appendix-A-2.9.1">Make deprovisioning explicit (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/125)<a href="#appendix-A-2.9.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-A-2.10">
+          <p id="appendix-A-2.10.1">Re-use the AIMS term (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/135)<a href="#appendix-A-2.10.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="appendix-A-3">-03<a href="#appendix-A-3" class="pilcrow">¶</a></p>
