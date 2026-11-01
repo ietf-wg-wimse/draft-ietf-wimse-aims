@@ -749,7 +749,16 @@ Table of Contents
    servers, a resource server may request decisions from an external
    policy decision point rather than evaluating policy itself.  A common
    interface for that interaction is defined by the OpenID AuthZEN
-   Authorization API [OpenIDConnect.AuthZEN].
+   Authorization API [OpenIDConnect.AuthZEN].  Access tokens may be
+   sender-constrained to mitigate the risk of accidental token leakage
+   or deliberate token theft, so that a token obtained by an attacker
+   cannot be used without the corresponding key.  Sender-constraining
+   may use certificate-bound access tokens [OAUTH-CLIENTAUTH-MTLS], when
+   the Agent presents an X.509 credential over mutual TLS, or
+   Demonstrating Proof of Possession (DPoP) [OAUTH-DPOP], when
+   transport-layer binding is not feasible.  The use of sender-
+   constrained access tokens is described in the OAuth 2.0 Security Best
+   Current Practice [OAUTH-BCP] and in FAPI 2.0 [OpenIDConnect.FAPI].
 
 10.5.  Obtaining an OAuth 2.0 Access Token
 
@@ -1199,6 +1208,12 @@ Table of Contents
               DOI 10.17487/RFC8705, February 2020,
               <https://www.rfc-editor.org/rfc/rfc8705>.
 
+   [OAUTH-DPOP]
+              Fett, D., Campbell, B., Bradley, J., Lodderstedt, T.,
+              Jones, M., and D. Waite, "OAuth 2.0 Demonstrating Proof of
+              Possession (DPoP)", RFC 9449, DOI 10.17487/RFC9449,
+              September 2023, <https://www.rfc-editor.org/rfc/rfc9449>.
+
    [OAUTH-FRAMEWORK]
               Hardt, D., Ed., "The OAuth 2.0 Authorization Framework",
               RFC 6749, DOI 10.17487/RFC6749, October 2012,
@@ -1401,6 +1416,9 @@ Appendix A.  Document History
    *  Explicit guidance on policy langugages and policy based systems
       (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/
       issues/124)
+
+   *  Added text on sender constraining tokens (https://github.com/ietf-
+      wg-wimse/draft-ietf-wimse-aims/issues/126)
 
    *  Make it explicit that the AIMS draft applies regardless of
       streaming or request/response interactions (https://github.com/
