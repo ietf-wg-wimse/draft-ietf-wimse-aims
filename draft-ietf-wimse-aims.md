@@ -311,6 +311,8 @@ When the Agent is acting on-behalf of another User or System, the User or System
 
 A resource server in receipt of tokens opaque to it are able to obtain authorization and other information from the token through OAuth 2.0 Token Introspection {{!OAUTH-TOKEN-INTROSPECTION=RFC7662}}. The introspection response provides the active state of the token and associated authorization attributes equivalent to those conveyed in structured tokens.
 
+Access tokens may be sender-constrained to mitigate the risk of accidental token leakage or deliberate token theft, so that a token obtained by an attacker cannot be used without the corresponding key. Sender-constraining may use certificate-bound access tokens {{OAUTH-CLIENTAUTH-MTLS}}, when the Agent presents its X.509 workload credential over mutual TLS, or Demonstrating Proof of Possession (DPoP) {{!OAUTH-DPOP=RFC9449}}, when transport-layer binding is not feasible. The use of sender-constrained access tokens is described in the OAuth 2.0 Security Best Current Practice {{OAUTH-BCP}} and in FAPI 2.0 {{OpenIDConnect.FAPI}}.
+
 ## Obtaining an OAuth 2.0 Access Token
 OAuth 2.0 defines a number authorization grant flows in support of different authorization scenarios. The appropriate flow depends on the specific authorization scenario and the nature of User involvement. The following subsections describe the most relevant flows for Agent authorization.
 
@@ -440,13 +442,14 @@ The authors would like to thank:
 
 # Document History
    \[\[ To be removed from the final specification ]]
-  -03
+  -01
 
    * Editorial updates
    * Clarify relationship between WIMSE and SPIFFE credentials (https://github.com/PieterKas/agent2agent-auth-framework/issues/136)
    * Clarify that LLMs should not have access to Agent credentials: https://github.com/PieterKas/agent2agent-auth-framework/issues/127
    * Update use of normative language (https://github.com/PieterKas/agent2agent-auth-framework/issues/123)
    * Added reference to newly adopted WISE draft (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/153)
+   * Added text on sender constraining tokens (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/126)
 
   -03
 
