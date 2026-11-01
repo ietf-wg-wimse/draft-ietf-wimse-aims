@@ -330,6 +330,7 @@ In some deployments the claims in an access token are sufficient for a resource 
 Within a trust domain the components are operated by one organization and the use of a policy langugage within that domain is a deployment choice. Across trust domains, the mechanisms in {{cross_domain_access}} convey the outcome of a policy decision made in one domain to another domain as a token with defined claims and scope, rather than conveying the policy itself. Each domain continues to evaluate its own policy against the tokens it receives. A common policy language is therefore not required for the mechanisms in this document to interoperate across trust domains.
 
 Where policy is managed centrally or shared by several resource servers, a resource server may request decisions from an external policy decision point rather than evaluating policy itself. A common interface for that interaction is defined by the OpenID AuthZEN Authorization API {{OpenIDConnect.AuthZEN}}.
+Access tokens may be sender-constrained to mitigate the risk of accidental token leakage or deliberate token theft, so that a token obtained by an attacker cannot be used without the corresponding key. Sender-constraining may use certificate-bound access tokens {{OAUTH-CLIENTAUTH-MTLS}}, when the Agent presents an X.509 credential over mutual TLS, or Demonstrating Proof of Possession (DPoP) {{!OAUTH-DPOP=RFC9449}}, when transport-layer binding is not feasible. The use of sender-constrained access tokens is described in the OAuth 2.0 Security Best Current Practice {{OAUTH-BCP}} and in FAPI 2.0 {{OpenIDConnect.FAPI}}.
 
 ## Obtaining an OAuth 2.0 Access Token
 OAuth 2.0 defines a number authorization grant flows in support of different authorization scenarios. The appropriate flow depends on the specific authorization scenario and the nature of User involvement. The following subsections describe the most relevant flows for Agent authorization.
@@ -468,6 +469,7 @@ The authors would like to thank:
    * Update use of normative language (https://github.com/PieterKas/agent2agent-auth-framework/issues/123)
    * Added reference to newly adopted WISE draft (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/153)
    * Explicit guidance on policy langugages and policy based systems (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/124)
+   * Added text on sender constraining tokens (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/126)
    * Make it explicit that the AIMS draft applies regardless of streaming or request/response interactions (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/129)
    * Added text to clarify that posture assessment is ongoing with forward pointing references. (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/128)
    * Make deprovisioning explicit (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/125)
