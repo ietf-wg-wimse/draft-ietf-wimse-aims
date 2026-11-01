@@ -339,6 +339,18 @@ Table of Contents
    An agent participating in this framework MUST be assigned exactly one
    WIMSE identifier, which MAY be a SPIFFE ID.
 
+   The lifecycle of an agent identifier is distinct from the lifecycle
+   of the credentials bound to it.  Credentials are short-lived and
+   expire while the identifier persists.  When an agent is retired, its
+   identifier must not be reassigned to a different agent, and the
+   records that reference it (audit logs, authorization decisions,
+   delegation records and security signals) remain interpretable for as
+   long as the deployment's retention policy requires, which is
+   typically longer than the agent's operational lifetime.  The registry
+   or namespace in which agent identifiers are allocated, and the
+   retention period applied to retired identifiers, are deployment-
+   specific and out of scope for this document.
+
 7.  Agent Credentials
 
    Agents MUST possess credentials that provide a cryptographic binding
@@ -451,6 +463,16 @@ Table of Contents
        credentials before expiration.  Continuous rotation ensures that
        credentials remain valid only for the minimum necessary time and
        that authorization state reflects current operational conditions.
+
+   3.  *Deprovisioning*: The termination of an agent's credentials when
+       the agent is retired, when its posture no longer satisfies
+       policy, or when its identity is believed to be compromised.  At a
+       minimum, deprovisioning stops renewal so that outstanding short-
+       lived credentials expire and are not replaced.  Where the change
+       must take effect before expiry, the issuer signals the status
+       change to relying parties and to the issuers of any credentials
+       derived from the agent's primary credential, so that the derived
+       credentials are revoked or cease to be accepted as well.
 
    The use of short-lived credentials provides a significant improvement
    in the risk profile and risk of credential exposure.  It provides an
@@ -1308,6 +1330,9 @@ Appendix A.  Document History
 
    *  Added reference to newly adopted WISE draft (https://github.com/
       ietf-wg-wimse/draft-ietf-wimse-aims/issues/153)
+
+   *  Make deprovisioning explicit (https://github.com/ietf-wg-wimse/
+      draft-ietf-wimse-aims/issues/125)
 
    *  Re-use the AIMS term (https://github.com/ietf-wg-wimse/draft-ietf-
       wimse-aims/issues/135)
