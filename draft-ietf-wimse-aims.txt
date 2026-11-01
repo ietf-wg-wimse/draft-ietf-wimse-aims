@@ -852,11 +852,18 @@ Table of Contents
    transaction details (e.g. change in transaction amount).  Transaction
    tokens are typically short-lived, further limiting the risk in case
    they are obtained by an attacker by limiting the time window during
-   which these tokens will be accepted.
+   which these tokens will be accepted.  The scope of access conveyed by
+   each token in this sequence of exchanges can never exceed that of the
+   token presented to obtain it.  At each exchange the authorization
+   server (or transaction token service) evaluates its authorization
+   policy and makes the final decision on whether to issue a token and
+   with what scope.
 
-   A transaction token MAY be used to obtain an access token to call
-   another service (e.g. another Agent, Tool or LLM) by using OAuth 2.0
-   Token Exchange as defined in [OAUTH-TOKEN-EXCHANGE].
+   A transaction token may be presented in an OAuth 2.0 Token Exchange
+   [OAUTH-TOKEN-EXCHANGE] to obtain an access token for another service
+   (e.g. another Agent, Tool or LLM).  Obtaining an access token for a
+   service in another trust domain when the Agent has a transaction is
+   described in Section 10.7.
 
 10.7.  Cross Domain Access
 
@@ -1412,6 +1419,10 @@ Appendix A.  Document History
 
    *  Added reference to newly adopted WISE draft (https://github.com/
       ietf-wg-wimse/draft-ietf-wimse-aims/issues/153)
+
+   *  Address concerns about circularity of using a transaction token to
+      get an access token (https://github.com/ietf-wg-wimse/draft-ietf-
+      wimse-aims/issues/126)
 
    *  Explicit guidance on policy langugages and policy based systems
       (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/
