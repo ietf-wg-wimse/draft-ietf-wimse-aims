@@ -476,6 +476,7 @@ The authors would like to thank:
    * Added text to clarify that posture assessment is ongoing with forward pointing references. (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/128)
    * Make deprovisioning explicit (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/125)
    * Re-use the AIMS term (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/135)
+   * fix up some reference names
 
   -03
 
