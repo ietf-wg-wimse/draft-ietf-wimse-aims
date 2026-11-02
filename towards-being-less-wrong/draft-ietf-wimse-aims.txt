@@ -1444,6 +1444,8 @@ Appendix A.  Document History
    *  Re-use the AIMS term (https://github.com/ietf-wg-wimse/draft-ietf-
       wimse-aims/issues/135)
 
+   *  fix up some reference names
+
    -03
 
    *  Include reference to CIBA (see https://github.com/PieterKas/
