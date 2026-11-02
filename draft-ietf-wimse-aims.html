@@ -18,7 +18,7 @@
 <meta content="OAuth" name="keyword">
 <meta content="WIMSE" name="keyword">
 <meta content="SPIFFE" name="keyword">
-<meta content="Secure Signals Framework" name="keyword">
+<meta content="Shared Signals Framework" name="keyword">
 <meta content="AI Agent Authentication and Authorization" name="keyword">
 <meta content="draft-ietf-wimse-aims-latest" name="ietf.draft">
 <!-- Generator version information:
@@ -1054,7 +1054,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Kasselman, et al.</td>
-<td class="center">Expires 5 May 2027</td>
+<td class="center">Expires 6 May 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1067,12 +1067,12 @@ svg {
 <dd class="internet-draft">draft-ietf-wimse-aims-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-11-01" class="published">1 November 2026</time>
+<time datetime="2026-11-02" class="published">2 November 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-05-05">5 May 2027</time></dd>
+<dd class="expires"><time datetime="2027-05-06">6 May 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1142,7 +1142,7 @@ svg {
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 5 May 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 6 May 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1708,8 +1708,8 @@ appear in all capitals, as shown here.<a href="#section-3-1" class="pilcrow">¶<
         </h3>
 <p id="section-10.4-1">In some deployments the claims in an access token are sufficient for a resource server to make an authorization decision on their own. Where they are not, the access token becomes one input to a decision made by a policy-based authorization system (for example a policy-, attribute- or role-based system), which evaluates it together with other inputs. The authenticated identity of the requester (<a href="#agent_authentication" class="auto internal xref">Section 9</a>), the resource and action requested, the delegated User or System context, posture and risk signals (<a href="#agent_credential_provisioning" class="auto internal xref">Section 8</a>, <a href="#agent_monitoring_and_remediation" class="auto internal xref">Section 11</a>), and environmental attributes such as time or network location. The policy itself, and the language in which it is expressed, are local to the resource server and its trust domain.<a href="#section-10.4-1" class="pilcrow">¶</a></p>
 <p id="section-10.4-2">Within a trust domain the components are operated by one organization and the use of a policy langugage within that domain is a deployment choice. Across trust domains, the mechanisms in <a href="#cross_domain_access" class="auto internal xref">Section 10.7</a> convey the outcome of a policy decision made in one domain to another domain as a token with defined claims and scope, rather than conveying the policy itself. Each domain continues to evaluate its own policy against the tokens it receives. A common policy language is therefore not required for the mechanisms in this document to interoperate across trust domains.<a href="#section-10.4-2" class="pilcrow">¶</a></p>
-<p id="section-10.4-3">Where policy is managed centrally or shared by several resource servers, a resource server may request decisions from an external policy decision point rather than evaluating policy itself. A common interface for that interaction is defined by the OpenID AuthZEN Authorization API <span>[<a href="#OpenIDConnect.AuthZEN" class="cite xref">OpenIDConnect.AuthZEN</a>]</span>.
-Access tokens may be sender-constrained to mitigate the risk of accidental token leakage or deliberate token theft, so that a token obtained by an attacker cannot be used without the corresponding key. Sender-constraining may use certificate-bound access tokens <span>[<a href="#OAUTH-CLIENTAUTH-MTLS" class="cite xref">OAUTH-CLIENTAUTH-MTLS</a>]</span>, when the Agent presents an X.509 credential over mutual TLS, or Demonstrating Proof of Possession (DPoP) <span>[<a href="#OAUTH-DPOP" class="cite xref">OAUTH-DPOP</a>]</span>, when transport-layer binding is not feasible. The use of sender-constrained access tokens is described in the OAuth 2.0 Security Best Current Practice <span>[<a href="#OAUTH-BCP" class="cite xref">OAUTH-BCP</a>]</span> and in FAPI 2.0 <span>[<a href="#OpenIDConnect.FAPI" class="cite xref">OpenIDConnect.FAPI</a>]</span>.<a href="#section-10.4-3" class="pilcrow">¶</a></p>
+<p id="section-10.4-3">Where policy is managed centrally or shared by several resource servers, a resource server may request decisions from an external policy decision point rather than evaluating policy itself. A common interface for that interaction is defined by the OpenID AuthZEN Authorization API <span>[<a href="#AuthZEN-API" class="cite xref">AuthZEN-API</a>]</span>.
+Access tokens may be sender-constrained to mitigate the risk of accidental token leakage or deliberate token theft, so that a token obtained by an attacker cannot be used without the corresponding key. Sender-constraining may use certificate-bound access tokens <span>[<a href="#OAUTH-CLIENTAUTH-MTLS" class="cite xref">OAUTH-CLIENTAUTH-MTLS</a>]</span>, when the Agent presents an X.509 credential over mutual TLS, or Demonstrating Proof of Possession (DPoP) <span>[<a href="#OAUTH-DPOP" class="cite xref">OAUTH-DPOP</a>]</span>, when transport-layer binding is not feasible. The use of sender-constrained access tokens is described in the OAuth 2.0 Security Best Current Practice <span>[<a href="#OAUTH-BCP" class="cite xref">OAUTH-BCP</a>]</span> and the FAPI 2.0 Security Profile <span>[<a href="#FAPI" class="cite xref">FAPI</a>]</span>.<a href="#section-10.4-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="obtaining-an-oauth-20-access-token">
@@ -1778,7 +1778,7 @@ Access tokens may be sender-constrained to mitigate the risk of accidental token
         <h3 id="name-human-in-the-loop">
 <a href="#section-10.8" class="section-number selfRef">10.8. </a><a href="#name-human-in-the-loop" class="section-name selfRef">Human in the Loop</a>
         </h3>
-<p id="section-10.8-1">An OAuth authorization server <span class="bcp14">MAY</span> conclude that the level of access requested by an Agent requires explicit user confirmation. In such cases the authorization server <span class="bcp14">SHOULD</span> either decline the request or obtain additional authorization from the User. An Agent, acting as an OAuth client, can use the OpenID Client Initiated Backchannel Authentication (CIBA) protocol (<span>[<a href="#OpenIDConnect.CIBA" class="cite xref">OpenIDConnect.CIBA</a>]</span>). This triggers an out-of-band interaction allowing the user to approve or deny the requested operation without exposing credentials to the agent (for example a push notification requesting the user to approve a request through an authenticator application on their mobile device).<a href="#section-10.8-1" class="pilcrow">¶</a></p>
+<p id="section-10.8-1">An OAuth authorization server <span class="bcp14">MAY</span> conclude that the level of access requested by an Agent requires explicit user confirmation. In such cases the authorization server <span class="bcp14">SHOULD</span> either decline the request or obtain additional authorization from the User. An Agent, acting as an OAuth client, can use the OpenID Client Initiated Backchannel Authentication (CIBA) protocol (<span>[<a href="#CIBA" class="cite xref">CIBA</a>]</span>). This triggers an out-of-band interaction allowing the user to approve or deny the requested operation without exposing credentials to the agent (for example a push notification requesting the user to approve a request through an authenticator application on their mobile device).<a href="#section-10.8-1" class="pilcrow">¶</a></p>
 <p id="section-10.8-2">Interactive agent frameworks may also solicit user confirmation directly during task execution (for example tool invocation approval or parameter confirmation). Such interactions do not by themselves constitute authorization and <span class="bcp14">MUST</span> be bound to a verifiable authorization grant issued by the authorization server. The agent <span class="bcp14">SHOULD</span> therefore translate user confirmation into an OAuth authorization event (e.g., step-up authorization via CIBA) before accessing protected resources.<a href="#section-10.8-2" class="pilcrow">¶</a></p>
 <p id="section-10.8-3">This model aligns with user-solicitation patterns such as those described by the Model Context Protocol (<span>[<a href="#MCP" class="cite xref">MCP</a>]</span>), where an agent pauses execution and requests user confirmation before performing sensitive actions. The final authorization decision remains with the authorization server, and the agent <span class="bcp14">MUST NOT</span> treat local UI confirmation alone as sufficient authorization.<a href="#section-10.8-3" class="pilcrow">¶</a></p>
 <p id="section-10.8-4"><strong>Note:</strong> Additional specification or design work may be needed to define how out-of-band interactions with the User occur at different stages of execution. CIBA itself only accounts for client initiation, which doesn't map well to cases that envision the need for User confirmation to occur mid-execution.<a href="#section-10.8-4" class="pilcrow">¶</a></p>
@@ -1815,7 +1815,7 @@ Access tokens may be sender-constrained to mitigate the risk of accidental token
           <h4 id="name-authorization-server-capabi">
 <a href="#section-10.11.1" class="section-number selfRef">10.11.1. </a><a href="#name-authorization-server-capabi" class="section-name selfRef">Authorization Server Capability Discovery</a>
           </h4>
-<p id="section-10.11.1-1">An Agent that needs to obtain tokens can discover authorization server endpoints and capabilities using OAuth 2.0 Authorization Server Metadata <span>[<a href="#OAUTH-SERVER-METADATA" class="cite xref">OAUTH-SERVER-METADATA</a>]</span> and/or OpenID Connect Discovery <span>[<a href="#OpenIDConnect.Discovery" class="cite xref">OpenIDConnect.Discovery</a>]</span>. This allows the Agent to learn the authorization server issuer identifier, authorization and token endpoints, supported grant types, client authentication methods, signing keys (via jwks_uri), and other relevant capabilities without preconfiguring them.<a href="#section-10.11.1-1" class="pilcrow">¶</a></p>
+<p id="section-10.11.1-1">An Agent that needs to obtain tokens can discover authorization server endpoints and capabilities using OAuth 2.0 Authorization Server Metadata <span>[<a href="#OAUTH-SERVER-METADATA" class="cite xref">OAUTH-SERVER-METADATA</a>]</span> and/or OpenID Connect Discovery <span>[<a href="#OIDC.Discovery" class="cite xref">OIDC.Discovery</a>]</span>. This allows the Agent to learn the authorization server issuer identifier, authorization and token endpoints, supported grant types, client authentication methods, signing keys (via jwks_uri), and other relevant capabilities without preconfiguring them.<a href="#section-10.11.1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="protected-resource-capability-discovery">
@@ -1900,7 +1900,7 @@ Access tokens may be sender-constrained to mitigate the risk of accidental token
 <a href="#section-14" class="section-number selfRef">14. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
       </h2>
 <p id="section-14-1">This document composes existing specifications to enable authentication and authorization between AI agents. The security considerations of each referenced specification apply in full.<a href="#section-14-1" class="pilcrow">¶</a></p>
-<p id="section-14-2">In addition to the guidance included in existing specifications, additional security best practices and profiles have been developed for the Oauth protocol famility. The OAuth 2.0 Security Best Current Practice <span>[<a href="#OAUTH-BCP" class="cite xref">OAUTH-BCP</a>]</span> which captures current guidance on threats and mitigations that have emerged since the original OAuth 2.0 specifications were published. The FAPI 2.0 Security Profile  <span>[<a href="#OpenIDConnect.FAPI" class="cite xref">OpenIDConnect.FAPI</a>]</span> defines a high-assurance profile of OAuth 2.0 suitable for high security applications.<a href="#section-14-2" class="pilcrow">¶</a></p>
+<p id="section-14-2">In addition to the guidance included in existing specifications, additional security best practices and profiles have been developed for the Oauth protocol famility. The OAuth 2.0 Security Best Current Practice <span>[<a href="#OAUTH-BCP" class="cite xref">OAUTH-BCP</a>]</span> which captures current guidance on threats and mitigations that have emerged since the original OAuth 2.0 specifications were published. The FAPI 2.0 Security Profile <span>[<a href="#FAPI" class="cite xref">FAPI</a>]</span> defines a high-assurance profile of OAuth 2.0 suitable for high security applications.<a href="#section-14-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="privacy-considerations">
@@ -1959,9 +1959,21 @@ Access tokens may be sender-constrained to mitigate the risk of accidental token
         <dd>
 <span class="refTitle">"Agent Payments Protocol (AP2)"</span>, <span>n.d.</span>, <span>&lt;<a href="https://github.com/google-agentic-commerce/AP2">https://github.com/google-agentic-commerce/AP2</a>&gt;</span>. </dd>
 <dd class="break"></dd>
+<dt id="AuthZEN-API">[AuthZEN-API]</dt>
+        <dd>
+<span class="refAuthor">Gazitt, O., Ed.</span>, <span class="refAuthor">Brossard, D., Ed.</span>, and <span class="refAuthor">A. Tulshibagwale, Ed.</span>, <span class="refTitle">"Authorization API 1.0"</span>, <time datetime="2026" class="refDate">2026</time>, <span>&lt;<a href="https://openid.net/specs/authorization-api-1_0.html">https://openid.net/specs/authorization-api-1_0.html</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="CAEP">[CAEP]</dt>
         <dd>
 <span class="refTitle">"OpenID Continuous Access Evaluation Profile 1.0"</span>, <span>n.d.</span>, <span>&lt;<a href="https://openid.net/specs/openid-caep-1_0-final.html">https://openid.net/specs/openid-caep-1_0-final.html</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="CIBA">[CIBA]</dt>
+        <dd>
+<span class="refTitle">"OpenID Connect Client-Initiated Backchannel Authentication Flow - Core 1.0"</span>, <span>n.d.</span>, <span>&lt;<a href="https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html">https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="FAPI">[FAPI]</dt>
+        <dd>
+<span class="refTitle">"FAPI 2.0 Security Profile"</span>, <span>n.d.</span>, <span>&lt;<a href="https://openid.net/specs/fapi-security-profile-2_0-final.html">https://openid.net/specs/fapi-security-profile-2_0-final.html</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="HTTP-SIG">[HTTP-SIG]</dt>
         <dd>
@@ -2021,7 +2033,7 @@ Access tokens may be sender-constrained to mitigate the risk of accidental token
 <dd class="break"></dd>
 <dt id="OAUTH-SPIFFE">[OAUTH-SPIFFE]</dt>
         <dd>
-<span class="refAuthor">Schwenkschuster, A.</span>, <span class="refAuthor">Kasselman, P.</span>, <span class="refAuthor">Rose, S.</span>, <span class="refAuthor">Thorgersen, S.</span>, and <span class="refAuthor">N. Cam-Winget</span>, <span class="refTitle">"OAuth SPIFFE Client Authentication"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-oauth-spiffe-client-auth-02</span>, <time datetime="2026-06-15" class="refDate">15 June 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-oauth-spiffe-client-auth-02">https://datatracker.ietf.org/doc/html/draft-ietf-oauth-spiffe-client-auth-02</a>&gt;</span>. </dd>
+<span class="refAuthor">Schwenkschuster, A.</span>, <span class="refAuthor">Kasselman, P.</span>, <span class="refAuthor">Rose, S.</span>, <span class="refAuthor">Thorgersen, S.</span>, and <span class="refAuthor">N. Cam-Winget</span>, <span class="refTitle">"OAuth SPIFFE Client Authentication"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-oauth-spiffe-client-auth-03</span>, <time datetime="2026-11-02" class="refDate">2 November 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-oauth-spiffe-client-auth-03">https://datatracker.ietf.org/doc/html/draft-ietf-oauth-spiffe-client-auth-03</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="OAUTH-TOKEN-EXCHANGE">[OAUTH-TOKEN-EXCHANGE]</dt>
         <dd>
@@ -2039,21 +2051,9 @@ Access tokens may be sender-constrained to mitigate the risk of accidental token
         <dd>
 <span class="refAuthor">Tulshibagwale, A.</span>, <span class="refAuthor">Fletcher, G.</span>, and <span class="refAuthor">P. Kasselman</span>, <span class="refTitle">"Transaction Tokens"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-oauth-transaction-tokens-11</span>, <time datetime="2026-07-30" class="refDate">30 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-oauth-transaction-tokens-11">https://datatracker.ietf.org/doc/html/draft-ietf-oauth-transaction-tokens-11</a>&gt;</span>. </dd>
 <dd class="break"></dd>
-<dt id="OpenIDConnect.AuthZEN">[OpenIDConnect.AuthZEN]</dt>
-        <dd>
-<span class="refAuthor">Gazitt, O., Ed.</span>, <span class="refAuthor">Brossard, D., Ed.</span>, and <span class="refAuthor">A. Tulshibagwale, Ed.</span>, <span class="refTitle">"Authorization API 1.0"</span>, <time datetime="2026" class="refDate">2026</time>, <span>&lt;<a href="https://openid.net/specs/authorization-api-1_0.html">https://openid.net/specs/authorization-api-1_0.html</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="OpenIDConnect.CIBA">[OpenIDConnect.CIBA]</dt>
-        <dd>
-<span class="refTitle">"OpenID Connect Client-Initiated Backchannel Authentication Flow - Core 1.0"</span>, <span>n.d.</span>, <span>&lt;<a href="https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html">https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="OpenIDConnect.Discovery">[OpenIDConnect.Discovery]</dt>
+<dt id="OIDC.Discovery">[OIDC.Discovery]</dt>
         <dd>
 <span class="refTitle">"OpenID Connect Discovery 1.0"</span>, <span>n.d.</span>, <span>&lt;<a href="https://openid.net/specs/openid-connect-discovery-1_0-final.html">https://openid.net/specs/openid-connect-discovery-1_0-final.html</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="OpenIDConnect.FAPI">[OpenIDConnect.FAPI]</dt>
-        <dd>
-<span class="refTitle">"FAPI 2.0 Security Profile"</span>, <span>n.d.</span>, <span>&lt;<a href="https://openid.net/specs/fapi-security-profile-2_0-final.html">https://openid.net/specs/fapi-security-profile-2_0-final.html</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC2119">[RFC2119]</dt>
         <dd>
@@ -2176,6 +2176,9 @@ Access tokens may be sender-constrained to mitigate the risk of accidental token
 </li>
         <li class="normal" id="appendix-A-2.12">
           <p id="appendix-A-2.12.1">Re-use the AIMS term (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/135)<a href="#appendix-A-2.12.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-A-2.13">
+          <p id="appendix-A-2.13.1">fix up some reference names<a href="#appendix-A-2.13.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="appendix-A-3">-03<a href="#appendix-A-3" class="pilcrow">¶</a></p>

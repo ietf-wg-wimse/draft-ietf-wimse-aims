@@ -5,7 +5,7 @@
 WIMSE                                                       P. Kasselman
 Internet-Draft                                          Defakto Security
 Intended status: Informational                               J. Lombardo
-Expires: 5 May 2027                                                  AWS
+Expires: 6 May 2027                                                  AWS
                                                             Y. Rosomakho
                                                                  Zscaler
                                                              B. Campbell
@@ -14,7 +14,7 @@ Expires: 5 May 2027                                                  AWS
                                                                   OpenAI
                                                               A. Parecki
                                                                     Okta
-                                                         1 November 2026
+                                                         2 November 2026
 
 
                      AI Identity Management System
@@ -65,7 +65,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 5 May 2027.
+   This Internet-Draft will expire on 6 May 2027.
 
 Copyright Notice
 
@@ -749,16 +749,17 @@ Table of Contents
    servers, a resource server may request decisions from an external
    policy decision point rather than evaluating policy itself.  A common
    interface for that interaction is defined by the OpenID AuthZEN
-   Authorization API [OpenIDConnect.AuthZEN].  Access tokens may be
-   sender-constrained to mitigate the risk of accidental token leakage
-   or deliberate token theft, so that a token obtained by an attacker
+   Authorization API [AuthZEN-API].  Access tokens may be sender-
+   constrained to mitigate the risk of accidental token leakage or
+   deliberate token theft, so that a token obtained by an attacker
    cannot be used without the corresponding key.  Sender-constraining
    may use certificate-bound access tokens [OAUTH-CLIENTAUTH-MTLS], when
    the Agent presents an X.509 credential over mutual TLS, or
    Demonstrating Proof of Possession (DPoP) [OAUTH-DPOP], when
    transport-layer binding is not feasible.  The use of sender-
    constrained access tokens is described in the OAuth 2.0 Security Best
-   Current Practice [OAUTH-BCP] and in FAPI 2.0 [OpenIDConnect.FAPI].
+   Current Practice [OAUTH-BCP] and the FAPI 2.0 Security Profile
+   [FAPI].
 
 10.5.  Obtaining an OAuth 2.0 Access Token
 
@@ -907,11 +908,11 @@ Table of Contents
    cases the authorization server SHOULD either decline the request or
    obtain additional authorization from the User.  An Agent, acting as
    an OAuth client, can use the OpenID Client Initiated Backchannel
-   Authentication (CIBA) protocol ([OpenIDConnect.CIBA]).  This triggers
-   an out-of-band interaction allowing the user to approve or deny the
-   requested operation without exposing credentials to the agent (for
-   example a push notification requesting the user to approve a request
-   through an authenticator application on their mobile device).
+   Authentication (CIBA) protocol ([CIBA]).  This triggers an out-of-
+   band interaction allowing the user to approve or deny the requested
+   operation without exposing credentials to the agent (for example a
+   push notification requesting the user to approve a request through an
+   authenticator application on their mobile device).
 
    Interactive agent frameworks may also solicit user confirmation
    directly during task execution (for example tool invocation approval
@@ -994,8 +995,8 @@ Table of Contents
    An Agent that needs to obtain tokens can discover authorization
    server endpoints and capabilities using OAuth 2.0 Authorization
    Server Metadata [OAUTH-SERVER-METADATA] and/or OpenID Connect
-   Discovery [OpenIDConnect.Discovery].  This allows the Agent to learn
-   the authorization server issuer identifier, authorization and token
+   Discovery [OIDC.Discovery].  This allows the Agent to learn the
+   authorization server issuer identifier, authorization and token
    endpoints, supported grant types, client authentication methods,
    signing keys (via jwks_uri), and other relevant capabilities without
    preconfiguring them.
@@ -1134,9 +1135,9 @@ Table of Contents
    for the Oauth protocol famility.  The OAuth 2.0 Security Best Current
    Practice [OAUTH-BCP] which captures current guidance on threats and
    mitigations that have emerged since the original OAuth 2.0
-   specifications were published.  The FAPI 2.0 Security Profile
-   [OpenIDConnect.FAPI] defines a high-assurance profile of OAuth 2.0
-   suitable for high security applications.
+   specifications were published.  The FAPI 2.0 Security Profile [FAPI]
+   defines a high-assurance profile of OAuth 2.0 suitable for high
+   security applications.
 
 15.  Privacy Considerations
 
@@ -1174,8 +1175,22 @@ Table of Contents
    [AP2]      "Agent Payments Protocol (AP2)", n.d.,
               <https://github.com/google-agentic-commerce/AP2>.
 
+   [AuthZEN-API]
+              Gazitt, O., Ed., Brossard, D., Ed., and A. Tulshibagwale,
+              Ed., "Authorization API 1.0", 2026,
+              <https://openid.net/specs/authorization-api-1_0.html>.
+
    [CAEP]     "OpenID Continuous Access Evaluation Profile 1.0", n.d.,
               <https://openid.net/specs/openid-caep-1_0-final.html>.
+
+   [CIBA]     "OpenID Connect Client-Initiated Backchannel
+              Authentication Flow - Core 1.0", n.d.,
+              <https://openid.net/specs/openid-client-initiated-
+              backchannel-authentication-core-1_0.html>.
+
+   [FAPI]     "FAPI 2.0 Security Profile", n.d.,
+              <https://openid.net/specs/fapi-security-profile-
+              2_0-final.html>.
 
    [HTTP-SIG] Backman, A., Ed., Richer, J., Ed., and M. Sporny, "HTTP
               Message Signatures", RFC 9421, DOI 10.17487/RFC9421,
@@ -1264,9 +1279,9 @@ Table of Contents
               Schwenkschuster, A., Kasselman, P., Rose, S., Thorgersen,
               S., and N. Cam-Winget, "OAuth SPIFFE Client
               Authentication", Work in Progress, Internet-Draft, draft-
-              ietf-oauth-spiffe-client-auth-02, 15 June 2026,
+              ietf-oauth-spiffe-client-auth-03, 2 November 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-oauth-
-              spiffe-client-auth-02>.
+              spiffe-client-auth-03>.
 
    [OAUTH-TOKEN-EXCHANGE]
               Jones, M., Nadalin, A., Campbell, B., Ed., Bradley, J.,
@@ -1294,26 +1309,10 @@ Table of Contents
               <https://datatracker.ietf.org/doc/html/draft-ietf-oauth-
               transaction-tokens-11>.
 
-   [OpenIDConnect.AuthZEN]
-              Gazitt, O., Ed., Brossard, D., Ed., and A. Tulshibagwale,
-              Ed., "Authorization API 1.0", 2026,
-              <https://openid.net/specs/authorization-api-1_0.html>.
-
-   [OpenIDConnect.CIBA]
-              "OpenID Connect Client-Initiated Backchannel
-              Authentication Flow - Core 1.0", n.d.,
-              <https://openid.net/specs/openid-client-initiated-
-              backchannel-authentication-core-1_0.html>.
-
-   [OpenIDConnect.Discovery]
+   [OIDC.Discovery]
               "OpenID Connect Discovery 1.0", n.d.,
               <https://openid.net/specs/openid-connect-discovery-
               1_0-final.html>.
-
-   [OpenIDConnect.FAPI]
-              "FAPI 2.0 Security Profile", n.d.,
-              <https://openid.net/specs/fapi-security-profile-
-              2_0-final.html>.
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
@@ -1444,6 +1443,8 @@ Appendix A.  Document History
 
    *  Re-use the AIMS term (https://github.com/ietf-wg-wimse/draft-ietf-
       wimse-aims/issues/135)
+
+   *  fix up some reference names
 
    -03
 
