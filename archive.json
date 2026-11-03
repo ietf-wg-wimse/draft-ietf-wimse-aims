@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-11-01T04:52:37.799611+00:00",
+  "timestamp": "2026-11-03T05:43:07.688119+00:00",
   "repo": "ietf-wg-wimse/draft-ietf-wimse-aims",
   "labels": [
     {
@@ -1530,9 +1530,17 @@
       "labels": [],
       "body": "WIMSE/SPIFFE identifiers are stable per-workload. Same identifier showing up across different domains = cross-domain activity correlation.\n\nSome questions the Privacy section could address:\n\n- Is this an acceptable tradeoff for auditability? Probably yes in most enterprise cases but worth acknowledging.\n- Are pairwise identifiers feasible in this model? Would help but adds complexity.\n- Can an agent prove properties (like compliance status) without revealing its full identity? Token-based approach doesn't natively support selective disclosure. Worth acknowledging as a gap or referencing complementary approaches.",
       "createdAt": "2026-03-24T19:31:20Z",
-      "updatedAt": "2026-03-24T19:31:20Z",
+      "updatedAt": "2026-11-01T07:57:07Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "MarcMolas",
+          "authorAssociation": "NONE",
+          "body": "On the third question, a data point from an open-source deployment that does this today.\n\nAn agent can prove properties without revealing who stands behind it when the property is checked against a commitment the issuer publishes, rather than looked up by identifier. The issuer publishes, on a fixed cadence, a signed commitment to the status of the credentials it has issued. The agent presents a proof, bound to the relying party's challenge, that its credential and the person's credential behind it are unrevoked under a current commitment and meet a stated assurance level. The relying party learns that the property holds and how fresh the commitment is, and nothing that links the agent to the person or to the same agent elsewhere. Where a relying party needs to recognise the same agent across sessions, an identifier pairwise to that relying party gives it that without cross-domain correlation, which also answers your second question.\n\nSince AIMS builds on published and adopted work, the Privacy Considerations could name the gap and point at what exists: pairwise subject identifiers (OpenID Connect Core 1.0, Section 8), selective disclosure (SD-JWT, RFC 9901, and SD-JWT VC), and unlinkable presentations (the BBS signature scheme and its per-verifier linkability extension, both CFRG research group documents). If the editors want it, I can propose a short paragraph as a PR.",
+          "createdAt": "2026-11-01T07:57:07Z",
+          "updatedAt": "2026-11-01T07:57:07Z"
+        }
+      ]
     },
     {
       "number": 89,
@@ -1562,9 +1570,17 @@
       "labels": [],
       "body": "Section 10.8 says user identity delegated to agents must not be exposed to unrelated services. Makes sense.\n\nBut how does this actually work in multi-hop chains? Does each hop strip user identity, or does it get carried through? The answer probably depends on risk level and regulatory context. Some guidance or at least acknowledgment of the tradeoff would help.",
       "createdAt": "2026-03-24T20:45:54Z",
-      "updatedAt": "2026-03-24T20:45:54Z",
+      "updatedAt": "2026-11-01T07:57:34Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "MarcMolas",
+          "authorAssociation": "NONE",
+          "body": "One way to answer the multi-hop question is to keep two chains apart. The delegation chain carries what the agent may do and narrows at every hop. The accountability chain says who answers for it. Only the second needs the user's identity, and it does not have to travel with the request.\n\nIn the open-source deployment we run, each agent credential is issued by the party that verified the person, from that person's own credential, so no hop has to carry the user identifier forward. Every hop presents the authority it holds, an assurance claim about the person behind it, and an identifier pairwise to the relying party. The link to the person stays with the issuing party and is disclosed only under a due-process rule. The tradeoff is then explicit: relying parties get accountability without identity, and a party that needs the identity goes to the issuer under that rule. The residual is that the issuing party is a single point of disclosure. The AAIF Identity & Trust working group's draft reference architecture draws the same separation between delegation and accountability chains.\n\nFor AIMS, a sentence in Section 10.9 could recommend that hops after the first carry the delegated authority and a pairwise subject (OpenID Connect Core 1.0, Section 8; the \"act\" claim of RFC 8693 for the actor chain) rather than the user's identifier, and that the binding to the user remain resolvable by the authorization server that issued the first token. Happy to propose that text as a PR.",
+          "createdAt": "2026-11-01T07:57:33Z",
+          "updatedAt": "2026-11-01T07:57:33Z"
+        }
+      ]
     },
     {
       "number": 91,
@@ -2080,15 +2096,15 @@
       "id": "I_kwDOQP22qc8AAAABEXp0nQ",
       "title": "[TECH-1] Authorization policy left out of scope without adequate justification",
       "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/124",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "PieterKas",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "_Source: email from Yaron Sheffer to the WIMSE mailing list, [Review of draft-klrc-aiagent-auth (editor's copy)](https://mailarchive.ietf.org/arch/msg/wimse/3baCsNZnK4XS5nH-iHWuaPJlbK0/). Quoted verbatim below._\n\nSection 11 excludes authorization policy from scope on the grounds that it is \"deployment and risk-model-specific.\" This mirrors a long-standing position of the OAuth community. However, the complexity of multi-agent systems \u2014 spanning organizations, trust domains, and dynamic delegation chains \u2014 means that even smaller deployments will need automated policy management. The main determinant of whether standardization is needed is not whether policies are deployment-specific, but whether interoperability requires a common policy language or exchange format, particularly for cross-domain scenarios.\n\nThe draft should either scope in policy interoperability for cross-domain cases, or explain why it has concluded that no standard is needed there.\n",
       "createdAt": "2026-06-04T11:12:42Z",
-      "updatedAt": "2026-06-04T15:03:37Z",
-      "closedAt": null,
+      "updatedAt": "2026-11-02T18:17:54Z",
+      "closedAt": "2026-11-02T18:17:54Z",
       "comments": [
         {
           "author": "PieterKas",
@@ -2104,15 +2120,15 @@
       "id": "I_kwDOQP22qc8AAAABEXqDsA",
       "title": "[TECH-2] Deprovisioning is absent",
       "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/125",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "PieterKas",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "_Source: email from Yaron Sheffer to the WIMSE mailing list, [Review of draft-klrc-aiagent-auth (editor's copy)](https://mailarchive.ietf.org/arch/msg/wimse/3baCsNZnK4XS5nH-iHWuaPJlbK0/). Quoted verbatim below._\n\nThe document discusses credential provisioning and rotation (Section 7) but says nothing about deprovisioning. Section 7 should add a third phase \u2014 credential deprovisioning \u2014 even if it simply means stopping rotation when the agent is terminated. Beyond that, the identifier lifecycle is a distinct concern: when an agent is retired, its identifier needs to remain referenceable for forensic and audit purposes. The document should discuss how long an agent identifier should be retained, and in what registry, after the agent is gone.\n",
       "createdAt": "2026-06-04T11:13:19Z",
-      "updatedAt": "2026-10-30T14:44:53Z",
-      "closedAt": null,
+      "updatedAt": "2026-11-02T18:18:11Z",
+      "closedAt": "2026-11-02T18:18:11Z",
       "comments": [
         {
           "author": "PieterKas",
@@ -2156,15 +2172,15 @@
       "id": "I_kwDOQP22qc8AAAABEXqfsA",
       "title": "[TECH-3] Token exchange circularity in Section 9.5",
       "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/126",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "PieterKas",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "_Source: email from Yaron Sheffer to the WIMSE mailing list, [Review of draft-klrc-aiagent-auth (editor's copy)](https://mailarchive.ietf.org/arch/msg/wimse/3baCsNZnK4XS5nH-iHWuaPJlbK0/). Quoted verbatim below._\n\nSection 9.5 describes exchanging access tokens for transaction tokens and then using transaction tokens to obtain access tokens (for downstream calls). This is architecturally circular and raises unresolved questions about how authorization scope is preserved or narrowed across this chain. Transaction tokens (draft-ietf-oauth-transaction-tokens) do not carry a standard `scope` claim, so it is unclear how scope semantics are maintained when re-obtaining an access token from a transaction token. This should be resolved or at least explicitly flagged as an open issue.\n",
       "createdAt": "2026-06-04T11:14:21Z",
-      "updatedAt": "2026-10-31T20:14:20Z",
-      "closedAt": null,
+      "updatedAt": "2026-11-02T18:21:23Z",
+      "closedAt": "2026-11-02T18:21:23Z",
       "comments": [
         {
           "author": "PieterKas",
@@ -2242,6 +2258,20 @@
           "body": "Thanks all. I\u2019ve addressed this in the editor\u2019s copy as follows.\n\nOn the circularity: I don\u2019t believe the pattern is circular in the architectural sense. An access token is exchanged for a transaction token to carry authorization context between workloads inside a trust domain; when one of those workloads then needs to call a service that requires an access token (a service in another trust domain, or a legacy service that only accepts access tokens), it obtains one by presenting the transaction token in a token exchange. The token format repeats, but the authorization context flows in one direction and is never widened.\n\nOn scope: transaction tokens do carry a scope claim, and the Transaction Token draft already constrains the chain in the way this issue asks for. Section 13.12 (-11) states that a transaction token is not an authentication credential, 13.13 that it is not an access token, 13.14 that the TTS must reject a request when it cannot determine the subject token\u2019s scope, and 13.15 that a replacement transaction token may never expand scope. RFC 8693 separately requires the requesting client to authenticate at the token endpoint, so the transaction token is never the sole basis for the exchange. I\u2019d rather not restate those requirements here, so the draft now makes the end-to-end property explicit and defers the detail to those specifications.\n\nChanges to \u201cRisk Reduction with Transaction Tokens\u201d:\n\nAppended to the paragraph that describes the exchange: \u201cThe scope of access conveyed by each token in this sequence of exchanges can never exceed that of the token presented to obtain it. At each exchange the authorization server (or transaction token service) evaluates its authorization policy and makes the final decision on whether to issue a token and with what scope.\u201d\nReplaced the closing sentence with: \u201cA transaction token may be presented in an OAuth 2.0 Token Exchange to obtain an access token for another service (e.g. another Agent, Tool or LLM). Obtaining an access token for a service in another trust domain when the Agent has a transaction token is described in the Cross Domain Access section.\u201d The cross-domain case, including the transaction token chaining profile, stays in that section rather than being repeated here.\n\nKarl\u2019s point about the resulting access token being sender-constrained is a general property of every access token an Agent obtains, not specific to this exchange, and I\u2019m handling it separately (see #67). The chain-identifier and action-class proposals in this thread would be new mechanism rather than application of existing specifications, which is outside what this document sets out to do; they belong on the list of new work - once that work is adopted by an SDO or WG, we can reference it.",
           "createdAt": "2026-10-31T20:14:20Z",
           "updatedAt": "2026-10-31T20:14:20Z"
+        },
+        {
+          "author": "Mayur021",
+          "authorAssociation": "NONE",
+          "body": "That resolves the circularity question, and the added sentence states the non-amplification property cleanly.\n\nOne procedural thing. #144 is closed, and the alternative you raised there was one issue per gap rather than an append-list, which I do not think was settled. So where should an item like this sit so it stays findable when the condition you describe is met? Leaving it in this thread is fine by me if that is the simplest answer.",
+          "createdAt": "2026-11-02T05:38:53Z",
+          "updatedAt": "2026-11-02T05:38:53Z"
+        },
+        {
+          "author": "PieterKas",
+          "authorAssociation": "COLLABORATOR",
+          "body": "New work can be developed anywhere. It is OK to add an issue in this repository and link to new work being developed elsewhere.",
+          "createdAt": "2026-11-02T18:21:23Z",
+          "updatedAt": "2026-11-02T18:21:23Z"
         }
       ]
     },
@@ -2302,15 +2332,15 @@
       "id": "I_kwDOQP22qc8AAAABEXrLXA",
       "title": "[TECH-5] Live posture assessment not mentioned",
       "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/128",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "PieterKas",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "_Source: email from Yaron Sheffer to the WIMSE mailing list, [Review of draft-klrc-aiagent-auth (editor's copy)](https://mailarchive.ietf.org/arch/msg/wimse/3baCsNZnK4XS5nH-iHWuaPJlbK0/). Quoted verbatim below._\n\nSection 7 discusses posture assessment only in the context of credential issuance and rotation. The document should also mention the possibility of continuous or live posture assessment, bound to individual workload-to-workload messages \u2014 for example, including a fresh attestation assertion in a WPT or HTTP Message Signature. This is particularly relevant in high-risk or cross-domain scenarios.\n",
       "createdAt": "2026-06-04T11:16:10Z",
-      "updatedAt": "2026-10-31T19:45:40Z",
-      "closedAt": null,
+      "updatedAt": "2026-11-02T18:21:34Z",
+      "closedAt": "2026-11-02T18:21:34Z",
       "comments": [
         {
           "author": "PieterKas",
@@ -2333,15 +2363,15 @@
       "id": "I_kwDOQP22qc8AAAABEXr83A",
       "title": "[TECH-6] Streaming interactions not addressed",
       "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/129",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "PieterKas",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "_Source: email from Yaron Sheffer to the WIMSE mailing list, [Review of draft-klrc-aiagent-auth (editor's copy)](https://mailarchive.ietf.org/arch/msg/wimse/3baCsNZnK4XS5nH-iHWuaPJlbK0/). Quoted verbatim below._\n\nSection 3 and Figure 1 depict agents that exchange discrete messages. Many real agent interactions involve streaming \u2014 text token streams, audio, and video are common. The document should clarify whether streaming interactions are in scope and, if so, how the authentication and authorization model applies to a long-lived streaming session.\n",
       "createdAt": "2026-06-04T11:18:31Z",
-      "updatedAt": "2026-06-04T15:03:48Z",
-      "closedAt": null,
+      "updatedAt": "2026-11-02T18:21:49Z",
+      "closedAt": "2026-11-02T18:21:49Z",
       "comments": [
         {
           "author": "PieterKas",
@@ -2357,15 +2387,15 @@
       "id": "I_kwDOQP22qc8AAAABEXsMfQ",
       "title": "[TECH-7] User consent not mentioned",
       "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/130",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "PieterKas",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "_Source: email from Yaron Sheffer to the WIMSE mailing list, [Review of draft-klrc-aiagent-auth (editor's copy)](https://mailarchive.ietf.org/arch/msg/wimse/3baCsNZnK4XS5nH-iHWuaPJlbK0/). Quoted verbatim below._\n\nUser consent \u2014 distinct from user delegation via OAuth \u2014 is not discussed. Whether or not it is in scope for this framework, it deserves at least a brief mention, including a pointer to relevant work (e.g., MCP's user confirmation model, or emerging consent frameworks).\n",
       "createdAt": "2026-06-04T11:19:15Z",
-      "updatedAt": "2026-06-04T15:03:51Z",
-      "closedAt": null,
+      "updatedAt": "2026-11-02T18:23:54Z",
+      "closedAt": "2026-11-02T18:23:53Z",
       "comments": [
         {
           "author": "PieterKas",
@@ -2373,6 +2403,13 @@
           "body": "cc @yaronf",
           "createdAt": "2026-06-04T15:03:50Z",
           "updatedAt": "2026-06-04T15:03:50Z"
+        },
+        {
+          "author": "PieterKas",
+          "authorAssociation": "COLLABORATOR",
+          "body": "From many cconversations over the years, I came to the conclusion that \"consent\" is a legal term, rather than a technical one, hence the use of \"user confirmation\". Defining user consent is not something I beleive is in the scope off the AIMS spec to define. We can only point to specifications and protocols that may involve some form of user agreement or confirmation.",
+          "createdAt": "2026-11-02T18:23:37Z",
+          "updatedAt": "2026-11-02T18:23:37Z"
         }
       ]
     },
@@ -2447,7 +2484,7 @@
       "labels": [],
       "body": "_Source: email from Yaron Sheffer to the WIMSE mailing list, [Review of draft-klrc-aiagent-auth (editor's copy)](https://mailarchive.ietf.org/arch/msg/wimse/3baCsNZnK4XS5nH-iHWuaPJlbK0/). Quoted verbatim below._\n\nThe reference to MCP's user-solicitation pattern should point to a specific section or feature of the MCP specification rather than the top-level spec URL.\n",
       "createdAt": "2026-06-04T11:20:15Z",
-      "updatedAt": "2026-10-31T19:21:20Z",
+      "updatedAt": "2026-11-02T18:23:08Z",
       "closedAt": null,
       "comments": [
         {
@@ -2456,13 +2493,6 @@
           "body": "cc @yaronf",
           "createdAt": "2026-06-04T15:03:53Z",
           "updatedAt": "2026-06-04T15:03:53Z"
-        },
-        {
-          "author": "PieterKas",
-          "authorAssociation": "COLLABORATOR",
-          "body": "From many cconversations over the years, I came to the conclusion that \"consent\" is a legal term, rather than a technical one, hence the use of \"user confirmation\". Defining user consent is not something I beleive is in the scope off the AIMS spec to define. We can only  point to specifications and protocols that may involve some form of user agreement or confirmation.",
-          "createdAt": "2026-10-31T19:21:20Z",
-          "updatedAt": "2026-10-31T19:21:20Z"
         }
       ]
     },
@@ -2471,15 +2501,15 @@
       "id": "I_kwDOQP22qc8AAAABEXsvWQ",
       "title": "[EDIT-1] Section 3, last paragraph: add OpenID Connect",
       "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/133",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "PieterKas",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "_Source: email from Yaron Sheffer to the WIMSE mailing list, [Review of draft-klrc-aiagent-auth (editor's copy)](https://mailarchive.ietf.org/arch/msg/wimse/3baCsNZnK4XS5nH-iHWuaPJlbK0/). Quoted verbatim below._\n\nThe list of standards the document builds on (SPIFFE, WIMSE, OAuth, SSF) should include OpenID Connect, which is used extensively in Section 9.\n",
       "createdAt": "2026-06-04T11:20:53Z",
-      "updatedAt": "2026-06-04T15:03:54Z",
-      "closedAt": null,
+      "updatedAt": "2026-11-01T17:06:39Z",
+      "closedAt": "2026-11-01T17:06:39Z",
       "comments": [
         {
           "author": "PieterKas",
@@ -2487,6 +2517,20 @@
           "body": "cc @yaronf",
           "createdAt": "2026-06-04T15:03:54Z",
           "updatedAt": "2026-06-04T15:03:54Z"
+        },
+        {
+          "author": "bc-pi",
+          "authorAssociation": "COLLABORATOR",
+          "body": "But the draft doesn't use OpenID Connect",
+          "createdAt": "2026-11-01T13:35:39Z",
+          "updatedAt": "2026-11-01T13:35:39Z"
+        },
+        {
+          "author": "bc-pi",
+          "authorAssociation": "COLLABORATOR",
+          "body": "as discussed in https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/pull/166 OpenID Connect doesn't belong there ",
+          "createdAt": "2026-11-01T17:06:39Z",
+          "updatedAt": "2026-11-01T17:06:39Z"
         }
       ]
     },
@@ -2519,15 +2563,15 @@
       "id": "I_kwDOQP22qc8AAAABEXtWJQ",
       "title": "[EDIT-3] Section 4: AIMS is defined but never used",
       "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/135",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "PieterKas",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "_Source: email from Yaron Sheffer to the WIMSE mailing list, [Review of draft-klrc-aiagent-auth (editor's copy)](https://mailarchive.ietf.org/arch/msg/wimse/3baCsNZnK4XS5nH-iHWuaPJlbK0/). Quoted verbatim below._\n\nSection 4 defines the term \"Agent Identity Management System (AIMS)\" but the acronym does not appear again in the document (except once). Either use it consistently throughout, or drop it. Additionally, the word \"system\" implies a single centralized entity; \"framework\" or \"model\" would be more accurate given the explicitly distributed nature of the components described.\n",
       "createdAt": "2026-06-04T11:22:44Z",
-      "updatedAt": "2026-06-04T15:03:57Z",
-      "closedAt": null,
+      "updatedAt": "2026-11-02T18:25:25Z",
+      "closedAt": "2026-11-02T18:25:25Z",
       "comments": [
         {
           "author": "PieterKas",
@@ -2886,7 +2930,7 @@
       "labels": [],
       "body": "Section 10.6 covers cross-domain access via OAuth Identity and Authorization Chaining and its derived profiles, all of which assume pre-established trust between the authorization servers involved.\n\nThe case where the interacting organizations have no prior relationship (counterparties discovered at runtime, no shared IdP, no federation agreement) has no path in the document. As agents transact with dynamically discovered services, this case grows more common, not less.\n\nSuggested resolution: name it as a gap in Section 10.6 or a dedicated gap section, per the document's stated goal of identifying gaps to guide future standardization. Requirements R1-R3 of draft-reece-wimse-cross-org-delegation are one attempt to state what a solution must provide; happy to contribute gap-analysis text.\n\nRaised in my Call for Adoption response on the WIMSE list.",
       "createdAt": "2026-08-25T01:46:50Z",
-      "updatedAt": "2026-10-24T03:20:15Z",
+      "updatedAt": "2026-11-02T20:29:41Z",
       "closedAt": null,
       "comments": [
         {
@@ -2895,6 +2939,13 @@
           "body": "Related PR #164 addresses historical organizational attribution. Separately, I propose this Section 11 text on evidence that can be verified independently of the credential issuer:\n\n> Where policy requires attribution to be verified independently of the credential issuer, supporting evidence SHOULD be available separately from the agent's credential and authenticated independently of the issuer's signing keys. It needs to identify the agent, organization and interval and be readable without a prior relationship with the issuer. An authenticated statement from the accountable organization is one possible source. A credential or operator assertion alone SHOULD NOT count as independent confirmation. Authentication establishes source, not truth; acceptance depends on the relying party's assurance policy.",
           "createdAt": "2026-10-24T03:20:15Z",
           "updatedAt": "2026-10-24T03:20:15Z"
+        },
+        {
+          "author": "trustanchoralliance-ctrl",
+          "authorAssociation": "NONE",
+          "body": "Supporting this issue, with a concrete proposal. In -01 the cross-domain section is now \u00a710.7, and it still presumes trust between the parties without saying how it is established. The text below, also posted to the WIMSE list today, proposes recording the gap and documenting one standards-only pattern for WICs. It is complementary to @naveedi\u2019s \u00a711 proposal: that covers evidence after the fact, this covers how a verifier comes to trust another domain\u2019s issuer in the first place.\n\n**Upstream Authorities for Workload Identity Certificates**\n\n**Summary.** AIMS -01 shows how an agent proves its identity inside its own trust domain, and how authorization crosses domains once trust exists. It still does not say how a verifier comes to trust the certificate issuer of a trust domain it does not operate. This contribution asks AIMS to record that gap, and asks the credential drafts to recognize one pattern, built only from existing X.509 standards, that addresses it: **issuing CAs chained to an upstream authority, with name constraints**. It proposes no new protocol and covers the Workload Identity Certificate (WIC) only.\n\n# 1. The gap\n\n- AIMS -01 assumes trust between domains but does not establish it. Section 10.4 has each domain evaluate tokens from another domain against its own policy. Section 10.7 presumes an identity provider \"trusted by all the OAuth authorization servers\". Section 11 makes end-to-end audit depend on stable, verifiable identifiers. None of these sections says how a verifier comes to trust another domain's issuer.\n- [WIMSE-CRED] Section 3 requires a consumer to bind each trust domain to preconfigured issuers through a secure out-of-band mechanism. Since -03 it also requires that a credential be validated \"only against the anchors bound to the trust domain named in its Workload Identifier\". [WIMSE-MTLS] Section 3.2 requires the same mapping locally. Neither draft names a mechanism, so across organizations each verifier exchanges trust bundles pairwise.\n- Other work records the same gap:\n  - draft-reece-wimse-cross-org-delegation, R2, the \"first-contact residual\".\n  - draft-asor-wimse-agent-delegation-chain-03, Section 6.4, trust-anchor provenance.\n  - draft-schwenkschuster-wimse-trust-domain-discovery, Section 6.1, which says discovery \"does not establish that credentials from that trust domain should be accepted\".\n  - AIMS issue #146.\n  - s2s issue #370, on trust roots shared across trust domains.\n\n# 2. The pattern: issuing CAs under an upstream authority\n\n```\n            Upstream authority (trust anchor, pinned out of band)\n              /                                  \\\n  Issuing CA for a.example                 Issuing CA for b.example\n  critical URI name constraint             critical URI name constraint\n  path length constraint                   path length constraint\n              |                                  |\n  Control plane (short-lived               Control plane (short-lived\n  issuing certificate)                     issuing certificate)\n              |                                  |\n  WIC spiffe://a.example/agent-7           WIC spiffe://b.example/agent-3\n```\n\nA verifier pins the upstream authority out of band, as [WIMSE-CRED] Section 3 requires, and binds it to the trust domains it accepts. It validates the full path, so the binding of each trust domain to its issuer is enforced in band by the name-constrained issuing CA in the path. One configured anchor can then serve many trust domains without exchanging bundles for each domain. This is the familiar SPIRE UpstreamAuthority arrangement (X.509-SVIDs are compatible with WICs, AIMS Section 7), made safe for an anchor above more than one trust domain.\n\nThree properties make it safe:\n\n1. **Constraint.** Each issuing CA carries a critical URI name constraint (RFC 5280 Section 4.2.1.10) limiting it to its own trust domain, and a path length constraint. When one anchor is bound to several trust domains, as discussed in issue #370, the new [WIMSE-CRED] Section 3 rule no longer separates them on its own. Only the issuing CA's constraint stops one domain's issuer from speaking for another. That keeps the [WIMSE-CRED] Section 9.4 rejection rule enforceable.\n2. **Selection.** Verifiers still choose which trust domains or issuing CAs they accept, as [WIMSE-ID] Section 7.3 already recommends. Trusting the anchor does not oblige a verifier to accept every trust domain beneath it.\n3. **Bounded withdrawal.** Revoking an issuing CA withdraws its whole trust domain. Because the issuing certificates beneath it are short-lived, that withdrawal reaches every verifier within a bounded time, and sooner where status is checked. This applies the [WIMSE-CRED] Section 9.4.1 advice to consider leaf and trust-anchor lifetimes together. It also gives AIMS Section 8 deprovisioning a counterpart at the level of a whole trust domain.\n\nImplementation note: informal testing of mainstream TLS libraries shows that critical URI name constraints on an intermediate are either enforced or cause the chain to be rejected. None of the libraries tested accepted an identity outside the constraint.\n\n# 3. Requested disposition\n\n1. **AIMS:** record trust establishment between trust domains operated by different parties as an identified gap, in Section 10.7 or in Security Considerations.\n2. **AIMS:** describe issuing CAs under an upstream authority, with name constraints, as a deployment model for WICs, in Section 7 or Section 8.\n3. **[WIMSE-CRED] Sections 3 and 9.4, and [WIMSE-MTLS] Sections 3.2 and 5.1:**\n   1. one anchor MAY be bound to several trust domains only where each domain is reached through an issuing CA whose critical URI name constraint covers that trust domain alone;\n   2. verifiers validate the full path so that the issuing CA's name and path length constraints are processed; a verifier that instead pins the issuing CA as its trust anchor MUST enforce that CA's constraints itself (RFC 5937);\n   3. operators consider the lifetime and status of issuing CAs together with leaf lifetimes ([WIMSE-CRED] Section 9.4.1).\n\nI can contribute text for any of these.\n\n# References\n\n- draft-ietf-wimse-aims-01 (2 November 2026): Sections 7, 8, 10.4, 10.7, 11.\n- [WIMSE-CRED] draft-ietf-wimse-workload-creds-03 (30 October 2026): Sections 3, 9.4, 9.4.1.\n- [WIMSE-MTLS] draft-ietf-wimse-mutual-tls-03: Sections 3.2, 5.1.\n- [WIMSE-ID] draft-ietf-wimse-identifier-04: Section 7.3.\n- draft-reece-wimse-cross-org-delegation-02; draft-asor-wimse-agent-delegation-chain-03 (Section 6.4); draft-schwenkschuster-wimse-trust-domain-discovery-00 (Section 6.1).\n- RFC 5280 (Sections 4.2.1.9, 4.2.1.10, 6); RFC 5937.",
+          "createdAt": "2026-11-02T20:29:41Z",
+          "updatedAt": "2026-11-02T20:29:41Z"
         }
       ]
     },
@@ -6902,7 +6953,7 @@
       "labels": [],
       "body": "Clarified the use of OAuth 2.0 Token Introspection and its role in validating opaque tokens, ensuring the framework supports various token formats while maintaining authorization semantics. See issue #151",
       "createdAt": "2026-09-21T14:20:48Z",
-      "updatedAt": "2026-10-13T14:54:39Z",
+      "updatedAt": "2026-11-02T14:33:50Z",
       "baseRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
       "baseRefName": "main",
       "baseRefOid": "bfff2ebf382eb0e8de156ee1e818c84c5f8c0ba2",
@@ -6988,6 +7039,19 @@
           "body": "as per prior review: \n\n> also, \"(the mechanism is called introspection despite the word having nearly the opposite meaning)\" is completely true and might be useful context to someone unfamiliar with the oauth world and wondering for themselves if they were confused about the meaning of the word",
           "createdAt": "2026-10-12T12:46:00Z",
           "updatedAt": "2026-10-12T12:46:00Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOQP22qc8AAAABVgVDAw",
+          "commit": {
+            "abbreviatedOid": "7e984ef"
+          },
+          "author": "identitymonk",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Good with me",
+          "createdAt": "2026-11-02T14:33:50Z",
+          "updatedAt": "2026-11-02T14:33:50Z",
           "comments": []
         }
       ]
@@ -7346,130 +7410,540 @@
       "id": "PR_kwDOQP22qc8AAAABMAS_3g",
       "title": "Update OpenID reference to OpenID Connect",
       "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/pull/166",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "PieterKas",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "See issue #133",
       "createdAt": "2026-10-31T18:57:45Z",
-      "updatedAt": "2026-10-31T18:57:45Z",
+      "updatedAt": "2026-11-01T19:01:34Z",
       "baseRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
       "baseRefName": "main",
       "baseRefOid": "4095365f74c7d4ab4402f6230eed46018d107458",
       "headRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
       "headRefName": "PieterKas-patch-27",
       "headRefOid": "2341c71fde420563be7b936d91f5ed290a20d6e2",
-      "closedAt": null,
+      "closedAt": "2026-11-01T17:08:10Z",
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
-      "reviews": []
+      "comments": [
+        {
+          "author": "PieterKas",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> this doesn't \"Update OpenID reference to OpenID Connect\"\r\n> \r\n> rather it adds OpenID Connect to a list where it arguably doesn't belong without a reference\r\n\r\n@bc-pi - I wanted to reflect that we refer to OpenID Connect Dsicovery - what is the best way to do that?",
+          "createdAt": "2026-11-01T13:57:20Z",
+          "updatedAt": "2026-11-01T13:57:20Z"
+        },
+        {
+          "author": "bc-pi",
+          "authorAssociation": "COLLABORATOR",
+          "body": "\r\n> @bc-pi - I wanted to reflect that we refer to OpenID Connect Dsicovery - what is the best way to do that?\r\n\r\nthe existing https://datatracker.ietf.org/doc/html/draft-ietf-wimse-aims#section-10.10.1 seems sufficient  \r\n",
+          "createdAt": "2026-11-01T14:02:13Z",
+          "updatedAt": "2026-11-01T14:02:13Z"
+        },
+        {
+          "author": "bc-pi",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> > @bc-pi - I wanted to reflect that we refer to OpenID Connect Dsicovery - what is the best way to do that?\r\n> \r\n> the existing https://datatracker.ietf.org/doc/html/draft-ietf-wimse-aims#section-10.10.1 seems sufficient\r\n\r\nand also isn't afaict what https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/133 asks ",
+          "createdAt": "2026-11-01T14:02:55Z",
+          "updatedAt": "2026-11-01T14:02:55Z"
+        },
+        {
+          "author": "bc-pi",
+          "authorAssociation": "COLLABORATOR",
+          "body": "i think my \"requested changes\" here would be to close this and #133 ",
+          "createdAt": "2026-11-01T14:03:33Z",
+          "updatedAt": "2026-11-01T14:03:33Z"
+        },
+        {
+          "author": "PieterKas",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Yeah - maybe that is the best option for now. Want to do the honours and Iwill close this PR?",
+          "createdAt": "2026-11-01T16:18:02Z",
+          "updatedAt": "2026-11-01T16:18:02Z"
+        },
+        {
+          "author": "bc-pi",
+          "authorAssociation": "COLLABORATOR",
+          "body": "honored/honoured to do the honors/honours",
+          "createdAt": "2026-11-01T17:08:10Z",
+          "updatedAt": "2026-11-01T17:08:10Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOQP22qc8AAAABVW9ESQ",
+          "commit": {
+            "abbreviatedOid": "2341c71"
+          },
+          "author": "bc-pi",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-01T13:39:22Z",
+          "updatedAt": "2026-11-01T13:39:22Z",
+          "comments": [
+            {
+              "originalPosition": 5,
+              "body": "But the draft doesn't describes how AI Agents should leverage OpenID Connect",
+              "createdAt": "2026-11-01T13:39:22Z",
+              "updatedAt": "2026-11-01T13:39:22Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOQP22qc8AAAABVW-J-w",
+          "commit": {
+            "abbreviatedOid": "2341c71"
+          },
+          "author": "bc-pi",
+          "authorAssociation": "COLLABORATOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "this doesn't \"Update OpenID reference to OpenID Connect\" \n\nrather it adds OpenID Connect to a list where it arguably doesn't belong without a reference ",
+          "createdAt": "2026-11-01T13:42:33Z",
+          "updatedAt": "2026-11-01T13:42:33Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOQP22qc8AAAABVXAKBA",
+          "commit": {
+            "abbreviatedOid": "2341c71"
+          },
+          "author": "PieterKas",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-01T13:50:49Z",
+          "updatedAt": "2026-11-01T13:50:49Z",
+          "comments": [
+            {
+              "originalPosition": 5,
+              "body": "How should we refer to the OpenID connect metadata usage?",
+              "createdAt": "2026-11-01T13:50:49Z",
+              "updatedAt": "2026-11-01T13:50:49Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOQP22qc8AAAABVXB9KA",
+          "commit": {
+            "abbreviatedOid": "2341c71"
+          },
+          "author": "bc-pi",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-01T13:59:29Z",
+          "updatedAt": "2026-11-01T13:59:29Z",
+          "comments": [
+            {
+              "originalPosition": 5,
+              "body": "I don't see a need/reason to do that here",
+              "createdAt": "2026-11-01T13:59:29Z",
+              "updatedAt": "2026-11-01T13:59:29Z"
+            }
+          ]
+        }
+      ]
     },
     {
       "number": 167,
       "id": "PR_kwDOQP22qc8AAAABMAYgpg",
       "title": "Re-use AIMS definition and update document history",
       "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/pull/167",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "PieterKas",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "see issue #135",
       "createdAt": "2026-10-31T19:10:27Z",
-      "updatedAt": "2026-10-31T19:15:03Z",
+      "updatedAt": "2026-11-01T13:59:42Z",
       "baseRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
       "baseRefName": "main",
       "baseRefOid": "4095365f74c7d4ab4402f6230eed46018d107458",
       "headRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
       "headRefName": "PieterKas-patch-28",
       "headRefOid": "4db28d96b72739a1bc824f137ed39efeca1b093b",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2026-11-01T13:59:42Z",
+      "mergedAt": "2026-11-01T13:59:42Z",
+      "mergedBy": "PieterKas",
+      "mergeCommit": {
+        "oid": "f37f446d1482a43df7c1c7da668704a6d756160a"
+      },
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOQP22qc8AAAABVW-cgA",
+          "commit": {
+            "abbreviatedOid": "4db28d9"
+          },
+          "author": "bc-pi",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-11-01T13:43:54Z",
+          "updatedAt": "2026-11-01T13:43:54Z",
+          "comments": []
+        }
+      ]
     },
     {
       "number": 168,
       "id": "PR_kwDOQP22qc8AAAABMAi9Jg",
       "title": "Enhance agent credential lifecycle with deprovisioning",
       "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/pull/168",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "PieterKas",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "Added deprovisioning phase to agent credential lifecycle and clarified its implications. Updated document history to reflect recent changes and clarifications regarding WIMSE and SPIFFE credentials. see issue #125",
       "createdAt": "2026-10-31T19:32:36Z",
-      "updatedAt": "2026-10-31T19:32:36Z",
+      "updatedAt": "2026-11-01T14:00:31Z",
       "baseRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
       "baseRefName": "main",
-      "baseRefOid": "4095365f74c7d4ab4402f6230eed46018d107458",
+      "baseRefOid": "f37f446d1482a43df7c1c7da668704a6d756160a",
       "headRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
       "headRefName": "PieterKas-patch-29",
-      "headRefOid": "9b25141eeffb96c89afcbb5e8931304cc98b60f4",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "b06d6089045635382a7735c828b17dcd7aaebea1",
+      "closedAt": "2026-11-01T14:00:31Z",
+      "mergedAt": "2026-11-01T14:00:31Z",
+      "mergedBy": "PieterKas",
+      "mergeCommit": {
+        "oid": "0f1bbdff28b3a30029096b9b23957eae4ef03682"
+      },
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOQP22qc8AAAABVW_EGg",
+          "commit": {
+            "abbreviatedOid": "9b25141"
+          },
+          "author": "bc-pi",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-11-01T13:46:28Z",
+          "updatedAt": "2026-11-01T13:46:28Z",
+          "comments": []
+        }
+      ]
     },
     {
       "number": 169,
       "id": "PR_kwDOQP22qc8AAAABMAnUzQ",
       "title": "Clarify ongoing posture assessment in credential provisioning",
       "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/pull/169",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "PieterKas",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "Added clarification on ongoing posture assessment and its implications for credential provisioning. See issue #128",
       "createdAt": "2026-10-31T19:41:28Z",
-      "updatedAt": "2026-10-31T19:45:57Z",
+      "updatedAt": "2026-11-01T14:01:25Z",
       "baseRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
       "baseRefName": "main",
-      "baseRefOid": "4095365f74c7d4ab4402f6230eed46018d107458",
+      "baseRefOid": "0f1bbdff28b3a30029096b9b23957eae4ef03682",
       "headRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
       "headRefName": "PieterKas-patch-30",
-      "headRefOid": "e1ce87ecd96c74067bab0dfb7143f2600716dc2e",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "88fe0533ab1ea2f5d1baf0545bf6726496cc1548",
+      "closedAt": "2026-11-01T14:01:25Z",
+      "mergedAt": "2026-11-01T14:01:25Z",
+      "mergedBy": "PieterKas",
+      "mergeCommit": {
+        "oid": "86af198d52bade582c1777b3676703a05c5c4ad3"
+      },
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOQP22qc8AAAABVW_p1Q",
+          "commit": {
+            "abbreviatedOid": "029faf7"
+          },
+          "author": "bc-pi",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "sure, why not",
+          "createdAt": "2026-11-01T13:48:36Z",
+          "updatedAt": "2026-11-01T13:48:36Z",
+          "comments": []
+        }
+      ]
     },
     {
       "number": 170,
       "id": "PR_kwDOQP22qc8AAAABMA3D3Q",
       "title": "Enhance transaction token and cross-domain access sections",
       "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/pull/170",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "PieterKas",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "Added details on transaction tokens and cross-domain access for agents, including clarifications on OAuth 2.0 Token Exchange and related specifications. See issue #128 ",
       "createdAt": "2026-10-31T20:15:48Z",
-      "updatedAt": "2026-10-31T20:16:07Z",
+      "updatedAt": "2026-11-01T16:42:46Z",
       "baseRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
       "baseRefName": "main",
-      "baseRefOid": "4095365f74c7d4ab4402f6230eed46018d107458",
+      "baseRefOid": "279c5705fcd234758c51333ff4079f4c948029a5",
       "headRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
       "headRefName": "PieterKas-patch-31",
-      "headRefOid": "80cb50e5f846e165e973fa153b45a0812c7f60a3",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "6ccd57d53c6886b7fab78c914b8f97f93fabdb49",
+      "closedAt": "2026-11-01T16:42:46Z",
+      "mergedAt": "2026-11-01T16:42:46Z",
+      "mergedBy": "PieterKas",
+      "mergeCommit": {
+        "oid": "a5b8cde9fe4909d7f47e72149b3195981fc4e992"
+      },
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOQP22qc8AAAABVXEXjQ",
+          "commit": {
+            "abbreviatedOid": "80cb50e"
+          },
+          "author": "bc-pi",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-01T14:06:51Z",
+          "updatedAt": "2026-11-01T14:06:52Z",
+          "comments": [
+            {
+              "originalPosition": 7,
+              "body": "I think the new paragraph below, \"A transaction token may...\" obviates the need for this, no?\n```suggestion\n```",
+              "createdAt": "2026-11-01T14:06:52Z",
+              "updatedAt": "2026-11-01T14:06:52Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOQP22qc8AAAABVXLi7w",
+          "commit": {
+            "abbreviatedOid": "c3d8974"
+          },
+          "author": "bc-pi",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-11-01T14:21:40Z",
+          "updatedAt": "2026-11-01T14:21:40Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOQP22qc8AAAABVXkToQ",
+          "commit": {
+            "abbreviatedOid": "6ccd57d"
+          },
+          "author": "bc-pi",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-11-01T16:04:53Z",
+          "updatedAt": "2026-11-01T16:04:53Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 171,
+      "id": "PR_kwDOQP22qc8AAAABMGVfCg",
+      "title": "Add long-lived sessions and streams section",
+      "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/pull/171",
+      "state": "MERGED",
+      "author": "PieterKas",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Added section on long-lived sessions and streams, clarifying authentication and authorization processes for agents in these scenarios. see issue #129 ",
+      "createdAt": "2026-11-01T11:30:11Z",
+      "updatedAt": "2026-11-01T14:19:41Z",
+      "baseRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
+      "baseRefName": "main",
+      "baseRefOid": "86af198d52bade582c1777b3676703a05c5c4ad3",
+      "headRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
+      "headRefName": "PieterKas-patch-32",
+      "headRefOid": "ba69728de185f43db1805a3c5aa0a18d5d780c08",
+      "closedAt": "2026-11-01T14:19:41Z",
+      "mergedAt": "2026-11-01T14:19:41Z",
+      "mergedBy": "PieterKas",
+      "mergeCommit": {
+        "oid": "5275629aee91165dbeca9eb7769e6d1d5241feed"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOQP22qc8AAAABVXGQ_A",
+          "commit": {
+            "abbreviatedOid": "0655656"
+          },
+          "author": "bc-pi",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "seems okay ",
+          "createdAt": "2026-11-01T14:10:16Z",
+          "updatedAt": "2026-11-01T14:10:16Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 172,
+      "id": "PR_kwDOQP22qc8AAAABMGmLjw",
+      "title": "Enhance policy guidance in OAuth 2.0 Access Tokens section",
+      "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/pull/172",
+      "state": "MERGED",
+      "author": "PieterKas",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Added guidance on policy languages and policy-based systems for resource access control. see #124 ",
+      "createdAt": "2026-11-01T12:11:03Z",
+      "updatedAt": "2026-11-01T15:59:20Z",
+      "baseRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
+      "baseRefName": "main",
+      "baseRefOid": "62614397b613534abe95d177eac7deb21efa82ad",
+      "headRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
+      "headRefName": "PieterKas-patch-33",
+      "headRefOid": "acc9d9da5bd018fdb6bf72f66cbcd1748ad769fa",
+      "closedAt": "2026-11-01T15:59:19Z",
+      "mergedAt": "2026-11-01T15:59:19Z",
+      "mergedBy": "PieterKas",
+      "mergeCommit": {
+        "oid": "279c5705fcd234758c51333ff4079f4c948029a5"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOQP22qc8AAAABVXJjDQ",
+          "commit": {
+            "abbreviatedOid": "5e34258"
+          },
+          "author": "bc-pi",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "merci pour la travail",
+          "createdAt": "2026-11-01T14:16:43Z",
+          "updatedAt": "2026-11-01T14:16:43Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 173,
+      "id": "PR_kwDOQP22qc8AAAABMGt0Zw",
+      "title": "Include sender-constrained access tokens section",
+      "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/pull/173",
+      "state": "MERGED",
+      "author": "PieterKas",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Added information on sender-constrained access tokens and their security implications. see issue #126",
+      "createdAt": "2026-11-01T12:26:54Z",
+      "updatedAt": "2026-11-01T16:04:17Z",
+      "baseRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
+      "baseRefName": "main",
+      "baseRefOid": "5275629aee91165dbeca9eb7769e6d1d5241feed",
+      "headRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
+      "headRefName": "PieterKas-patch-34",
+      "headRefOid": "a38f368e89cec63df557d4a365d1b0fc9b1a1b8a",
+      "closedAt": "2026-11-01T15:41:19Z",
+      "mergedAt": "2026-11-01T15:41:19Z",
+      "mergedBy": "PieterKas",
+      "mergeCommit": {
+        "oid": "62614397b613534abe95d177eac7deb21efa82ad"
+      },
+      "comments": [
+        {
+          "author": "PieterKas",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Accepted the proposed change, please approve again",
+          "createdAt": "2026-11-01T14:59:20Z",
+          "updatedAt": "2026-11-01T14:59:20Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOQP22qc8AAAABVXKkQA",
+          "commit": {
+            "abbreviatedOid": "353e2a8"
+          },
+          "author": "bc-pi",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-01T14:19:11Z",
+          "updatedAt": "2026-11-01T14:19:12Z",
+          "comments": [
+            {
+              "originalPosition": 4,
+              "body": "little suggestion on wording  \n```suggestion\nAccess tokens may be sender-constrained to mitigate the risk of accidental token leakage or deliberate token theft, so that a token obtained by an attacker cannot be used without the corresponding key. Sender-constraining may use certificate-bound access tokens {{OAUTH-CLIENTAUTH-MTLS}}, when the Agent presents an X.509 credential over mutual TLS, or Demonstrating Proof of Possession (DPoP) {{!OAUTH-DPOP=RFC9449}}, when transport-layer binding is not feasible. The use of sender-constrained access tokens is described in the OAuth 2.0 Security Best Current Practice {{OAUTH-BCP}} and in FAPI 2.0 {{OpenIDConnect.FAPI}}.\n```",
+              "createdAt": "2026-11-01T14:19:12Z",
+              "updatedAt": "2026-11-01T14:19:59Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOQP22qc8AAAABVXkLpA",
+          "commit": {
+            "abbreviatedOid": "a38f368"
+          },
+          "author": "bc-pi",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-11-01T16:04:17Z",
+          "updatedAt": "2026-11-01T16:04:17Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 174,
+      "id": "PR_kwDOQP22qc8AAAABMV-x1A",
+      "title": "fix up some reference names",
+      "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/pull/174",
+      "state": "MERGED",
+      "author": "bc-pi",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2026-11-02T16:00:39Z",
+      "updatedAt": "2026-11-02T18:12:37Z",
+      "baseRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
+      "baseRefName": "main",
+      "baseRefOid": "a5b8cde9fe4909d7f47e72149b3195981fc4e992",
+      "headRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
+      "headRefName": "towards-being-less-wrong",
+      "headRefOid": "7f5fc135df02e42145a585c4b2e10f97bcdec9a2",
+      "closedAt": "2026-11-02T18:12:37Z",
+      "mergedAt": "2026-11-02T18:12:37Z",
+      "mergedBy": "PieterKas",
+      "mergeCommit": {
+        "oid": "a11288c0f98a5986239b8c2b98155b7aa719c460"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOQP22qc8AAAABVjNE3A",
+          "commit": {
+            "abbreviatedOid": "7f5fc13"
+          },
+          "author": "PieterKas",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-11-02T18:12:20Z",
+          "updatedAt": "2026-11-02T18:12:20Z",
+          "comments": []
+        }
+      ]
     }
   ]
 }
