@@ -253,7 +253,9 @@ Credential provisioning is also the assessment point to confirm that the Agent a
 
 Posture assessment mechanisms are deployment and risk specific. They may include hardware-backed evidence, trusted execution environment (TEE) evidence, software integrity measurements, supply-chain provenance, platform or orchestration-layer metadata, workload placement information, configuration state, operator assertions, or other environment-specific signals. Depending on the risk involved, a single signal may be sufficient, while higher-risk deployments may require multiple independent signals before credentials are issued or renewed.
 
-Deployed workload identity systems commonly perform some form of posture assessment as part of credential provisioning. For example, SPIFFE implementations can evaluate platform and environment-specific information about a workload before binding it to a SPIFFE identifier and issuing an SVID. At a high level, a provisioning component gathers workload and execution context signals, verifies them according to local policy, and, if verification succeeds, issues short-lived credentials for subsequent authentication and authorization.
+Signals that a relying party can verify without trusting the operator of the workload, such as hardware-backed evidence, provide different assurance from assertions made by that operator, and the guarantees that higher layers depend on are limited by the kind of signal used.
+
+Deployed workload identity systems commonly perform some form of posture assessment as part of credential provisioning. For example, SPIFFE implementations can evaluate platform and environment-specific information about a workload before binding it to a SPIFFE identifier and issuing an SVID. At a high level, a provisioning component gathers workload and execution context signals, verifies them according to local policy, and, if verification succeeds, issues short-lived credentials for subsequent authentication and authorization. Where a required posture signal cannot be obtained, verification has not succeeded, and a credential is not issued or renewed on the basis of that signal.
 
 An AIMS implementation may incorporate multiple posture assessment mechanisms and implementations. The selection of mechanisms depends on deployment constraints, such as the underlying platform, available identity signals, and desired level of trust assurance. This document does not require any particular posture assessment mechanism, evidence format, or verifier architecture.
 
@@ -441,6 +443,12 @@ Compliance for Agent-based systems SHOULD be assessed by auditing observed behav
 This document composes existing specifications to enable authentication and authorization between AI agents. The security considerations of each referenced specification apply in full.
 
 In addition to the guidance included in existing specifications, additional security best practices and profiles have been developed for the Oauth protocol famility. The OAuth 2.0 Security Best Current Practice {{OAUTH-BCP}} which captures current guidance on threats and mitigations that have emerged since the original OAuth 2.0 specifications were published. The FAPI 2.0 Security Profile {{FAPI}} defines a high-assurance profile of OAuth 2.0 suitable for high security applications.
+
+## Dependencies Between Layers
+
+Each layer in {{fig-agent-identity-management-system}} depends on guarantees from the layers below it, so a compromise at one layer is inherited by every layer above it. A credential issued on the basis of a falsified posture signal still authenticates, and authorization decisions that rely on it still succeed. A provisioning component ({{agent_credential_provisioning}}) is therefore a high-value target. If it is compromised, every credential it has issued is suspect.
+
+Valid credentials and tokens do not show how an Agent is behaving. The event correlation described in {{agent_monitoring_and_remediation}} can include inconsistencies between layers, such as an Agent with valid credentials whose actions do not match its recorded posture or authorization context.
 
 # Privacy Considerations
 
