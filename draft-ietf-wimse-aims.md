@@ -395,6 +395,8 @@ Transcription does not limit correlation when an Agent presents the same credent
 
 The credentials and tokens described in this document do not provide selective disclosure of attributes. Selective Disclosure for JWTs {{?SD-JWT=RFC9901}} is one option where that is needed, although it does not by itself prevent presentations from being correlated ({{Section 10.1 of SD-JWT}}).
 
+Agent identifiers, credentials and metadata can reveal an organization's structure, security posture or business processes to parties in other trust domains. Deployments can limit this by keeping such information out of identifiers and credentials presented outside the trust domain, and by using claims transcription ({{Section 2.5 of OAUTH-ID-CHAIN}}) at the boundary.
+
 In a chain of delegated requests, a party whose authorization decision does not depend on the User's identity does not need to receive the User's identifier. Such a party can instead receive the delegated authority with a subject identifier specific to that party or trust domain, for example through claims transcription ({{Section 2.5 of OAUTH-ID-CHAIN}}) or distinct 'sub' values for different resource servers ({{Section 6 of OAUTH-ACCESSTOKEN-JWT}}). The authorization server that issued that identifier retains its mapping to the User, so that the chain can still be reconstructed as described in {{agent_monitoring_and_remediation}}. This concentrates the ability to identify the User at that server, and deployments need to weigh that against the risk level and regulatory context of the interaction.
 
 ## OAuth 2.0 Discovery in Dynamic Environments
