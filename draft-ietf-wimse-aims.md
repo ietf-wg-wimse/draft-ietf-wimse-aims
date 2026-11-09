@@ -122,6 +122,13 @@ informative:
     author:
     - name: Karl McGuinness
     date: 2026
+  OpenID.Federation:
+    title: OpenID Federation 1.0
+    target: https://openid.net/specs/openid-federation-1_0-final.html
+    date: 2026
+  SPIFFE-Federation:
+    title: SPIFFE Federation
+    target: https://github.com/spiffe/spiffe/blob/main/standards/SPIFFE_Federation.md
 ...
 
 --- abstract
@@ -368,6 +375,8 @@ When using the Identity Assertion JWT Authorization Grant {{OAUTH-JWT-ASSERTION}
 
 OAuth Identity and Authorization Chaining Across Domains ({{OAUTH-ID-CHAIN}}) provides a general mechanism for obtaining cross-domain access that can be used whether an identity assertion like a SAML or OpenID Connect token is available or not. The Identity Assertion JWT Authorization Grant {{OAUTH-JWT-ASSERTION}} is optimized for cases where an identity assertion like a SAML or OpenID Connect token is available from an identity provider that is trusted by all the OAuth authorization servers as it removes the need for the user to re-authenticate. This is typically used within enterprise deployments to simplify authorization delegation for multiple software-as-a-service offerings.
 
+The mechanisms in this section assume that the authorization servers involved have already established trust in each other, typically through an exchange of key material ({{Section 2.1 of OAUTH-ID-CHAIN}}). This document does not define how that trust is established. Options include bilateral configuration and OpenID Federation {{OpenID.Federation}}. For SPIFFE credentials, SPIFFE Federation {{SPIFFE-Federation}} provides bundle exchange between trust domains. Where two parties share no trust relationship or common trust anchor, these mechanisms do not apply.
+
 ## Human in the Loop
 An OAuth authorization server MAY conclude that the level of access requested by an Agent requires explicit user confirmation. In such cases the authorization server SHOULD either decline the request or obtain additional authorization from the User. An Agent, acting as an OAuth client, can use the OpenID Client Initiated Backchannel Authentication (CIBA) protocol ({{CIBA}}). This triggers an out-of-band interaction allowing the user to approve or deny the requested operation without exposing credentials to the agent (for example a push notification requesting the user to approve a request through an authenticator application on their mobile device).
 
@@ -457,6 +466,10 @@ An Agent that creates or coordinates other Agents can often obtain or direct the
 A malicious or compromised Tool receives what an Agent sends it, which can include access tokens, and its results can be passed to the LLM as context ({{fig-ai-agent-workload}}). Such a Tool can attempt to reuse a token it received or return content intended to influence the Agent's next action. Audience-restricted and sender-constrained access tokens ({{OAUTH-BCP}}) limit token reuse. The mechanisms in this document do not detect manipulated content. They limit its effect to the authority the Agent holds.
 
 An Agent can be induced by its caller to use authority that the caller does not hold, which is a confused deputy problem. Transaction tokens ({{txn-tokens-risk-reduction}}) carry authorization context along a call chain within one Agent, LLM or Tool, but do not address a request between Agents across trust boundaries. A receiving Agent limits this risk by using only the authority its caller delegated, as described in {{delegation_chains}}.
+
+## Cross-Domain Trust and Replay
+
+Cross-domain access ({{cross_domain_access}}) depends on trust between authorization servers that is established outside the mechanisms in this document, so a weakness in that arrangement affects every exchange that relies on it. An authorization grant intercepted on its way to another trust domain can be replayed. {{Section 2.3.3 of OAUTH-ID-CHAIN}} covers the audience of the grant, and {{Section 5.5 of OAUTH-ID-CHAIN}} describes mitigations such as short-lived and single-use grants.
 
 ## Delegation Across Agents {#delegation_chains}
 
