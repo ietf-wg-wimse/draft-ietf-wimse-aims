@@ -450,6 +450,10 @@ Each layer in {{fig-agent-identity-management-system}} depends on guarantees fro
 
 Valid credentials and tokens do not show how an Agent is behaving. The event correlation described in {{agent_monitoring_and_remediation}} can include inconsistencies between layers, such as an Agent with valid credentials whose actions do not match its recorded posture or authorization context.
 
+## Delegation Across Agents {#delegation_chains}
+
+When authority passes through a chain of Agents, possibly across trust domains, each issuer confirms that the new actor may act for the subject and limits the authority it grants to what the inbound token carried, any limits on further delegation, and what that actor is permitted to exercise. Each issuer also enforces a maximum chain depth, and each hop can be recorded in a form downstream parties can verify. A resource server can restrict sensitive operations to direct invocation.
+
 # Privacy Considerations
 
 This document composes existing specifications to enable authentication and authorization between AI agents.
