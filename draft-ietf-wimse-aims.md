@@ -389,6 +389,14 @@ Agents SHOULD request only the minimum scopes and authorization details necessar
 
 Implementations MUST ensure that user identity information delegated to agents is not exposed to unrelated services and that cross-domain authorization exchanges only disclose information required for the target authorization decision.
 
+Identifiers that remain stable across trust domains allow an Agent's activity to be correlated across those domains. That supports the audit described in {{agent_monitoring_and_remediation}} and is an acceptable tradeoff for many enterprise deployments. Where it is not, authorization servers can use claims transcription ({{Section 2.5 of OAUTH-ID-CHAIN}}) to present a different subject identifier or fewer claims outside the issuing trust domain, and retain the mapping for audit. The stable, verifiable identifiers that {{agent_monitoring_and_remediation}} relies on only need to be stable within each trust domain. The authorization server that performed the transcription can resolve them when an investigation requires it. Reconstructing an execution chain across trust domains then depends on the cooperation of those authorization servers.
+
+Transcription does not limit correlation when an Agent presents the same credential directly in multiple trust domains. Where that correlation is not acceptable, an Agent can limit direct presentation of its credential to its own trust domain and reach other trust domains as described in {{cross_domain_access}}.
+
+The credentials and tokens described in this document do not provide selective disclosure of attributes. Selective Disclosure for JWTs {{?SD-JWT=RFC9901}} is one option where that is needed, although it does not by itself prevent presentations from being correlated ({{Section 10.1 of SD-JWT}}).
+
+In a chain of delegated requests, a party whose authorization decision does not depend on the User's identity does not need to receive the User's identifier. Such a party can instead receive the delegated authority with a subject identifier specific to that party or trust domain, for example through claims transcription ({{Section 2.5 of OAUTH-ID-CHAIN}}) or distinct 'sub' values for different resource servers ({{Section 6 of OAUTH-ACCESSTOKEN-JWT}}). The authorization server that issued that identifier retains its mapping to the User, so that the chain can still be reconstructed as described in {{agent_monitoring_and_remediation}}. This concentrates the ability to identify the User at that server, and deployments need to weigh that against the risk level and regulatory context of the interaction.
+
 ## OAuth 2.0 Discovery in Dynamic Environments
 In dynamic Agent deployments (e.g., ephemeral workloads, multi-tenant services, and frequently changing endpoint topology), Agents and other participants MAY use OAuth discovery mechanisms to reduce static configuration and to bind runtime decisions to verifiable metadata.
 
