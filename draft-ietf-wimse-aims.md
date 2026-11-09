@@ -450,6 +450,14 @@ Each layer in {{fig-agent-identity-management-system}} depends on guarantees fro
 
 Valid credentials and tokens do not show how an Agent is behaving. The event correlation described in {{agent_monitoring_and_remediation}} can include inconsistencies between layers, such as an Agent with valid credentials whose actions do not match its recorded posture or authorization context.
 
+## Agent-Specific Threats
+
+An Agent that creates or coordinates other Agents can often obtain or direct the authority of each of them, so its compromise has a larger effect than the compromise of a single Agent. Separate identifiers, credentials and narrowly scoped access tokens for each coordinated Agent limit that effect.
+
+A malicious or compromised Tool receives what an Agent sends it, which can include access tokens, and its results can be passed to the LLM as context ({{fig-ai-agent-workload}}). Such a Tool can attempt to reuse a token it received or return content intended to influence the Agent's next action. Audience-restricted and sender-constrained access tokens ({{OAUTH-BCP}}) limit token reuse. The mechanisms in this document do not detect manipulated content. They limit its effect to the authority the Agent holds.
+
+An Agent can be induced by its caller to use authority that the caller does not hold, which is a confused deputy problem. Transaction tokens ({{txn-tokens-risk-reduction}}) carry authorization context along a call chain within one Agent, LLM or Tool, but do not address a request between Agents across trust boundaries. A receiving Agent limits this risk by using only the authority its caller delegated, as described in {{delegation_chains}}.
+
 ## Delegation Across Agents {#delegation_chains}
 
 When authority passes through a chain of Agents, possibly across trust domains, each issuer confirms that the new actor may act for the subject and limits the authority it grants to what the inbound token carried, any limits on further delegation, and what that actor is permitted to exercise. Each issuer also enforces a maximum chain depth, and each hop can be recorded in a form downstream parties can verify. A resource server can restrict sensitive operations to direct invocation.
