@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-11-05T05:36:15.483484+00:00",
+  "timestamp": "2026-11-10T06:21:37.108149+00:00",
   "repo": "ietf-wg-wimse/draft-ietf-wimse-aims",
   "labels": [
     {
@@ -1374,7 +1374,7 @@
       "labels": [],
       "body": "The AIMS stack in Figure 2 has implicit trust dependencies that I think should be called out in Security Considerations.\n\nBasically if attestation gets compromised, everything above it inherits that - provisioning, authn, authz, all of it. Few things:\n\n- Compromised SPIRE agent (or equivalent) means all creds it provisions are suspect. IMO this is a high-value target worth naming explicitly.\n- No guidance on what happens when you can't determine attestation status. Fail open or closed? I'd argue closed but either way the draft should take a position.\n- The monitoring layer (Section 11) should ideally catch inconsistencies across AIMS layers, like an agent with valid creds behaving in ways that don't match its attestation claims. Not sure how prescriptive we want to be here tho.\n\nMore broadly, might be worth walking through failure modes at each layer and how they cascade upward through the stack.",
       "createdAt": "2026-03-22T18:57:56Z",
-      "updatedAt": "2026-10-05T15:31:16Z",
+      "updatedAt": "2026-11-09T01:43:49Z",
       "closedAt": null,
       "comments": [
         {
@@ -1383,6 +1383,13 @@
           "body": "PR #115 has since folded attestation into provisioning, and the new text makes this sharper. The posture signal list puts \"trusted execution environment (TEE) evidence\" and \"operator assertions\" in one enumeration, then says \"Depending on the risk involved, a single signal may be sufficient.\" So in a lower risk deployment the guarantee everything above inherits can be the operator's word. Nothing has to be compromised for that.\n\nGiven the editors' position on #123 about not adding requirements, one sentence may be enough: separate signals a relying party can check without trusting whoever operates the workload from assertions by that operator, and say which kind \"higher layers depend on guarantees provided by lower layers\" means. The alternative is to soften that sentence.\n",
           "createdAt": "2026-10-05T15:31:16Z",
           "updatedAt": "2026-10-05T15:31:16Z"
+        },
+        {
+          "author": "nik-kale",
+          "authorAssociation": "NONE",
+          "body": "@imran-siddique agreed, and one sentence is the right size given #123. Proposed for Section 8, at the end of the paragraph that lists posture signals:\n\n> Signals that a relying party can verify without trusting the operator of the workload, such as hardware-backed evidence, provide different assurance from assertions made by that operator, and the guarantees that higher layers depend on are limited by the kind of signal used.\n\nThe other open part of this issue is what happens when posture can't be determined. Section 8 already says credentials are issued \"if verification succeeds\", so I think this only needs the consequence spelled out:\n\n> Where a required posture signal cannot be obtained, verification has not succeeded, and a credential is not issued or renewed on the basis of that signal.\n\nCoSAI's Agentic IAM paper takes the same position for enforcement gateways on high-capability agents (fail-closed with a defined degradation path).\n\nHappy to open a PR with both.\n",
+          "createdAt": "2026-11-09T01:43:49Z",
+          "updatedAt": "2026-11-09T01:43:49Z"
         }
       ]
     },
@@ -1461,7 +1468,7 @@
       "labels": [],
       "body": "Reviewing the draft further, so this feels like the biggest gap in the security model right now. Section 10.4 handles single-service microservice chains via TxTokens. Section 10.3.3 covers agents accessed by other agents. But the full A-> B -> C delegation chain across domains isn't formally addressed.\n\nIMHO the security section should cover:\n\n**Scope narrowing** - at each delegation step, effective scope can only decrease or stay the same. Never increase. Well-established in capability security lit (Macaroons, Biscuit, consistent with RFC 8693 delegation semantics).\n\n**Scope derivation** - when A delegates to B, B's effective scope = A's delegatable scope intersected with B's own authorized scope intersected with the explicit delegation grant. Prevents privilege amplification through delegation.\n\n**Accountability chain** - each delegation step produces a verifiable record. Delegator, delegatee, timestamp, scope, crypto binding. You need this for forensics and honestly for any compliance story.\n\n**Depth limits** - unbounded chains get messy fast from an audit perspective. Configurable max depth makes sense. Sensitive ops should probably be restricted to direct invocation only.\n\nThese principles are grounded in capability security literature and consistent with RFC 8693 Token Exchange delegation semantics. They translate pretty naturally to TxToken chains in this framework.",
       "createdAt": "2026-03-23T20:04:39Z",
-      "updatedAt": "2026-10-21T04:00:15Z",
+      "updatedAt": "2026-11-09T01:43:46Z",
       "closedAt": null,
       "comments": [
         {
@@ -1491,6 +1498,13 @@
           "body": "@mcguinness One more mechanism, for scope narrowing, a per-hop record the recipient verifies, and depth limits: [draft-asor-wimse-agent-delegation-chain-02](https://datatracker.ietf.org/doc/draft-asor-wimse-agent-delegation-chain/02/). Each hop is a token that commits to its parent by hash, with `sub` identical at every hop. From the chain alone a verifier establishes that each hop's authority is a subset of its parent's and that depth is within the bound the root set. Table 1 in Section 6.1 separates that from what needs the request. My Python and TypeScript implementations score the 35 published vectors to the same outcomes.\n\nOn revoking an upstream grant: in the -02 the grant behind the root is not in the chain. A revoked token anywhere in the chain fails step 7 against its status list, and a list that cannot be fetched also denies. Whether the grant behind the root still stands has to be looked up beside the chain, and the -02 does not define that lookup. I wrote the same on the WIMSE list on 20 October: https://mailarchive.ietf.org/arch/msg/wimse/TpPO2Kz6MpO9IzwXZudSgGf5mDQ/\n",
           "createdAt": "2026-10-21T04:00:15Z",
           "updatedAt": "2026-10-21T04:00:15Z"
+        },
+        {
+          "author": "nik-kale",
+          "authorAssociation": "NONE",
+          "body": "+1 to @mcguinness on stating these as properties and leaving mechanisms to other specs. Kieran made the same split on the list, and that paragraph is a good base.\n\nOne change. \"What the inbound token carried and what that actor is permitted to exercise\" leaves out the third limit from the original issue, which is what this delegation actually granted. An agent can hold authority it was never allowed to pass on. That's also the point of Mikhail's #155, so it can be one clause:\n\n> When authority passes through a chain of Agents, possibly across trust domains, each issuer confirms that the new actor may act for the subject and limits the authority it grants to what the inbound token carried, any limits on further delegation, and what that actor is permitted to exercise. Each issuer also enforces a maximum chain depth, and each hop can be recorded in a form downstream parties can verify. A resource server can restrict sensitive operations to direct invocation.\n\nFor transaction tokens, 10.6 now says scope \"can never exceed that of the token presented to obtain it\", so this carries the same idea across domains. I'd put it in Section 14, which right now only points at other specs. The record format itself looks like AUDIT work per Brian's note on #157, so the paragraph should only state the property.\n\n@mcguinness ok with me using your wording in a PR? I can put one up this week, on top of #155 and separate from Badal's example. If someone else is already carrying this, tell me and I'll review theirs instead.\n\nIf an informative pointer helps, CoSAI's Agentic IAM paper (Section 3.4, published April) states the same expectations for scope narrowing, depth limits and revocation. I contributed to it, so discount accordingly.\n",
+          "createdAt": "2026-11-09T01:43:46Z",
+          "updatedAt": "2026-11-09T01:43:46Z"
         }
       ]
     },
@@ -1506,7 +1520,7 @@
       "labels": [],
       "body": "Section 7 covers workload attestation well but there's an AI-specific angle missing - which model is loaded, what version, what use cases it's approved for.\n\nThis is different from traditional workload env attestation (where is it running, what platform, what TEE). For AI agents specifically, the model itself is a security-relevant property. A swapped or unapproved model running under valid workload creds is a real threat.\n\nShould the attestation section address model identity as a first-class attestation property alongside environment attestation? Feels like a genuinely new requirement that's specific to agent systems.",
       "createdAt": "2026-03-23T21:40:21Z",
-      "updatedAt": "2026-09-23T02:07:22Z",
+      "updatedAt": "2026-11-09T01:43:47Z",
       "closedAt": null,
       "comments": [
         {
@@ -1515,6 +1529,13 @@
           "body": "@nik-kale yes, and I would put it more sharply: model identity needs a different vantage from workload attestation.\n\nA workload attester reports the model it loaded, so a swapped model is reported by whoever swapped it.\n\nSection 11 already requires the record that closes this, and its seven minimum fields include the posture influencing a decision.\n\nModel identity belongs there carrying a digest, because a digest binds the weights and a version string does not.\n",
           "createdAt": "2026-09-23T02:07:21Z",
           "updatedAt": "2026-09-23T02:07:21Z"
+        },
+        {
+          "author": "nik-kale",
+          "authorAssociation": "NONE",
+          "body": "@astrogilda agree on both, the vantage point and digest over version string.\n\nAttestation got folded into posture assessment after I filed this (#115), so the smallest change is probably one item in the signal list in Section 8:\n\n> ... software integrity measurements, the identity of the model in use (as a digest where the deployment can measure it), supply-chain provenance, ...\n\nSection 11 already records \"posture assessment or risk state influencing the decision\", so nothing needed there.\n\nOne limit. A digest only works where the deployment loads the weights. When the LLM in Figure 1 is a hosted service, the Agent only has the provider's word for which model answered. That's an operator assertion in the #82 sense, and the parenthetical above is meant to leave room for it.\n\nCoSAI's Agentic IAM paper (published April, I contributed) lists binding identity \"to the exact code and model\" for higher assurance, so there's at least one published statement of this if that helps.\n\nI'll put up a one-line PR unless the editors would rather handle it.\n",
+          "createdAt": "2026-11-09T01:43:47Z",
+          "updatedAt": "2026-11-09T01:43:47Z"
         }
       ]
     },
@@ -1530,7 +1551,7 @@
       "labels": [],
       "body": "WIMSE/SPIFFE identifiers are stable per-workload. Same identifier showing up across different domains = cross-domain activity correlation.\n\nSome questions the Privacy section could address:\n\n- Is this an acceptable tradeoff for auditability? Probably yes in most enterprise cases but worth acknowledging.\n- Are pairwise identifiers feasible in this model? Would help but adds complexity.\n- Can an agent prove properties (like compliance status) without revealing its full identity? Token-based approach doesn't natively support selective disclosure. Worth acknowledging as a gap or referencing complementary approaches.",
       "createdAt": "2026-03-24T19:31:20Z",
-      "updatedAt": "2026-11-01T07:57:07Z",
+      "updatedAt": "2026-11-09T08:58:29Z",
       "closedAt": null,
       "comments": [
         {
@@ -1539,6 +1560,20 @@
           "body": "On the third question, a data point from an open-source deployment that does this today.\n\nAn agent can prove properties without revealing who stands behind it when the property is checked against a commitment the issuer publishes, rather than looked up by identifier. The issuer publishes, on a fixed cadence, a signed commitment to the status of the credentials it has issued. The agent presents a proof, bound to the relying party's challenge, that its credential and the person's credential behind it are unrevoked under a current commitment and meet a stated assurance level. The relying party learns that the property holds and how fresh the commitment is, and nothing that links the agent to the person or to the same agent elsewhere. Where a relying party needs to recognise the same agent across sessions, an identifier pairwise to that relying party gives it that without cross-domain correlation, which also answers your second question.\n\nSince AIMS builds on published and adopted work, the Privacy Considerations could name the gap and point at what exists: pairwise subject identifiers (OpenID Connect Core 1.0, Section 8), selective disclosure (SD-JWT, RFC 9901, and SD-JWT VC), and unlinkable presentations (the BBS signature scheme and its per-verifier linkability extension, both CFRG research group documents). If the editors want it, I can propose a short paragraph as a PR.",
           "createdAt": "2026-11-01T07:57:07Z",
           "updatedAt": "2026-11-01T07:57:07Z"
+        },
+        {
+          "author": "nik-kale",
+          "authorAssociation": "NONE",
+          "body": "Thanks @MarcMolas. SD-JWT is the right pointer for the third question, and pairwise is the right idea for the second.\n\nThe first question is still open and it's sharper in -01. Section 11 says end-to-end audit depends on \"stable, verifiable identifiers\", and that same stability is what allows correlation across domains. So AIMS should probably say how those two fit together.\n\nOIDC pairwise `sub` is defined for End-Users, so it doesn't carry straight over to agent identifiers. Something closer is already in the draft's references: Section 2.5 of OAUTH-ID-CHAIN (Claims Transcription) lets an AS map the subject identifier and remove claims at the domain boundary. That covers the token path without adding anything new. It doesn't help when an agent presents the same credential directly in each domain.\n\nRough text for 10.10:\n\n> Identifiers that remain stable across trust domains allow an Agent's activity to be correlated across those domains. That supports the audit described in {{agent_monitoring_and_remediation}} and is an acceptable tradeoff for many enterprise deployments. Where it is not, authorization servers can use claims transcription ({{Section 2.5 of OAUTH-ID-CHAIN}}) to present a different subject identifier or fewer claims outside the issuing trust domain, and retain the mapping for audit. Reconstructing an execution chain across trust domains then depends on the cooperation of those authorization servers. Transcription does not limit correlation when an Agent presents the same credential directly in multiple trust domains.\n>\n> The credentials and tokens described in this document do not provide selective disclosure of attributes. Selective Disclosure for JWTs {{?RFC9901}} is one option where that is needed.\n\nI'd leave the issuer commitment and BBS parts out of AIMS. Brian's note on #157 keeps this to RFCs and adopted drafts.\n\nYou offered a PR here and on #90. Same section, so one PR probably makes sense. Happy to write it together, or I can put up a first pass this week and you can edit on top.\n",
+          "createdAt": "2026-11-09T01:43:41Z",
+          "updatedAt": "2026-11-09T01:43:41Z"
+        },
+        {
+          "author": "MarcMolas",
+          "authorAssociation": "NONE",
+          "body": "Thanks, Nik, for the work of reconciling the three questions and for offering to open the PR. Please go ahead with the first pass this week; I'll edit on top and review before the wimse session on 18 November. Agreed on one PR for #88 and #90, and on leaving the issuer commitment and BBS out.\n\nOn the first question, Section 11 and the correlation text fit once attribution for audit is kept apart from linkability across trust domains. Section 11 needs an auditor to trace which entity did what; it does not need every trust domain to see the same identifier. Section 6 makes the WIMSE identifier unique within a trust domain and stable for the lifetime of the workload identity, which is what the audit records rely on. Outside that domain a transcribed identifier can stand for it, and the authorization server that holds the mapping resolves it to the accountable User or System on a legitimate request, when an audit or a dispute requires it. One sentence after \"retain the mapping for audit\" could say so:\n\n> The stable, verifiable identifiers that {{agent_monitoring_and_remediation}} relies on need to be stable within each trust domain, not identical across trust domains; the authorization server that performed the transcription can resolve them when an investigation requires it.\n\nOn the direct-presentation case, Section 10.7 already says an Agent SHOULD use OAUTH-ID-CHAIN when resources sit behind different authorization servers, which is the token path your text covers. The text could point there and state the limit without adding a normative reference:\n\n> Where that correlation is not acceptable, an Agent can limit direct presentation of its credential to its own trust domain and reach other trust domains as described in {{cross_domain_access}}. Credentials that limit correlation even when presented directly are outside the specifications this document composes; {{Section 10.1 of RFC9901}} describes the limits of salted-hash selective disclosure in this respect.",
+          "createdAt": "2026-11-09T08:58:29Z",
+          "updatedAt": "2026-11-09T08:58:29Z"
         }
       ]
     },
@@ -1570,7 +1605,7 @@
       "labels": [],
       "body": "Section 10.8 says user identity delegated to agents must not be exposed to unrelated services. Makes sense.\n\nBut how does this actually work in multi-hop chains? Does each hop strip user identity, or does it get carried through? The answer probably depends on risk level and regulatory context. Some guidance or at least acknowledgment of the tradeoff would help.",
       "createdAt": "2026-03-24T20:45:54Z",
-      "updatedAt": "2026-11-01T07:57:34Z",
+      "updatedAt": "2026-11-09T08:59:08Z",
       "closedAt": null,
       "comments": [
         {
@@ -1579,6 +1614,20 @@
           "body": "One way to answer the multi-hop question is to keep two chains apart. The delegation chain carries what the agent may do and narrows at every hop. The accountability chain says who answers for it. Only the second needs the user's identity, and it does not have to travel with the request.\n\nIn the open-source deployment we run, each agent credential is issued by the party that verified the person, from that person's own credential, so no hop has to carry the user identifier forward. Every hop presents the authority it holds, an assurance claim about the person behind it, and an identifier pairwise to the relying party. The link to the person stays with the issuing party and is disclosed only under a due-process rule. The tradeoff is then explicit: relying parties get accountability without identity, and a party that needs the identity goes to the issuer under that rule. The residual is that the issuing party is a single point of disclosure. The AAIF Identity & Trust working group's draft reference architecture draws the same separation between delegation and accountability chains.\n\nFor AIMS, a sentence in Section 10.9 could recommend that hops after the first carry the delegated authority and a pairwise subject (OpenID Connect Core 1.0, Section 8; the \"act\" claim of RFC 8693 for the actor chain) rather than the user's identifier, and that the binding to the user remain resolvable by the authorization server that issued the first token. Happy to propose that text as a PR.",
           "createdAt": "2026-11-01T07:57:33Z",
           "updatedAt": "2026-11-01T07:57:33Z"
+        },
+        {
+          "author": "nik-kale",
+          "authorAssociation": "NONE",
+          "body": "Thanks @MarcMolas. Keeping the delegation chain and the accountability chain apart is a clean answer to this, and I agree the second doesn't have to travel with the request.\n\nOne change I'd suggest. I don't think \"hops after the first\" is the right test. A later hop may need the user's identity to decide at all, e.g. a resource scoped to that user. The test is whether that party's authorization decision depends on it, which also matches the existing 10.10 text about only disclosing what the target decision needs.\n\nRough text for 10.10:\n\n> In a chain of delegated requests, a party whose authorization decision does not depend on the User's identity does not need to receive the User's identifier. Such a party can instead receive the delegated authority with a subject identifier specific to that party or trust domain, for example through claims transcription ({{Section 2.5 of OAUTH-ID-CHAIN}}). The mapping to the User then remains with the authorization server that performed the transcription, which concentrates the ability to identify the User at that server. Deployments need to weigh this against the risk level and regulatory context of the interaction.\n\nOn the list Kieran asked for `sub` to be preserved at every hop. I read that as the same subject, not the same string, but flag it if you read it differently.\n\nCan go in the same PR as #88.\n",
+          "createdAt": "2026-11-09T01:43:44Z",
+          "updatedAt": "2026-11-09T01:43:44Z"
+        },
+        {
+          "author": "MarcMolas",
+          "authorAssociation": "NONE",
+          "body": "Agreed, the test should be whether the party's authorization decision depends on the User's identity, not its position in the chain. A resource scoped to the User is the case \"hops after the first\" gets wrong, and your test matches the last paragraph of 10.10. Your text reads right to me.\n\nOn Kieran's point, I read it differently. On 6 October he asked for 'sub' to \"stay the original delegated subject\" at every hop of an on-behalf-of chain, with 'act' recording the actors, so that the chain can be reconstructed for Section 11; on 22 October he called Rafael's convention, 'sub' identical at every hop, the same one. That reads as the same value, and your text departs from it where a party receives a transcribed identifier. The two fit if the text says where the value may change and what keeps the chain reconstructable, for example after your first sentence:\n\n> Where the subject identifier differs between parties in a chain of delegated requests, the authorization server that issued the differing value retains its mapping to the User, so that the chain can still be reconstructed as described in {{agent_monitoring_and_remediation}}.\n\nIt may be worth checking with Kieran on the list before the PR.\n\nRFC 9068, which AIMS already cites for 'sub', supports this in Section 6: where tracking a principal across resource servers has to be prevented, the authorization server should give the JWT access tokens meant for different resource servers distinct 'sub' values. A reference to {{Section 6 of OAUTH-ACCESSTOKEN-JWT}} could sit next to the transcription reference. Fine by me in the same PR as #88.",
+          "createdAt": "2026-11-09T08:59:08Z",
+          "updatedAt": "2026-11-09T08:59:08Z"
         }
       ]
     },
@@ -3173,7 +3222,7 @@
       "labels": [],
       "body": "All of cross domain works rely on trust being established beforehand without defining how. Is there something to reference here or a gap to identify?",
       "createdAt": "2026-11-04T16:06:51Z",
-      "updatedAt": "2026-11-04T16:41:29Z",
+      "updatedAt": "2026-11-09T01:43:51Z",
       "closedAt": null,
       "comments": [
         {
@@ -3182,6 +3231,13 @@
           "body": "I want to gouge my own eyes out when I see phrasing like \"name the gap\" but #146 seems at least superficially related. ",
           "createdAt": "2026-11-04T16:41:28Z",
           "updatedAt": "2026-11-04T16:41:28Z"
+        },
+        {
+          "author": "nik-kale",
+          "authorAssociation": "NONE",
+          "body": "@identitymonk this is the question I raised in #84 in March, glad it's getting picked up.\n\nI think there are two separate trust questions here:\n\n- AS to AS. OAUTH-ID-CHAIN Section 2.1 treats this as a prerequisite, typically \"the exchange of key material\", and doesn't say how it's done. Bilateral configuration is the common answer. OpenID Federation 1.0 (final, Feb 2026) is a published way to do it through a shared trust anchor.\n- Workload credentials across domains. SPIFFE Federation covers bundle exchange between trust domains for SPIFFE. #146 has a proposal for WICs.\n\nSo there's something to reference for most of this, and AIMS doesn't need to choose. None of these help when the two sides share no anchor at all, which is the case #146 started from. Probably enough to say so.\n\nRough text for 10.7:\n\n> The mechanisms in this section assume that the authorization servers involved have already established trust in each other, typically through an exchange of key material ({{Section 2.1 of OAUTH-ID-CHAIN}}). This document does not define how that trust is established. Options include bilateral configuration and OpenID Federation {{OpenID.Federation}}. For SPIFFE credentials, SPIFFE Federation {{SPIFFE-Federation}} provides bundle exchange between trust domains. Where two parties share no trust relationship or common trust anchor, these mechanisms do not apply.\n\nThe other half of #84 was replay at the exchange point. OAUTH-ID-CHAIN already covers audience in 2.3.3 and lists mitigations in 5.5 (short-lived, single-use grants), so a pointer should be enough.\n",
+          "createdAt": "2026-11-09T01:43:50Z",
+          "updatedAt": "2026-11-09T01:43:50Z"
         }
       ]
     }
@@ -7975,6 +8031,84 @@
           "comments": []
         }
       ]
+    },
+    {
+      "number": 176,
+      "id": "PR_kwDOQP22qc8AAAABN9-Gpw",
+      "title": "Add privacy text on correlation and user identity in delegation chains",
+      "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/pull/176",
+      "state": "OPEN",
+      "author": "nik-kale",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "Adds five paragraphs to Section 10.10 with no new normative language. Beyond what AIMS already cites, it adds one informative reference, RFC 9901.\n\nRelated issues:\n\n- #88: cross-domain correlation\n- #89: organizational information in credentials\n- #90: user identity in delegation chains\n\nThe text combines the proposals in those issues with additions from @MarcMolas, who offered to edit on top of this first pass.\n\nKieran Sweeney asked on the list for `sub` to stay the original delegated subject at each hop of an on-behalf-of chain. This text lets the identifier differ only for a party whose authorization decision does not depend on the User's identity, and the issuing authorization server keeps the mapping so the chain can still be reconstructed. That boundary is open for discussion.\n",
+      "createdAt": "2026-11-09T22:38:56Z",
+      "updatedAt": "2026-11-09T22:57:54Z",
+      "baseRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
+      "baseRefName": "main",
+      "baseRefOid": "a11288c0f98a5986239b8c2b98155b7aa719c460",
+      "headRepository": "nik-kale/draft-ietf-wimse-aims",
+      "headRefName": "privacy-correlation-user-identity",
+      "headRefOid": "3932e3ffabdace3a95770a38db82b9be9216bd46",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 177,
+      "id": "PR_kwDOQP22qc8AAAABN9-JFA",
+      "title": "Add security considerations for layers, threats, cross-domain trust and delegation",
+      "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/pull/177",
+      "state": "OPEN",
+      "author": "nik-kale",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "Adds four subsections to Section 14, plus short text in Sections 8 and 10.7 where the issue discussions proposed it. It states properties, points at what AIMS already references, and adds no new normative language. The only new references are two informative ones, OpenID Federation 1.0 and SPIFFE Federation.\n\n| Topic | Where | Related issues |\n| --- | --- | --- |\n| Layer dependencies and posture signal limits | Section 8, Section 14 | #82 |\n| Agent-specific threats | Section 14 | #83 |\n| Cross-domain trust and replay | Section 10.7, Section 14 | #84, #175 |\n| Delegation properties | Section 14 | #86 |\n\nEach topic is its own commit, so any of them can be changed or dropped separately.\n\nThe delegation paragraph is @mcguinness's wording from #86 with one added clause, \"any limits on further delegation\", which matches #155. This PR does not depend on #155. The format of per-hop records is left out, following the note on #157 that audit records belong in AUDIT.\n",
+      "createdAt": "2026-11-09T22:38:59Z",
+      "updatedAt": "2026-11-09T22:38:59Z",
+      "baseRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
+      "baseRefName": "main",
+      "baseRefOid": "a11288c0f98a5986239b8c2b98155b7aa719c460",
+      "headRepository": "nik-kale/draft-ietf-wimse-aims",
+      "headRefName": "security-considerations",
+      "headRefOid": "dd5c0280f784bbf4de179e2a43c212f033ef350c",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 178,
+      "id": "PR_kwDOQP22qc8AAAABN9-LIQ",
+      "title": "Add model identity to posture signals",
+      "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/pull/178",
+      "state": "OPEN",
+      "author": "nik-kale",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "Adds the identity of the model in use to the list of posture signals in Section 8. It is one clause with no new normative language.\n\nRelated issue: #87\n\nThe digest wording is limited to deployments that can measure it. With a hosted LLM, the Agent has only the provider's statement of which model answered, which is an operator assertion, already in the same list.\n",
+      "createdAt": "2026-11-09T22:39:02Z",
+      "updatedAt": "2026-11-09T22:39:02Z",
+      "baseRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
+      "baseRefName": "main",
+      "baseRefOid": "a11288c0f98a5986239b8c2b98155b7aa719c460",
+      "headRepository": "nik-kale/draft-ietf-wimse-aims",
+      "headRefName": "posture-model-identity",
+      "headRefOid": "2730a627c981540ec9498f085c4d199540f97344",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
     }
   ]
 }
