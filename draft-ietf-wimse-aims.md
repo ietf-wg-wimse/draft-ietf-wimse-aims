@@ -122,10 +122,6 @@ informative:
     author:
     - name: Karl McGuinness
     date: 2026
-  OpenID.Federation:
-    title: OpenID Federation 1.0
-    target: https://openid.net/specs/openid-federation-1_0-final.html
-    date: 2026
   SPIFFE-Federation:
     title: SPIFFE Federation
     target: https://github.com/spiffe/spiffe/blob/main/standards/SPIFFE_Federation.md
@@ -375,7 +371,7 @@ When using the Identity Assertion JWT Authorization Grant {{OAUTH-JWT-ASSERTION}
 
 OAuth Identity and Authorization Chaining Across Domains ({{OAUTH-ID-CHAIN}}) provides a general mechanism for obtaining cross-domain access that can be used whether an identity assertion like a SAML or OpenID Connect token is available or not. The Identity Assertion JWT Authorization Grant {{OAUTH-JWT-ASSERTION}} is optimized for cases where an identity assertion like a SAML or OpenID Connect token is available from an identity provider that is trusted by all the OAuth authorization servers as it removes the need for the user to re-authenticate. This is typically used within enterprise deployments to simplify authorization delegation for multiple software-as-a-service offerings.
 
-The mechanisms in this section assume that the authorization servers involved have already established trust in each other, typically through an exchange of key material ({{Section 2.1 of OAUTH-ID-CHAIN}}). This document does not define how that trust is established. Options include bilateral configuration and OpenID Federation {{OpenID.Federation}}. For SPIFFE credentials, SPIFFE Federation {{SPIFFE-Federation}} provides bundle exchange between trust domains. Where two parties share no trust relationship or common trust anchor, these mechanisms do not apply.
+The mechanisms in this section assume that the authorization servers involved have already established trust in each other, typically through an exchange of key material ({{Section 2.1 of OAUTH-ID-CHAIN}}). This document does not define how that trust is established. Bilateral configuration is a common approach. For SPIFFE credentials, SPIFFE Federation {{SPIFFE-Federation}} provides bundle exchange between trust domains. Where two parties share no trust relationship or common trust anchor, these mechanisms do not apply.
 
 ## Human in the Loop
 An OAuth authorization server MAY conclude that the level of access requested by an Agent requires explicit user confirmation. In such cases the authorization server SHOULD either decline the request or obtain additional authorization from the User. An Agent, acting as an OAuth client, can use the OpenID Client Initiated Backchannel Authentication (CIBA) protocol ({{CIBA}}). This triggers an out-of-band interaction allowing the user to approve or deny the requested operation without exposing credentials to the agent (for example a push notification requesting the user to approve a request through an authenticator application on their mobile device).
