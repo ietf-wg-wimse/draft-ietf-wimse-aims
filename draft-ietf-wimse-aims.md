@@ -15,7 +15,7 @@ keyword:
  - OAuth
  - WIMSE
  - SPIFFE
- - Secure Signals Framework
+ - Shared Signals Framework
  - AI Agent Authentication and Authorization
 venue:
   group: WIMSE
@@ -58,7 +58,7 @@ normative:
   SPIFFE-ID:
     title: SPIFFE-ID
     target: https://github.com/spiffe/spiffe/blob/main/standards/SPIFFE-ID.md
-  OpenIDConnect.AuthZEN:
+  AuthZEN-API:
     title: Authorization API 1.0
     target: https://openid.net/specs/authorization-api-1_0.html
     author:
@@ -72,13 +72,13 @@ normative:
       role: editor
       org: SGNL
     date: 2026
-  OpenIDConnect.Discovery:
+  OIDC.Discovery:
     title: OpenID Connect Discovery 1.0
     target: https://openid.net/specs/openid-connect-discovery-1_0-final.html
-  OpenIDConnect.CIBA:
+  CIBA:
     title: OpenID Connect Client-Initiated Backchannel Authentication Flow - Core 1.0
     target: https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html
-  OpenIDConnect.FAPI:
+  FAPI:
     title: FAPI 2.0 Security Profile
     target: https://openid.net/specs/fapi-security-profile-2_0-final.html
   MCP:
@@ -102,17 +102,19 @@ normative:
   RISC:
     title: OpenID Risk Incident Sharing and Coordination Profile 1.0
     target: https://openid.net/specs/openid-risc-1_0-final.html
+  WISE:
+    title: "OpenID WISE Profile Specification 1.0 - draft 03"
+    target: https://openid.github.io/ssf-wise-profile/
   SPIFFE-X509-SVID:
     title: "The X.509 SPIFFE Verifiable Identity Document"
     target: https://github.com/spiffe/spiffe/blob/main/standards/X509-SVID.md
-
   SPIFFE-JWT-SVID:
     title: "The JWT SPIFFE Verifiable Identity Document"
     target: https://github.com/spiffe/spiffe/blob/main/standards/JWT-SVID.md
-
   SPIFFE-WIT-SVID:
     title: "The WIT SPIFFE Verifiable Identity Document"
     target: https://github.com/spiffe/spiffe/blob/draft-wit-svid/standards/WIT-SVID.md
+
 informative:
   MissionShaping:
     title: "The Mission Shaping Problem"
@@ -180,12 +182,14 @@ In this document, Tools, Services, and Resources are treated as a single categor
 
 As shown in {{fig-ai-agent-workload}}, the AI agent is a workload that needs an identifier and credentials so it can be authenticated by the Tools, Services, Resources, Large Language Model, System and the User (via the underlying operating system or platform, similar to existing applications and services). Once authenticated, these parties determine if the AI Agent is authorized to access the requested Large Language Model, Tools, Services or Resources. If the AI Agent is acting on behalf of a User or System, the User or System needs to delegate authority to the AI Agent, and the User or System context is preserved and used as input to authorization decisions and recorded in audit trails.
 
+Note: The arrows in {{fig-ai-agent-workload}} indicate the direction in which information flows between the participants and do not imply a particular interaction style. The model applies equally to request and response exchanges and to streaming interactions.
+
 This document describes how AI Agents should leverage existing standards defined by SPIFFE {{SPIFFE}}, WIMSE, OAuth and OpenID SSF {{SSF}}.
 
 # Agent Identity Management System
 This document defines the term Agent Identity Management System (AIMS) as a conceptual model describing the set of functions required to establish, maintain, and evaluate the identity and permissions of an agent workload. AIMS does not refer to a single product, protocol, or deployment architecture. AIMS may be implemented by one component or distributed across multiple systems (such as identity providers, provisioning services, authorization servers, policy engines, and runtime enforcement points).
 
-An Agent Identity Management System ensures that the right Agent has access to the right resources and tools at the right time for the right reason. An Agent identity management system depends on the following components to achieve its goals:
+AIMS ensures that the right Agent has access to the right resources and tools at the right time for the right reason. Such a system depends on the following components to achieve its goals:
 
 * **Agent Identifiers:** Unique identifier assigned to every Agent.
 * **Agent Credentials:** Cryptographic binding between the Agent Identifier and attributes of the Agent.
@@ -193,7 +197,7 @@ An Agent Identity Management System ensures that the right Agent has access to t
 * **Agent Authentication:** Protocols and mechanisms used by the Agent to authenticate itself to Large Language Models or Tools (resource or server) in the system.
 * **Agent Authorization:** Protocols and systems used to determine if an Agent is allowed to access a Large Language Model or Tool (resource or server).
 * **Agent Observability and Remediation:** Protocols and mechanisms to dynamically modify the authorization decisions based on observed behavior and system state.
-* **Agent Authentication and Authorization Policy:** The configuration and rules for each of the Agent Identity Management System.
+* **Agent Authentication and Authorization Policy:** The configuration and rules for each of the AIMS components.
 * **Agent Compliance:** Measurement of the state and functioning of the system against the stated policies.
 
 The components form a logical stack in which higher layers depend on guarantees provided by lower layers, as illustrated in {{fig-agent-identity-management-system}}.
@@ -227,6 +231,8 @@ The Secure Production Identity Framework for Everyone ({{SPIFFE}}) identifier is
 
 An agent participating in this framework MUST be assigned exactly one WIMSE identifier, which MAY be a SPIFFE ID.
 
+The lifecycle of an agent identifier is distinct from the lifecycle of the credentials bound to it. Credentials are short-lived and expire while the identifier persists. When an agent is retired, its identifier must not be reassigned to a different agent, and the records that reference it (audit logs, authorization decisions, delegation records and security signals) remain interpretable for as long as the deployment's retention policy requires, which is typically longer than the agent's operational lifetime. The registry or namespace in which agent identifiers are allocated, and the retention period applied to retired identifiers, are deployment-specific and out of scope for this document.
+
 # Agent Credentials {#agent_credentials}
 Agents MUST possess credentials that provide a cryptographic binding to the agent identifier. These credentials are considered primary credentials that are provisioned at runtime. An identifier alone is insufficient unless it can be verified to be controlled by the communicating agent through a cryptographic binding.
 
@@ -249,14 +255,20 @@ Posture assessment mechanisms are deployment and risk specific. They may include
 
 Deployed workload identity systems commonly perform some form of posture assessment as part of credential provisioning. For example, SPIFFE implementations can evaluate platform and environment-specific information about a workload before binding it to a SPIFFE identifier and issuing an SVID. At a high level, a provisioning component gathers workload and execution context signals, verifies them according to local policy, and, if verification succeeds, issues short-lived credentials for subsequent authentication and authorization.
 
-An Agent Identity Management System may incorporate multiple posture assessment mechanisms and implementations. The selection of mechanisms depends on deployment constraints, such as the underlying platform, available identity signals, and desired level of trust assurance. This document does not require any particular posture assessment mechanism, evidence format, or verifier architecture.
+An AIMS implementation may incorporate multiple posture assessment mechanisms and implementations. The selection of mechanisms depends on deployment constraints, such as the underlying platform, available identity signals, and desired level of trust assurance. This document does not require any particular posture assessment mechanism, evidence format, or verifier architecture.
 
 Agent credential provisioning must operate autonomously, scale to high-churn environments, and integrate closely with the posture assessment mechanisms used to establish trust in the Agent at each issuance or rotation event.
+
+Posture assessment at provisioning time establishes trust at the moment a credential is issued or renewed. It does not by itself establish that the posture still holds when a particular request is made. Higher-risk deployments, and interactions that cross trust domain boundaries, may require posture evidence that is closer to the time of the request. Two approaches are available with existing mechanisms:
+
+1. Shortening credential lifetimes so that renewal, and with it re-assessment, occurs more frequently.
+2. Using the eventing mechanisms described in {{agent_monitoring_and_remediation}} so that a change in posture detected after issuance results in revocation or down-scoping of the agent's credentials and tokens.
 
 Agent credential provisioning typically includes two phases:
 
 1. **Initial Provisioning**: The process by which an agent first acquires a credential bound to its identity. This often occurs immediately after deployment or instantiation and is based on verified properties of the agent (e.g., deployment context, posture assessment results, or orchestration metadata).
 2. **Rotation/Renewal**: The automatic refresh of short-lived credentials before expiration. Continuous rotation ensures that credentials remain valid only for the minimum necessary time and that authorization state reflects current operational conditions.
+3. **Deprovisioning**: The termination of an agent's credentials when the agent is retired, when its posture no longer satisfies policy, or when its identity is believed to be compromised. At a minimum, deprovisioning stops renewal so that outstanding short-lived credentials expire and are not replaced. Where the change must take effect before expiry, the issuer signals the status change to relying parties and to the issuers of any credentials derived from the agent's primary credential, so that the derived credentials are revoked or cease to be accepted as well.
 
 The use of short-lived credentials provides a significant improvement in the risk profile and risk of credential exposure. It provides an alternative to explicit revocation mechanisms and simplifies lifecycle management in large, automated environments while removing the risks of downtime as a result of credential expiry.
 
@@ -293,6 +305,9 @@ The WIMSE Workload-to-Workload Authentication with HTTP Signatures specification
 ### Limitations
 Unlike transport-layer authentication, application-layer authentication does not inherently provide channel binding to the underlying secure transport. As a result, implementations MUST consider the risk of message relay or replay if tokens or signed messages are accepted outside their intended context. Deployments typically mitigate these risks through short token lifetimes, audience restrictions, nonce or unique identifier checks, and binding authentication to specific requests or transaction parameters.
 
+## Long-Lived Sessions and Streams {#long_lived_sessions}
+In a long lived session or a streaming connection, the Agent is authenticated when the session is established, using the mechanisms described above, and the authorization granted at that point is bounded by the lifetime of the credential or token presented. Because a session may outlive the credential or token used to establish it, the Agent keeps its credentials current through the automated rotation described in {{agent_credential_provisioning}}, the party accepting the session re-validates authorization when the credential or token expires, and both act on revocation or risk signals ({{agent_monitoring_and_remediation}}) by terminating or down-scoping the session rather than allowing it to run to completion. Where individual messages within a session require their own proof of possession, WPTs ({{wpt}}) can be applied to those messages.
+
 # Agent Authorization {#agent_authorization}
 Agents act on behalf of a user, a system, or on their own behalf as shown in {{fig-ai-agent-workload}} and need to obtain authorization when interacting with protected resources.
 
@@ -305,9 +320,17 @@ The widely deployed OAuth 2.0 Authorization Framework {{!OAUTH-FRAMEWORK=RFC6749
 ## Use of OAuth 2.0 Access Tokens
 An OAuth access token represents the authorization granted to the Agent. In many deployments, access tokens are structured as JSON Web Tokens (JWTs) {{!OAUTH-ACCESSTOKEN-JWT=RFC9068}}, which include claims such as 'client_id', 'sub', 'aud', 'scope', and other attributes relevant to authorization. The access token includes the Agent identity as the 'client_id' claim as defined in {{Section 2.2 of OAUTH-ACCESSTOKEN-JWT}}.
 
-When the Agent is acting on-behalf of another User or System, the User or System identifier is conveyed in the 'sub' claim as defined in {{Section 2.2 of OAUTH-ACCESSTOKEN-JWT}}. These identifiers MUST be used by resource servers protected by the OAuth 2.0 authorization service, along with other claims in the access token, to determine if access to a resource should be allowed. The access token typically includes additional claims to convey contextual, attestation-derived, or policy-related information that enables fine-grained access control. The resource server uses the access token and the information it contains along with other authorization systems (e.g. policy based, attribute based or role based authorization systems) when enforcing access control. JWT access tokens can be validated directly by resource servers while other formats that are opaque to the resource server can be validated through a mechanism that calls back to the authorization server (the mechanism is called introspection despite the word having nearly the opposite meaning). This framework supports both models and does not require a specific token format, provided that equivalent authorization semantics are maintained.
+When the Agent is acting on-behalf of another User or System, the User or System identifier is conveyed in the 'sub' claim as defined in {{Section 2.2 of OAUTH-ACCESSTOKEN-JWT}}. These identifiers MUST be used by resource servers protected by the OAuth 2.0 authorization service, along with other claims in the access token, to determine if access to a resource should be allowed. The access token typically includes additional claims to convey contextual, attestation-derived, or policy-related information that enables fine-grained access control. The resource server uses the access token and the information it contains along with other inputs, as described in {{policy_based_systems}}, when enforcing access control. JWT access tokens can be validated directly by resource servers while other formats that are opaque to the resource server can be validated through a mechanism that calls back to the authorization server (the mechanism is called introspection despite the word having nearly the opposite meaning). This framework supports both models and does not require a specific token format, provided that equivalent authorization semantics are maintained.
 
 A resource server in receipt of tokens opaque to it are able to obtain authorization and other information from the token through OAuth 2.0 Token Introspection {{!OAUTH-TOKEN-INTROSPECTION=RFC7662}}. The introspection response provides the active state of the token and associated authorization attributes equivalent to those conveyed in structured tokens.
+
+## Interaction with Policy-Based Systems {#policy_based_systems}
+In some deployments the claims in an access token are sufficient for a resource server to make an authorization decision on their own. Where they are not, the access token becomes one input to a decision made by a policy-based authorization system (for example a policy-, attribute- or role-based system), which evaluates it together with other inputs. The authenticated identity of the requester ({{agent_authentication}}), the resource and action requested, the delegated User or System context, posture and risk signals ({{agent_credential_provisioning}}, {{agent_monitoring_and_remediation}}), and environmental attributes such as time or network location. The policy itself, and the language in which it is expressed, are local to the resource server and its trust domain.
+
+Within a trust domain the components are operated by one organization and the use of a policy langugage within that domain is a deployment choice. Across trust domains, the mechanisms in {{cross_domain_access}} convey the outcome of a policy decision made in one domain to another domain as a token with defined claims and scope, rather than conveying the policy itself. Each domain continues to evaluate its own policy against the tokens it receives. A common policy language is therefore not required for the mechanisms in this document to interoperate across trust domains.
+
+Where policy is managed centrally or shared by several resource servers, a resource server may request decisions from an external policy decision point rather than evaluating policy itself. A common interface for that interaction is defined by the OpenID AuthZEN Authorization API {{AuthZEN-API}}.
+Access tokens may be sender-constrained to mitigate the risk of accidental token leakage or deliberate token theft, so that a token obtained by an attacker cannot be used without the corresponding key. Sender-constraining may use certificate-bound access tokens {{OAUTH-CLIENTAUTH-MTLS}}, when the Agent presents an X.509 credential over mutual TLS, or Demonstrating Proof of Possession (DPoP) {{!OAUTH-DPOP=RFC9449}}, when transport-layer binding is not feasible. The use of sender-constrained access tokens is described in the OAuth 2.0 Security Best Current Practice {{OAUTH-BCP}} and the FAPI 2.0 Security Profile {{FAPI}}.
 
 ## Obtaining an OAuth 2.0 Access Token
 OAuth 2.0 defines a number authorization grant flows in support of different authorization scenarios. The appropriate flow depends on the specific authorization scenario and the nature of User involvement. The following subsections describe the most relevant flows for Agent authorization.
@@ -334,11 +357,12 @@ The Best Current Practice for OAuth 2.0 Security as described in {{!OAUTH-BCP=RF
 ## Risk Reduction with Transaction Tokens {#txn-tokens-risk-reduction}
 Resources servers, whether they are LLMs, Tools or Agents (in the Agent-to-Agent case) may be composed of multiple microservices that are invoked to complete a request. The access tokens presented to the Agent, LLM or Tools can typically be used with multiple transactions and consequently have broader scope than needed to complete any specific transaction. Passing the access token from one microservice to another within an invoked Agent, LLM or the Tools increases the risk of token theft and replay attacks. For example, an attacker may discover and access token passed between microservices in a log file or crash dump, exfiltrate it, and use it to invoke a new transaction with different parameters (e.g. increase the transaction amount, or invoke an unrelated call as part of executing a lateral move).
 
-To avoid passing access tokens between microservices, the Agent, LLM or Tools can exchange the received access token for a transaction token, as defined in the Transaction Token specification {{OAUTH-TXN-TOKENS}}. The transaction token allows for identity and authorization information to be passed along the internal call chain of microservices. The transaction token issuer enriches the transaction token with context of the caller that presented the access token (e.g. IP address, etc.), transaction context (transaction amount), identity information and a unique transaction identifier. This results in a downscoped token that is bound to a specific transaction and cannot be used as an access token, with another transaction, or within the same transaction with modified transaction details (e.g. change in transaction amount). Transaction tokens are typically short-lived, further limiting the risk in case they are obtained by an attacker by limiting the time window during which these tokens will be accepted.
+To avoid passing access tokens between microservices, the Agent, LLM or Tools can exchange the received access token for a transaction token, as defined in the Transaction Token specification {{OAUTH-TXN-TOKENS}}. The transaction token allows for identity and authorization information to be passed along the internal call chain of microservices. The transaction token issuer enriches the transaction token with context of the caller that presented the access token (e.g. IP address, etc.), transaction context (transaction amount), identity information and a unique transaction identifier. This results in a downscoped token that is bound to a specific transaction and cannot be used as an access token, with another transaction, or within the same transaction with modified transaction details (e.g. change in transaction amount). Transaction tokens are typically short-lived, further limiting the risk in case they are obtained by an attacker by limiting the time window during which these tokens will be accepted. The scope of access conveyed by each token in this sequence of exchanges can never exceed that of the token presented to obtain it. At each exchange the authorization server (or transaction token service) evaluates its authorization policy and makes the final decision on whether to issue a token and with what scope.
 
-A transaction token MAY be used to obtain an access token to call another service (e.g. another Agent, Tool or LLM) by using OAuth 2.0 Token Exchange as defined in {{OAUTH-TOKEN-EXCHANGE}}.
 
-## Cross Domain Access
+A transaction token may be presented in an OAuth 2.0 Token Exchange {{OAUTH-TOKEN-EXCHANGE}} to obtain an access token for another service (e.g. another Agent, Tool or LLM). Obtaining an access token for a service in another trust domain when the Agent has a transaction is described in {{cross_domain_access}}.
+
+## Cross Domain Access {#cross_domain_access}
 
 Agents often require access to resources that are protected by different OAuth 2.0 authorization servers. When the components in Figure 1 are protected by different logical authorization servers, an Agent SHOULD use OAuth Identity and Authorization Chaining Across Domains as defined in {{!OAUTH-ID-CHAIN=I-D.ietf-oauth-identity-chaining}}, or a derived specification such as the Identity Assertion JWT Authorization Grant {{!OAUTH-JWT-ASSERTION=I-D.ietf-oauth-identity-assertion-authz-grant}} or , Transaction Token Authorization Grant Profile for OAuth Identity and Authorization Chaining {{!OAUTH-TXN-ASSERTION=I-D.fletcher-transaction-token-chaining-profile}}, to obtain an access token from the relevant authorization servers. The agent first exchanges its current access token or transaction token for a JWT authorization grant (Section 2.3 of {{OAUTH-ID-CHAIN}}) and then presents that grant to obtain an access token for the target resource (Section 2.4 of {{OAUTH-ID-CHAIN}}).
 
@@ -347,7 +371,7 @@ When using the Identity Assertion JWT Authorization Grant {{OAUTH-JWT-ASSERTION}
 OAuth Identity and Authorization Chaining Across Domains ({{OAUTH-ID-CHAIN}}) provides a general mechanism for obtaining cross-domain access that can be used whether an identity assertion like a SAML or OpenID Connect token is available or not. The Identity Assertion JWT Authorization Grant {{OAUTH-JWT-ASSERTION}} is optimized for cases where an identity assertion like a SAML or OpenID Connect token is available from an identity provider that is trusted by all the OAuth authorization servers as it removes the need for the user to re-authenticate. This is typically used within enterprise deployments to simplify authorization delegation for multiple software-as-a-service offerings.
 
 ## Human in the Loop
-An OAuth authorization server MAY conclude that the level of access requested by an Agent requires explicit user confirmation. In such cases the authorization server SHOULD either decline the request or obtain additional authorization from the User. An Agent, acting as an OAuth client, can use the OpenID Client Initiated Backchannel Authentication (CIBA) protocol ({{OpenIDConnect.CIBA}}). This triggers an out-of-band interaction allowing the user to approve or deny the requested operation without exposing credentials to the agent (for example a push notification requesting the user to approve a request through an authenticator application on their mobile device).
+An OAuth authorization server MAY conclude that the level of access requested by an Agent requires explicit user confirmation. In such cases the authorization server SHOULD either decline the request or obtain additional authorization from the User. An Agent, acting as an OAuth client, can use the OpenID Client Initiated Backchannel Authentication (CIBA) protocol ({{CIBA}}). This triggers an out-of-band interaction allowing the user to approve or deny the requested operation without exposing credentials to the agent (for example a push notification requesting the user to approve a request through an authenticator application on their mobile device).
 
 Interactive agent frameworks may also solicit user confirmation directly during task execution (for example tool invocation approval or parameter confirmation). Such interactions do not by themselves constitute authorization and MUST be bound to a verifiable authorization grant issued by the authorization server. The agent SHOULD therefore translate user confirmation into an OAuth authorization event (e.g., step-up authorization via CIBA) before accessing protected resources.
 
@@ -373,7 +397,7 @@ Implementations MUST ensure that user identity information delegated to agents i
 In dynamic Agent deployments (e.g., ephemeral workloads, multi-tenant services, and frequently changing endpoint topology), Agents and other participants MAY use OAuth discovery mechanisms to reduce static configuration and to bind runtime decisions to verifiable metadata.
 
 ### Authorization Server Capability Discovery
-An Agent that needs to obtain tokens can discover authorization server endpoints and capabilities using OAuth 2.0 Authorization Server Metadata {{!OAUTH-SERVER-METADATA=RFC8414}} and/or OpenID Connect Discovery {{OpenIDConnect.Discovery}}. This allows the Agent to learn the authorization server issuer identifier, authorization and token endpoints, supported grant types, client authentication methods, signing keys (via jwks_uri), and other relevant capabilities without preconfiguring them.
+An Agent that needs to obtain tokens can discover authorization server endpoints and capabilities using OAuth 2.0 Authorization Server Metadata {{!OAUTH-SERVER-METADATA=RFC8414}} and/or OpenID Connect Discovery {{OIDC.Discovery}}. This allows the Agent to learn the authorization server issuer identifier, authorization and token endpoints, supported grant types, client authentication methods, signing keys (via jwks_uri), and other relevant capabilities without preconfiguring them.
 
 ### Protected Resource Capability Discovery
 When an Agent is invoking a Tool, the Agent MAY use OAuth 2.0 Protected Resource Metadata {{!OAUTH-RESOURCE-METADATA=RFC9728}} to discover how the resource is protected, including the resource identifier and the applicable Authorization Server(s) that protects Tool access. This enables an Agent to select the correct issuer/audience and token acquisition flow at runtime, even when resources are deployed or moved dynamically.
@@ -388,7 +412,7 @@ As an alternative, entities acting as OAuth clients MAY register their capabilit
 # Agent Monitoring, Observability and Remediation {#agent_monitoring_and_remediation}
 Because agents may perform sensitive actions autonomously or on behalf of users, deployments MUST maintain sufficient monitoring and observability to reconstruct agent behavior and authorization context after execution. Observability is therefore a security control, not solely an operational feature.
 
-Any participant in the system, including the Agent, Tool, System, LLM or other resources and service MAY subscribe to change notifications using eventing mechanisms such as the OpenID Shared Signals Framework {{SSF}} with either the Continuous Access Evaluation Profile {{CAEP}} or Risk Incident Sharing and Coordination {{RISC}} to receive security and authorization-relevant signals. Upon receipt of a relevant signal (e.g., session revoked, risk level change, subject disabled, token replay suspected, risk elevated), the recipient SHOULD remediate by attenuating access, such as terminating local sessions, discarding cached tokens, re-acquiring tokens with updated constraints, reducing privileges, or re-running policy evaluation before continuing to allow access. Recipients of such signals MUST ensure that revoked or downgraded authorization is enforced without undue delay. Cached authorization decisions and tokens that are no longer valid MUST NOT continue to be used after a revocation or risk notification is received.
+Any participant in the system, including the Agent, Tool, System, LLM or other resources and service MAY subscribe to change notifications using eventing mechanisms such as the OpenID Shared Signals Framework {{SSF}} and its profiles to receive security and authorization-relevant signals including but not limited to Continuous Access Evaluation Profile {{CAEP}}, Risk Incident Sharing and Coordination {{RISC}} or Workload Identity Security Events {{WISE}} . Upon receipt of a relevant signal (e.g., session revoked, risk level change, subject disabled, token replay suspected, risk elevated), the recipient SHOULD remediate by attenuating access, such as terminating local sessions, discarding cached tokens, re-acquiring tokens with updated constraints, reducing privileges, or re-running policy evaluation before continuing to allow access. Recipients of such signals MUST ensure that revoked or downgraded authorization is enforced without undue delay. Cached authorization decisions and tokens that are no longer valid MUST NOT continue to be used after a revocation or risk notification is received.
 
 To support detection, investigation, and accountability, deployments MUST produce durable audit logs covering authorization decisions and subsequent remediations. Audit records MUST be tamper-evident and retained according to the security policy of the deployment.
 
@@ -409,7 +433,7 @@ End-to-end audit is enabled when Agents, Users, Systems, LLMs, Tools, services a
 Implementations SHOULD provide operators the ability to reconstruct a complete execution chain of an agent task, including delegated authority, intermediate calls, and resulting actions across service boundaries.
 
 # Agent Authentication and Authorization Policy {#agent_auhtentication_and_authorization_policy}
-The configuration and runtime parameters for Agent Identifiers {{agent_identifiers}}, Agent Credentials {{agent_credentials}}, Agent Credential Provisioning {{agent_credential_provisioning}}, Agent Authentication {{agent_authentication}}, Agent Authorization {{agent_authorization}} and Agent Monitoring, Observability and Remediation {{agent_monitoring_and_remediation}} collectively constitute the authentication and authorization policy within which the Agent operates.
+The configuration and runtime parameters for Agent Identifiers {{agent_identifiers}}, Agent Credentials {{agent_credentials}}, Agent Credential Provisioning {{agent_credential_provisioning}}, Agent Authentication {{agent_authentication}}, Agent Authorization {{agent_authorization}} and Agent Monitoring, Observability and Remediation {{agent_monitoring_and_remediation}} collectively constitute the authentication and authorization policy within which the Agent operates within an AIMS implementation.
 
 Because these parameters are highly deployment and risk-model-specific (and often reflect local governance, regulatory, and operational constraints), the policy model and document format are out of scope for this framework and are not recommended as a target for standardization within this specification. Implementations MAY represent policy in any suitable “policy-as-code” or configuration format (e.g., JSON/YAML), provided it is versioned, reviewable, and supports consistent evaluation across the components participating in the end-to-end flow.
 
@@ -420,7 +444,7 @@ Compliance for Agent-based systems SHOULD be assessed by auditing observed behav
 
 This document composes existing specifications to enable authentication and authorization between AI agents. The security considerations of each referenced specification apply in full.
 
-In addition to the guidance included in existing specifications, additional security best practices and profiles have been developed for the Oauth protocol famility. The OAuth 2.0 Security Best Current Practice {{OAUTH-BCP}} which captures current guidance on threats and mitigations that have emerged since the original OAuth 2.0 specifications were published. The FAPI 2.0 Security Profile  {{OpenIDConnect.FAPI}} defines a high-assurance profile of OAuth 2.0 suitable for high security applications.
+In addition to the guidance included in existing specifications, additional security best practices and profiles have been developed for the Oauth protocol famility. The OAuth 2.0 Security Best Current Practice {{OAUTH-BCP}} which captures current guidance on threats and mitigations that have emerged since the original OAuth 2.0 specifications were published. The FAPI 2.0 Security Profile {{FAPI}} defines a high-assurance profile of OAuth 2.0 suitable for high security applications.
 
 # Privacy Considerations
 
@@ -443,12 +467,21 @@ The authors would like to thank:
 
 # Document History
    \[\[ To be removed from the final specification ]]
-  -03
+  -01
 
    * Editorial updates
    * Clarify relationship between WIMSE and SPIFFE credentials (https://github.com/PieterKas/agent2agent-auth-framework/issues/136)
    * Clarify that LLMs should not have access to Agent credentials: https://github.com/PieterKas/agent2agent-auth-framework/issues/127
    * Update use of normative language (https://github.com/PieterKas/agent2agent-auth-framework/issues/123)
+   * Added reference to newly adopted WISE draft (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/153)
+   * Address concerns about circularity of using a transaction token to get an access token (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/126)
+   * Explicit guidance on policy langugages and policy based systems (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/124)
+   * Added text on sender constraining tokens (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/126)
+   * Make it explicit that the AIMS draft applies regardless of streaming or request/response interactions (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/129)
+   * Added text to clarify that posture assessment is ongoing with forward pointing references. (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/128)
+   * Make deprovisioning explicit (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/125)
+   * Re-use the AIMS term (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/135)
+   * fix up some reference names
 
   -03
 
