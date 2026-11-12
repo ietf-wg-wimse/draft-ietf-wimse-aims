@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-11-10T06:21:37.108149+00:00",
+  "timestamp": "2026-11-12T06:10:22.307428+00:00",
   "repo": "ietf-wg-wimse/draft-ietf-wimse-aims",
   "labels": [
     {
@@ -7155,13 +7155,13 @@
       "labels": [],
       "body": "The same User identity in a downstream token does not by itself show that the requested action falls within the initial User grant.\n\nThis PR incorporates the two Section 10.4.1 paragraphs proposed in [the 8 October WIMSE message](https://mailarchive.ietf.org/arch/msg/wimse/pAF3675hQyr2ydIbtv-1CD61Rmw/) and [the existing #86 comment](https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/86#issuecomment-6050513140). It:\n\n- States that, for operations performed under the initial grant, its access and delegation limits continue to apply alongside restrictions at each target resource.\n- Separates subject identification from coverage by that grant, with the proposed read/write example allowing for different or additional authorization.\n- Replaces literal section numbers with existing symbolic references and adds attribution in Acknowledgments.\n\n### Coordination and scope\n\nBadal Bhushan is preparing the multi-hop example. [Blake Morrison's 8 October reply](https://mailarchive.ietf.org/arch/msg/wimse/wGjbc06JqD7ougtpAncemdUZXhk/) supports both proposed additions and offers to fold the Section 11 wording into Hop 0. The Section 11 insertion remains pending and is left for coordinated integration with that work. General status-evaluation guidance can remain in Section 11, with the example applying it at Hop 0 and other relevant decisions.\n\n[Kieran Sweeney's reply](https://mailarchive.ietf.org/arch/msg/wimse/aVWtfGvHXkMeXPcbCu5kLTcIrGY/) also supports both additions and distinguishes subject/actor identification from grant coverage. These replies express participant support; acceptance of the text remains for WG review.\n\nThis contribution concerns authorization boundaries. Authorization evidence and a recorded status evaluation do not by themselves establish that an operation was executed. Grant representation and audit-record formats remain outside this change.\n\nRelated to #86; this is a partial clarification, and does not close the multi-hop composition issue.\n\n### Validation\n\n- Checked against upstream main at bfff2ebf382eb0e8de156ee1e818c84c5f8c0ba2 and open PR #152.\n- Checked the proposed wording against the sent message and existing issue comment, with only the section-reference substitution.\n- Verified all four reference targets against the published document.\n",
       "createdAt": "2026-10-09T10:02:05Z",
-      "updatedAt": "2026-10-09T10:02:05Z",
+      "updatedAt": "2026-11-11T23:46:10Z",
       "baseRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
       "baseRefName": "main",
-      "baseRefOid": "bfff2ebf382eb0e8de156ee1e818c84c5f8c0ba2",
+      "baseRefOid": "a11288c0f98a5986239b8c2b98155b7aa719c460",
       "headRepository": "MikhailSergeev369/draft-ietf-wimse-aims",
       "headRefName": "clarify-initial-user-grant-boundaries",
-      "headRefOid": "1c2814372862b8ca51da07165fba4c28c2a1c569",
+      "headRefOid": "84224d6b05a398a9e305a183df255c4916cd84b5",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -8044,19 +8044,61 @@
       "labels": [],
       "body": "Adds five paragraphs to Section 10.10 with no new normative language. Beyond what AIMS already cites, it adds one informative reference, RFC 9901.\n\nRelated issues:\n\n- #88: cross-domain correlation\n- #89: organizational information in credentials\n- #90: user identity in delegation chains\n\nThe text combines the proposals in those issues with additions from @MarcMolas, who offered to edit on top of this first pass.\n\nKieran Sweeney asked on the list for `sub` to stay the original delegated subject at each hop of an on-behalf-of chain. This text lets the identifier differ only for a party whose authorization decision does not depend on the User's identity, and the issuing authorization server keeps the mapping so the chain can still be reconstructed. That boundary is open for discussion.\n",
       "createdAt": "2026-11-09T22:38:56Z",
-      "updatedAt": "2026-11-09T22:57:54Z",
+      "updatedAt": "2026-11-11T02:19:20Z",
       "baseRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
       "baseRefName": "main",
       "baseRefOid": "a11288c0f98a5986239b8c2b98155b7aa719c460",
       "headRepository": "nik-kale/draft-ietf-wimse-aims",
       "headRefName": "privacy-correlation-user-identity",
-      "headRefOid": "3932e3ffabdace3a95770a38db82b9be9216bd46",
+      "headRefOid": "543248f887ea61dd417707f2b3ec71673c289a3d",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
-      "reviews": []
+      "comments": [
+        {
+          "author": "MarcMolas",
+          "authorAssociation": "NONE",
+          "body": "Thanks, Nik. This reads right to me and covers #88 and #90. Two suggestions inline, neither adding normative language:\r\n\r\n1. Paragraphs 1 and 5: once identifiers are transcribed or 'sub' differs per party, the mapping the authorization server keeps is what links the User again across trust domains, so the text should say that resolving it is bounded, not only that it is possible. Both suggestions add \"according to the security policy of the deployment\", the phrase Section 11 already uses for retaining audit records.\r\n2. Paragraph 1: \"supports\" becomes \"simplifies\", since the same paragraph goes on to say that the audit only needs identifiers that are stable within each trust domain.\r\n\r\nOn the boundary in the description: paragraph 5 now says where the value may change and what keeps the chain reconstructable, which is what I hoped for on #90. I asked Kieran on the list on 9 November whether \"preserved\" means the same value at every party (https://mailarchive.ietf.org/arch/msg/wimse/pLsPkrtN5tiN7gDW0S9cVG1YHjc/). He has not answered yet, so it may be worth settling on the list before the session on 18 November.",
+          "createdAt": "2026-11-10T17:58:58Z",
+          "updatedAt": "2026-11-10T17:58:58Z"
+        },
+        {
+          "author": "nik-kale",
+          "authorAssociation": "NONE",
+          "body": "@MarcMolas applied both, thanks. Leaving the `sub` question open until Kieran answers on the list.\n",
+          "createdAt": "2026-11-11T02:19:20Z",
+          "updatedAt": "2026-11-11T02:19:20Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOQP22qc8AAAABXHAGvQ",
+          "commit": {
+            "abbreviatedOid": "3932e3f"
+          },
+          "author": "MarcMolas",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-10T16:50:16Z",
+          "updatedAt": "2026-11-10T17:20:23Z",
+          "comments": [
+            {
+              "originalPosition": 4,
+              "body": "```suggestion\nIdentifiers that remain stable across trust domains allow an Agent's activity to be correlated across those domains. That simplifies the audit described in {{agent_monitoring_and_remediation}} and is an acceptable tradeoff for many enterprise deployments. Where it is not, authorization servers can use claims transcription ({{Section 2.5 of OAUTH-ID-CHAIN}}) to present a different subject identifier or fewer claims outside the issuing trust domain, and retain the mapping for audit. The stable, verifiable identifiers that {{agent_monitoring_and_remediation}} relies on only need to be stable within each trust domain. The authorization server that performed the transcription can resolve them, according to the security policy of the deployment, when an investigation requires it. Reconstructing an execution chain across trust domains then depends on the cooperation of those authorization servers.\n```",
+              "createdAt": "2026-11-10T16:50:16Z",
+              "updatedAt": "2026-11-10T17:20:23Z"
+            },
+            {
+              "originalPosition": 12,
+              "body": "```suggestion\nIn a chain of delegated requests, a party whose authorization decision does not depend on the User's identity does not need to receive the User's identifier. Such a party can instead receive the delegated authority with a subject identifier specific to that party or trust domain, for example through claims transcription ({{Section 2.5 of OAUTH-ID-CHAIN}}) or distinct 'sub' values for different resource servers ({{Section 6 of OAUTH-ACCESSTOKEN-JWT}}). The authorization server that issued that identifier retains its mapping to the User and resolves it according to the security policy of the deployment, so that the chain can still be reconstructed as described in {{agent_monitoring_and_remediation}}. This concentrates the ability to identify the User at that server, and deployments need to weigh that against the risk level and regulatory context of the interaction.\n```",
+              "createdAt": "2026-11-10T16:51:02Z",
+              "updatedAt": "2026-11-10T17:20:23Z"
+            }
+          ]
+        }
+      ]
     },
     {
       "number": 177,
@@ -8068,21 +8110,43 @@
       "authorAssociation": "NONE",
       "assignees": [],
       "labels": [],
-      "body": "Adds four subsections to Section 14, plus short text in Sections 8 and 10.7 where the issue discussions proposed it. It states properties, points at what AIMS already references, and adds no new normative language. The only new references are two informative ones, OpenID Federation 1.0 and SPIFFE Federation.\n\n| Topic | Where | Related issues |\n| --- | --- | --- |\n| Layer dependencies and posture signal limits | Section 8, Section 14 | #82 |\n| Agent-specific threats | Section 14 | #83 |\n| Cross-domain trust and replay | Section 10.7, Section 14 | #84, #175 |\n| Delegation properties | Section 14 | #86 |\n\nEach topic is its own commit, so any of them can be changed or dropped separately.\n\nThe delegation paragraph is @mcguinness's wording from #86 with one added clause, \"any limits on further delegation\", which matches #155. This PR does not depend on #155. The format of per-hop records is left out, following the note on #157 that audit records belong in AUDIT.\n",
+      "body": "Adds four subsections to Section 14, plus short text in Sections 8 and 10.7 where the issue discussions proposed it. It states properties, points at what AIMS already references, and adds no new normative language. The only new reference is an informative one, SPIFFE Federation.\n\n| Topic | Where | Related issues |\n| --- | --- | --- |\n| Layer dependencies and posture signal limits | Section 8, Section 14 | #82 |\n| Agent-specific threats | Section 14 | #83 |\n| Cross-domain trust and replay | Section 10.7, Section 14 | #84, #175 |\n| Delegation properties | Section 14 | #86 |\n\nEach topic is its own commit, so any of them can be changed or dropped separately.\n\nThe delegation paragraph is @mcguinness's wording from #86 with one added clause, \"any limits on further delegation\", which matches #155. This PR does not depend on #155. The format of per-hop records is left out, following the note on #157 that audit records belong in AUDIT.\n",
       "createdAt": "2026-11-09T22:38:59Z",
-      "updatedAt": "2026-11-09T22:38:59Z",
+      "updatedAt": "2026-11-11T02:19:19Z",
       "baseRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
       "baseRefName": "main",
       "baseRefOid": "a11288c0f98a5986239b8c2b98155b7aa719c460",
       "headRepository": "nik-kale/draft-ietf-wimse-aims",
       "headRefName": "security-considerations",
-      "headRefOid": "dd5c0280f784bbf4de179e2a43c212f033ef350c",
+      "headRefOid": "26bbf207a30fd59bc9e16345dc7d39c8d5b5e62f",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
-      "reviews": []
+      "comments": [
+        {
+          "author": "nik-kale",
+          "authorAssociation": "NONE",
+          "body": "Dropped the OpenID Federation reference. Ready for another look when you have time.\n",
+          "createdAt": "2026-11-11T02:19:19Z",
+          "updatedAt": "2026-11-11T02:19:19Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOQP22qc8AAAABXJOeQA",
+          "commit": {
+            "abbreviatedOid": "dd5c028"
+          },
+          "author": "bc-pi",
+          "authorAssociation": "COLLABORATOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "Only looked at the the changes as far as the YAML header but I will say that referencing OpenID Federation is pretty much a nonstarter for me. ",
+          "createdAt": "2026-11-10T19:35:16Z",
+          "updatedAt": "2026-11-10T19:35:16Z",
+          "comments": []
+        }
+      ]
     },
     {
       "number": 178,
