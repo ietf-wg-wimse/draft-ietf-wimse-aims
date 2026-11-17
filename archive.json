@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-11-12T06:10:22.307428+00:00",
+  "timestamp": "2026-11-17T06:58:24.992835+00:00",
   "repo": "ietf-wg-wimse/draft-ietf-wimse-aims",
   "labels": [
     {
@@ -3238,6 +3238,32 @@
           "body": "@identitymonk this is the question I raised in #84 in March, glad it's getting picked up.\n\nI think there are two separate trust questions here:\n\n- AS to AS. OAUTH-ID-CHAIN Section 2.1 treats this as a prerequisite, typically \"the exchange of key material\", and doesn't say how it's done. Bilateral configuration is the common answer. OpenID Federation 1.0 (final, Feb 2026) is a published way to do it through a shared trust anchor.\n- Workload credentials across domains. SPIFFE Federation covers bundle exchange between trust domains for SPIFFE. #146 has a proposal for WICs.\n\nSo there's something to reference for most of this, and AIMS doesn't need to choose. None of these help when the two sides share no anchor at all, which is the case #146 started from. Probably enough to say so.\n\nRough text for 10.7:\n\n> The mechanisms in this section assume that the authorization servers involved have already established trust in each other, typically through an exchange of key material ({{Section 2.1 of OAUTH-ID-CHAIN}}). This document does not define how that trust is established. Options include bilateral configuration and OpenID Federation {{OpenID.Federation}}. For SPIFFE credentials, SPIFFE Federation {{SPIFFE-Federation}} provides bundle exchange between trust domains. Where two parties share no trust relationship or common trust anchor, these mechanisms do not apply.\n\nThe other half of #84 was replay at the exchange point. OAUTH-ID-CHAIN already covers audience in 2.3.3 and lists mitigations in 5.5 (short-lived, single-use grants), so a pointer should be enough.\n",
           "createdAt": "2026-11-09T01:43:50Z",
           "updatedAt": "2026-11-09T01:43:50Z"
+        }
+      ]
+    },
+    {
+      "number": 179,
+      "id": "I_kwDOQP22qc8AAAABfzedwA",
+      "title": "Make WG boundaries clear",
+      "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/179",
+      "state": "OPEN",
+      "author": "PieterKas",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [
+        "PieterKas"
+      ],
+      "labels": [],
+      "body": "From a side discussion with @yaronf at IETF 127. Proposal is to provide more clarity in each section about which working group or standards apply. One proposal is a introductory paragraph framing which WG/SDOs are relevant to each section.",
+      "createdAt": "2026-11-16T19:45:45Z",
+      "updatedAt": "2026-11-16T19:54:34Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "yaronf",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "To clarify, my request is coming less from the political side (which SDO/WG?) and more the architectural side. As a system architect, should I choose OAuth-based standards or WIMSE standards for this or that piece. For example, for small, closed systems architects might use WIMSE even for workload authz. For larger systems or those that involve more cross-domain interaction, OAuth would make more sense.",
+          "createdAt": "2026-11-16T19:54:33Z",
+          "updatedAt": "2026-11-16T19:54:33Z"
         }
       ]
     }
@@ -8042,15 +8068,15 @@
       "authorAssociation": "NONE",
       "assignees": [],
       "labels": [],
-      "body": "Adds five paragraphs to Section 10.10 with no new normative language. Beyond what AIMS already cites, it adds one informative reference, RFC 9901.\n\nRelated issues:\n\n- #88: cross-domain correlation\n- #89: organizational information in credentials\n- #90: user identity in delegation chains\n\nThe text combines the proposals in those issues with additions from @MarcMolas, who offered to edit on top of this first pass.\n\nKieran Sweeney asked on the list for `sub` to stay the original delegated subject at each hop of an on-behalf-of chain. This text lets the identifier differ only for a party whose authorization decision does not depend on the User's identity, and the issuing authorization server keeps the mapping so the chain can still be reconstructed. That boundary is open for discussion.\n",
+      "body": "Adds five paragraphs to Section 10.10 with no new normative language. Beyond what AIMS already cites, it adds one informative reference, RFC 9901.\n\nRelated issues:\n\n- #88: cross-domain correlation\n- #89: organizational information in credentials\n- #90: user identity in delegation chains\n\nThe text combines the proposals in those issues with additions from @MarcMolas, who offered to edit on top of this first pass.\n\nFollowing Kieran Sweeney's answer on the list, the subject identifier stays the same at every hop within a trust domain and can differ only across one. The authorization server that transcribes it records the mapping in its audit record.\n",
       "createdAt": "2026-11-09T22:38:56Z",
-      "updatedAt": "2026-11-11T02:19:20Z",
+      "updatedAt": "2026-11-17T06:25:13Z",
       "baseRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
       "baseRefName": "main",
       "baseRefOid": "a11288c0f98a5986239b8c2b98155b7aa719c460",
       "headRepository": "nik-kale/draft-ietf-wimse-aims",
       "headRefName": "privacy-correlation-user-identity",
-      "headRefOid": "543248f887ea61dd417707f2b3ec71673c289a3d",
+      "headRefOid": "789a763bf77eaebba97d70a7f72985bb6d6fc4cc",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -8069,6 +8095,13 @@
           "body": "@MarcMolas applied both, thanks. Leaving the `sub` question open until Kieran answers on the list.\n",
           "createdAt": "2026-11-11T02:19:20Z",
           "updatedAt": "2026-11-11T02:19:20Z"
+        },
+        {
+          "author": "nik-kale",
+          "authorAssociation": "NONE",
+          "body": "Updated after the list thread with Kieran: the identifier now stays the same within a trust domain and can differ only across one, with the transcribing authorization server recording the mapping in its audit record. I dropped the RFC 9068 pointer, since distinct `sub` values per resource server would differ within a domain. @MarcMolas does this match what you proposed?\n",
+          "createdAt": "2026-11-17T06:25:13Z",
+          "updatedAt": "2026-11-17T06:25:13Z"
         }
       ],
       "reviews": [
