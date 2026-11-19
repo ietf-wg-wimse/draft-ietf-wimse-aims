@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-11-17T06:58:24.992835+00:00",
+  "timestamp": "2026-11-19T06:23:10.028277+00:00",
   "repo": "ietf-wg-wimse/draft-ietf-wimse-aims",
   "labels": [
     {
@@ -3266,6 +3266,99 @@
           "updatedAt": "2026-11-16T19:54:33Z"
         }
       ]
+    },
+    {
+      "number": 180,
+      "id": "I_kwDOQP22qc8AAAABgiGslw",
+      "title": "IETF-127 / NIST IR 8587 - unencrypted credentials",
+      "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/180",
+      "state": "OPEN",
+      "author": "identitymonk",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Comment made in chat:\nDick Brooks: Unencrypted Credentials leak PII which is not desirable; see NIST guidelines: https://csrc.nist.gov/pubs/ir/8587/final",
+      "createdAt": "2026-11-18T22:42:02Z",
+      "updatedAt": "2026-11-18T23:00:21Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "rjb4standards",
+          "authorAssociation": "NONE",
+          "body": "Here is the concern regarding leakage of PII by credentials: \n\n7.3. Token and Assertion Encryption\n\nThe need to encrypt the payload of tokens and identity assertions beyond expected transport-layer protections (e.g., TLS) depends on the sensitivity of the claims they contain and the exposure risk in their transmission and storage.\nTokens and assertions that contain personal information or privileged access indicators (e.g., roles, group membership, administrative flags) SHOULD be encrypted at the payload level between the issuer and the protected resource (or RP), especially when passed through potentially untrusted environments, such as browser redirects or mobile clients.\nEven when personal information is not explicitly present, unencrypted tokens can still expose metadata (e.g., usernames, email addresses, issuer identifiers, scopes) that enable reconnaissance by adversaries, particularly in targeted attacks. For example, an unencrypted access token that includes an email address or role claim may help an attacker identify administrative accounts worth phishing or impersonating in a social engineering campaign.\nAgencies and organizations SHOULD evaluate the sensitivity of the token or assertion payload as well as its exposure to leakage or interception through logs, browser or client storage, or redirects. The use of encryption mechanisms, such as JSON Web Encryption (JWE) for JWTs or SAML Encrypted Assertions, SHOULD be considered in contexts where exposure could facilitate privilege escalation, user targeting, or cross-tenant information leakage. ",
+          "createdAt": "2026-11-18T22:45:54Z",
+          "updatedAt": "2026-11-18T22:45:54Z"
+        },
+        {
+          "author": "rjb4standards",
+          "authorAssociation": "NONE",
+          "body": "DoD distinguishes identities from credentials - see this article: https://www.energycentral.com/intelligent-utility/post/how-to-protect-critical-infrastructure-using-zero-trust-best-practices-YuI66Z67Fi72XWn\n",
+          "createdAt": "2026-11-18T22:47:33Z",
+          "updatedAt": "2026-11-18T22:47:33Z"
+        },
+        {
+          "author": "identitymonk",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@rjb4standards I note that the text is bound by SHOULD not MUST like you originally sound",
+          "createdAt": "2026-11-18T22:52:22Z",
+          "updatedAt": "2026-11-18T22:52:32Z"
+        },
+        {
+          "author": "rjb4standards",
+          "authorAssociation": "NONE",
+          "body": "@identitymonk spot on Jeff; it's largely a risk based decision: \"Agencies and organizations SHOULD evaluate the sensitivity of the token or assertion payload as well as its exposure to leakage or interception through logs, browser or client storage, or redirects. \"\n\nOpaque Identities are less likely to leak PII, i.e. ztdnaid: https://www.ietf.org/archive/id/draft-brooks-ztdnaid-new-04.txt \n",
+          "createdAt": "2026-11-18T22:57:57Z",
+          "updatedAt": "2026-11-18T23:00:21Z"
+        }
+      ]
+    },
+    {
+      "number": 181,
+      "id": "I_kwDOQP22qc8AAAABgiSUkQ",
+      "title": "Please keep in mind that people are now planning migrations to PQC",
+      "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/181",
+      "state": "OPEN",
+      "author": "rjb4standards",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "Trust verification is very different in a PQC era. Certificate chains are being replaced by Trust Registry lookups:\nhttps://www.energycentral.com/intelligent-utility/post/a-trust-control-plane-for-public-trust-infrastructure-pti-t4Li00S02OlbhOu \n\nWe are using this Internet Draft to produce opaque zero trust identifiers that never leak PII; https://www.ietf.org/archive/id/draft-brooks-ztdnaid-new-04.txt \n",
+      "createdAt": "2026-11-18T22:55:32Z",
+      "updatedAt": "2026-11-18T23:19:01Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 182,
+      "id": "I_kwDOQP22qc8AAAABgiTxug",
+      "title": "IETF-127 / Gaps section",
+      "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/182",
+      "state": "OPEN",
+      "author": "identitymonk",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "List identified gaps",
+      "createdAt": "2026-11-18T22:57:20Z",
+      "updatedAt": "2026-11-18T22:57:20Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 183,
+      "id": "I_kwDOQP22qc8AAAABgiZNsA",
+      "title": "IETF-127: Requires Use Cases for Agent to Agent",
+      "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/183",
+      "state": "OPEN",
+      "author": "yogeshbdeshpande",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "Before WIMSE can address AI Agent Identity the group should identify the:\n\n1. Define Use Cases\n2. Draft requirements\n3. Come up with a solution!",
+      "createdAt": "2026-11-18T23:03:55Z",
+      "updatedAt": "2026-11-18T23:03:55Z",
+      "closedAt": null,
+      "comments": []
     }
   ],
   "pulls": [
@@ -8070,7 +8163,7 @@
       "labels": [],
       "body": "Adds five paragraphs to Section 10.10 with no new normative language. Beyond what AIMS already cites, it adds one informative reference, RFC 9901.\n\nRelated issues:\n\n- #88: cross-domain correlation\n- #89: organizational information in credentials\n- #90: user identity in delegation chains\n\nThe text combines the proposals in those issues with additions from @MarcMolas, who offered to edit on top of this first pass.\n\nFollowing Kieran Sweeney's answer on the list, the subject identifier stays the same at every hop within a trust domain and can differ only across one. The authorization server that transcribes it records the mapping in its audit record.\n",
       "createdAt": "2026-11-09T22:38:56Z",
-      "updatedAt": "2026-11-17T06:25:13Z",
+      "updatedAt": "2026-11-18T11:21:24Z",
       "baseRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
       "baseRefName": "main",
       "baseRefOid": "a11288c0f98a5986239b8c2b98155b7aa719c460",
@@ -8102,6 +8195,20 @@
           "body": "Updated after the list thread with Kieran: the identifier now stays the same within a trust domain and can differ only across one, with the transcribing authorization server recording the mapping in its audit record. I dropped the RFC 9068 pointer, since distinct `sub` values per resource server would differ within a domain. @MarcMolas does this match what you proposed?\n",
           "createdAt": "2026-11-17T06:25:13Z",
           "updatedAt": "2026-11-17T06:25:13Z"
+        },
+        {
+          "author": "MarcMolas",
+          "authorAssociation": "NONE",
+          "body": "Yes, this matches. Keeping the identifier stable within a trust domain, and having the transcribing authorization server record the original value, the issued value and its own identity in its own audit record rather than in the token, is the boundary I was after, and it is what Kieran described on the list. Dropping the RFC 9068 pointer follows from that. Thanks, Nik.",
+          "createdAt": "2026-11-17T14:51:33Z",
+          "updatedAt": "2026-11-17T14:51:33Z"
+        },
+        {
+          "author": "MarcMolas",
+          "authorAssociation": "NONE",
+          "body": "For the record: Kieran confirmed the same reading on the wimse list (17 Nov, \"AIMS-00: multi-hop delegation context across agent, tool and resource boundaries\"). The mapping belongs in the transcribing server's own audit record, signed when the transcription happens, and the old value does not travel in the token that crosses the boundary. Nothing further from my side on this PR.",
+          "createdAt": "2026-11-18T11:21:23Z",
+          "updatedAt": "2026-11-18T11:21:23Z"
         }
       ],
       "reviews": [
