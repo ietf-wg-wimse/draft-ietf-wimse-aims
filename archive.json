@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-11-19T06:23:10.028277+00:00",
+  "timestamp": "2026-11-22T05:34:56.538264+00:00",
   "repo": "ietf-wg-wimse/draft-ietf-wimse-aims",
   "labels": [
     {
@@ -3145,9 +3145,17 @@
       "labels": [],
       "body": "I wanted to push back on the statement that \"AIMS requires tamper-evident audit logs\" in https://mailarchive.ietf.org/arch/msg/wimse/7WwiusWW7wMZSuhkK1o5T_bBKpE/ because such a requirement isn't about interop and thus arguable out of place as a normative things. But I was somewhat disappointed to find that the statement was correct per https://datatracker.ietf.org/doc/html/draft-ietf-wimse-aims-00#section-11-3 \n\nI'd argue we should change that. \n\n",
       "createdAt": "2026-10-23T16:52:33Z",
-      "updatedAt": "2026-10-23T16:52:33Z",
+      "updatedAt": "2026-11-20T23:44:21Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "zambodotdev",
+          "authorAssociation": "NONE",
+          "body": "An implementation data point on what the current Section 11 wording costs to meet, since the question here is whether \"tamper-evident\" belongs in normative text.\n\nSection 11 of draft-ietf-wimse-aims-00 says audit records MUST be tamper-evident and retained according to the security policy of the deployment. I mapped that requirement onto an existing record format in draft-zambo-aer1-wimse-mapping-03, in the \"Tamper evidence\" passage of Section 3. As implemented there, tamper-evidence is only this:\n\n* The record carries the exact canonical bytes of the recorded result and a SHA-256 output commitment over them (Sections 3 and 4 of draft-zambo-aer1-26), plus a metadata binding (Section 3.1 of AER-1).\n* Verification is a recomputation. A third party recomputes the digest and compares (Section 6 of AER-1), and a record altered after issuance fails the comparison.\n* Sequenced records also chain (Section 7 of AER-1), so removal or reordering of records inside one job timeline is detectable against the chain.\n\nNo signature, transparency service, or shared infrastructure is required for that base property. The SCITT carriage in Section 5 of the mapping is optional, and only adds an independently operated witness for deployments that want one.\n\nThe limit matters as much as the mechanism. Section 6 of the mapping states that verification establishes that the saved record was not changed after it was saved. It does not establish that the recorded action was correct, or that it was authorized. So the current MUST, if it stays, buys record integrity that any reader can check, and nothing about the decision itself.\n\nWhether record integrity is an interop property or a deployment property is the working group's call. I am posting the cost side only, because \"tamper-evident\" can sound like it implies signing infrastructure, and in at least one deployed mapping it does not: the reference implementation cited in the mapping issues a receipt for every tool call it receives, and the conformance corpus for the format is published at 143 vectors and 146 checks.\n\nBrennan Zambo, Zambo, author of draft-zambo-aer1-wimse-mapping-03: https://datatracker.ietf.org/doc/draft-zambo-aer1-wimse-mapping/03/\n",
+          "createdAt": "2026-11-20T23:44:21Z",
+          "updatedAt": "2026-11-20T23:44:21Z"
+        }
+      ]
     },
     {
       "number": 162,
@@ -3177,16 +3185,9 @@
       "labels": [],
       "body": "In the documentation, Context is described as:\n\n> The AI Agent provides the available context to the LLM. Context is implementation, and deployment, specific and may include User or System input, system prompts, Tool descriptions, prior Tool, Service and Resource outputs, and other relevant state.\n\nIn my opinion, the Agent identity is too broad, as a single agent can perform many different tasks. This makes it difficult to enforce granular policies and properly audit its actions.\n\nWhile the Agent acts on behalf of a User or System, I think we should also consider having an identity associated with the **Context** in which the agent is operating.\n\nFor example, consider this prompt:\n\n> Create an order for this user and pay with my credit card.\n\nToday, we can identify the Agent and the User on whose behalf it is acting, but we don't necessarily have an identity representing the specific context that triggered the action.\n\nHaving a context-specific identity could help us:\n\n- **Enforce more granular policies**, based on what the agent is actually trying to accomplish.\n- **Improve auditability**, by linking actions to the context or task that triggered them, rather than only to the agent.\n- **Introduce better guardrails**, potentially categorizing contexts or tasks and applying different security policies.\n\nThe idea is not to replace the Agent identity, but to complement it with a context-specific identity that could be propagated through the authorization flow.\n\nWould it make sense to consider Context as an additional identity or security principal in this architecture?",
       "createdAt": "2026-10-29T14:02:52Z",
-      "updatedAt": "2026-10-30T10:03:22Z",
+      "updatedAt": "2026-11-20T23:43:59Z",
       "closedAt": null,
       "comments": [
-        {
-          "author": "23A91A6183",
-          "authorAssociation": "NONE",
-          "body": "Thanks for raising this; tying an agent's action to the task that triggered it, and not only to the agent and the user, is a useful distinction for audit. I'd value your view in writing on three things, and if you run agents yourself, from how that works today:\n1. In a case like your example (an order paid with the user's card), who should approve the action before it runs, and would that approval be per action or per task?\n2. Do your agents call the tools and services they act on locally within your own environment, or over the network to hosted services?\n3. For each such action, what has to be recorded, where should that record live, and who checks it later?\n\nHappy to share an early look at what we're exploring if useful. Written replies here are perfect.\n\nRajesh, Shagun Labs\n",
-          "createdAt": "2026-10-30T04:56:18Z",
-          "updatedAt": "2026-10-30T04:56:18Z"
-        },
         {
           "author": "guilhermefaleixo",
           "authorAssociation": "NONE",
@@ -3195,18 +3196,18 @@
           "updatedAt": "2026-10-30T09:48:20Z"
         },
         {
-          "author": "23A91A6183",
-          "authorAssociation": "NONE",
-          "body": "Thanks, that's very clear, especially the point that downstream services see the agent and the user but not the task that caused the call. One short follow-up if you have a moment: before an agent may act on production data or payments where you work, does a security review have to sign off, and who runs it?\n\nHappy to share an early look at what we're exploring if useful. Written replies here are perfect.\n\nRajesh, Shagun Labs\n",
-          "createdAt": "2026-10-30T09:51:00Z",
-          "updatedAt": "2026-10-30T09:51:00Z"
-        },
-        {
           "author": "guilhermefaleixo",
           "authorAssociation": "NONE",
           "body": "> before an agent may act on production data or payments where you work, does a security review have to sign off, and who runs it?\n\nThat is part of the policy, but I believe this enforcement is necessary, it varies from company to company",
           "createdAt": "2026-10-30T10:03:22Z",
           "updatedAt": "2026-10-30T10:03:22Z"
+        },
+        {
+          "author": "zambodotdev",
+          "authorAssociation": "NONE",
+          "body": "A data point from a mapping that had to answer the correlation half of this question.\n\nYour last comment asks for a way to correlate actions across different tools and services using a common context or task identifier, so that security teams or auditors can reconstruct what happened and under which authorization context. I wrote draft-zambo-aer1-wimse-mapping-03 to map the Section 11 audit requirements of draft-ietf-wimse-aims-00 onto the AER-1 receipt format (draft-zambo-aer1-26), and correlation is handled there in two layers:\n\n1. Within one producer, receipts form a hash-chained job timeline (Section 4 of the mapping, on Section 7 of AER-1). Each entry digest binds an entry to its predecessor, so the chain is ordered and gaps are visible.\n2. Across services, a workflow receipt (Section 4 of the mapping, on Section 8 of AER-1) binds an ordered sequence of step receipts, which may originate from different services, to a single goal, with a Merkle root over the step sequence and links in both directions between the workflow and each step. An auditor holding the workflow receipt can enumerate the steps, resolve each step receipt at its public URL, and verify each step and the whole chain, without an account with, or the cooperation of, any of the producing services.\n\nIn the Section 3 table of the mapping, the AIMS field \"timestamp and transaction or request correlation identifier\" maps to the receipt created_at and id, with correlation across calls and services carried by that chain linkage and workflow membership rather than by a separate context identifier.\n\nOne honest limit: this covers correlation and reconstruction, which is the auditability half. It does not make context a security principal for authorization, which is the other half of your proposal. In the mapping, execution context is recorded context, and Section 6 of the mapping is explicit that context members sit outside the hashed core and record what the producer reported, so a verifier cannot treat them as evidence of the state they describe. If context becomes a principal, the record layer still needs the correlation above, but the policy use of a context identity would need its own treatment in AIMS.\n\nBrennan Zambo, Zambo, author of draft-zambo-aer1-wimse-mapping-03: https://datatracker.ietf.org/doc/draft-zambo-aer1-wimse-mapping/03/\n",
+          "createdAt": "2026-11-20T23:43:59Z",
+          "updatedAt": "2026-11-20T23:43:59Z"
         }
       ]
     },
@@ -3340,9 +3341,17 @@
       "labels": [],
       "body": "List identified gaps",
       "createdAt": "2026-11-18T22:57:20Z",
-      "updatedAt": "2026-11-18T22:57:20Z",
+      "updatedAt": "2026-11-21T03:23:09Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "nik-kale",
+          "authorAssociation": "NONE",
+          "body": "A few candidates that have already come up in issues, in case it helps seed the list:\n\n- Cross-domain access where the two sides share no trust relationship or trust anchor. 10.7 assumes trust is already in place (#146, #175; #177 states the limit).\n- Model identity when the LLM is a hosted service, where the Agent only has the provider's assertion (#87, #178).\n- User confirmation in the middle of execution, which the 10.8 note already flags, and which human is asked in a multi-agent chain (#91).\n- Limiting correlation when an Agent presents the same credential directly in several trust domains (#88; #176 notes the limit).\n\nHappy to turn whichever of these the editors want to keep into a PR.\n",
+          "createdAt": "2026-11-21T03:23:09Z",
+          "updatedAt": "2026-11-21T03:23:09Z"
+        }
+      ]
     },
     {
       "number": 183,
@@ -3357,6 +3366,22 @@
       "body": "Before WIMSE can address AI Agent Identity the group should identify the:\n\n1. Define Use Cases\n2. Draft requirements\n3. Come up with a solution!",
       "createdAt": "2026-11-18T23:03:55Z",
       "updatedAt": "2026-11-18T23:03:55Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 184,
+      "id": "I_kwDOQP22qc8AAAABhZZbJQ",
+      "title": "Revisit text on preserving context from transaction tokns across domains.",
+      "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/184",
+      "state": "OPEN",
+      "author": "PieterKas",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Yaron suggested this is an issue that needs further clrification",
+      "createdAt": "2026-11-22T00:12:11Z",
+      "updatedAt": "2026-11-22T00:12:11Z",
       "closedAt": null,
       "comments": []
     }
@@ -8252,7 +8277,7 @@
       "labels": [],
       "body": "Adds four subsections to Section 14, plus short text in Sections 8 and 10.7 where the issue discussions proposed it. It states properties, points at what AIMS already references, and adds no new normative language. The only new reference is an informative one, SPIFFE Federation.\n\n| Topic | Where | Related issues |\n| --- | --- | --- |\n| Layer dependencies and posture signal limits | Section 8, Section 14 | #82 |\n| Agent-specific threats | Section 14 | #83 |\n| Cross-domain trust and replay | Section 10.7, Section 14 | #84, #175 |\n| Delegation properties | Section 14 | #86 |\n\nEach topic is its own commit, so any of them can be changed or dropped separately.\n\nThe delegation paragraph is @mcguinness's wording from #86 with one added clause, \"any limits on further delegation\", which matches #155. This PR does not depend on #155. The format of per-hop records is left out, following the note on #157 that audit records belong in AUDIT.\n",
       "createdAt": "2026-11-09T22:38:59Z",
-      "updatedAt": "2026-11-11T02:19:19Z",
+      "updatedAt": "2026-11-22T00:24:22Z",
       "baseRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
       "baseRefName": "main",
       "baseRefOid": "a11288c0f98a5986239b8c2b98155b7aa719c460",
@@ -8285,6 +8310,46 @@
           "createdAt": "2026-11-10T19:35:16Z",
           "updatedAt": "2026-11-10T19:35:16Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOQP22qc8AAAABZiv16w",
+          "commit": {
+            "abbreviatedOid": "26bbf20"
+          },
+          "author": "PieterKas",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-22T00:15:34Z",
+          "updatedAt": "2026-11-22T00:15:34Z",
+          "comments": [
+            {
+              "originalPosition": 15,
+              "body": "It is unclear what this text is intended to convey.\n\n```suggestion\n```",
+              "createdAt": "2026-11-22T00:15:34Z",
+              "updatedAt": "2026-11-22T00:15:34Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOQP22qc8AAAABZiyGyA",
+          "commit": {
+            "abbreviatedOid": "26bbf20"
+          },
+          "author": "PieterKas",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-22T00:24:22Z",
+          "updatedAt": "2026-11-22T00:24:22Z",
+          "comments": [
+            {
+              "originalPosition": 42,
+              "body": "The way this reads suggests that agents always let sub-agents inherit all theor privelages. Alternative wording may be more appropriate:\n\n```suggestion\nTo limit the impact of compromising an agent that creates or coordinates other agents, each coordinated agent should be issued with its own identifier, its own credentials, and narrowly scoped access tokens.\n```",
+              "createdAt": "2026-11-22T00:24:22Z",
+              "updatedAt": "2026-11-22T00:24:22Z"
+            }
+          ]
         }
       ]
     },
@@ -8300,7 +8365,7 @@
       "labels": [],
       "body": "Adds the identity of the model in use to the list of posture signals in Section 8. It is one clause with no new normative language.\n\nRelated issue: #87\n\nThe digest wording is limited to deployments that can measure it. With a hosted LLM, the Agent has only the provider's statement of which model answered, which is an operator assertion, already in the same list.\n",
       "createdAt": "2026-11-09T22:39:02Z",
-      "updatedAt": "2026-11-09T22:39:02Z",
+      "updatedAt": "2026-11-20T23:44:39Z",
       "baseRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
       "baseRefName": "main",
       "baseRefOid": "a11288c0f98a5986239b8c2b98155b7aa719c460",
@@ -8311,7 +8376,15 @@
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
+      "comments": [
+        {
+          "author": "zambodotdev",
+          "authorAssociation": "NONE",
+          "body": "One place this distinction is already written down, in case it helps the wording here.\n\nIn draft-zambo-aer1-wimse-mapping-03, the identity of the framework and model that issued a call is recorded in the receipt's execution_context member (Section 3 table, first row, citing Section 3.2 of draft-zambo-aer1-26), and posture or risk state influencing a decision is carried in execution_context extension members (same table). Section 6 of the mapping then states the limit in terms that match the caveat in this PR: execution_context sits outside the hashed metadata core, so a verifier must not treat posture members as evidence of the state they describe. They record what the producer reported.\n\nThat is the same position as the hosted LLM case described here. The model name is an operator assertion, recorded as reported, and a deployment that needs model identity it can rely on has to obtain it from its own policy components rather than from the audit record.\n\nBrennan Zambo, Zambo, author of draft-zambo-aer1-wimse-mapping-03\n",
+          "createdAt": "2026-11-20T23:44:39Z",
+          "updatedAt": "2026-11-20T23:44:39Z"
+        }
+      ],
       "reviews": []
     }
   ]
