@@ -256,8 +256,6 @@ Credential provisioning is also the assessment point to confirm that the Agent a
 
 Posture assessment mechanisms are deployment and risk specific. They may include hardware-backed evidence, trusted execution environment (TEE) evidence, software integrity measurements, supply-chain provenance, platform or orchestration-layer metadata, workload placement information, configuration state, operator assertions, or other environment-specific signals. Depending on the risk involved, a single signal may be sufficient, while higher-risk deployments may require multiple independent signals before credentials are issued or renewed.
 
-Signals that a relying party can verify without trusting the operator of the workload, such as hardware-backed evidence, provide different assurance from assertions made by that operator, and the guarantees that higher layers depend on are limited by the kind of signal used.
-
 Deployed workload identity systems commonly perform some form of posture assessment as part of credential provisioning. For example, SPIFFE implementations can evaluate platform and environment-specific information about a workload before binding it to a SPIFFE identifier and issuing an SVID. At a high level, a provisioning component gathers workload and execution context signals, verifies them according to local policy, and, if verification succeeds, issues short-lived credentials for subsequent authentication and authorization. Where a required posture signal cannot be obtained, verification has not succeeded, and a credential is not issued or renewed on the basis of that signal.
 
 An AIMS implementation may incorporate multiple posture assessment mechanisms and implementations. The selection of mechanisms depends on deployment constraints, such as the underlying platform, available identity signals, and desired level of trust assurance. This document does not require any particular posture assessment mechanism, evidence format, or verifier architecture.
@@ -457,7 +455,7 @@ Valid credentials and tokens do not show how an Agent is behaving. The event cor
 
 ## Agent-Specific Threats
 
-An Agent that creates or coordinates other Agents can often obtain or direct the authority of each of them, so its compromise has a larger effect than the compromise of a single Agent. Separate identifiers, credentials and narrowly scoped access tokens for each coordinated Agent limit that effect.
+To limit the impact of compromising an agent that creates or coordinates other agents, each coordinated agent should be issued with its own identifier, its own credentials, and narrowly scoped access tokens.
 
 A malicious or compromised Tool receives what an Agent sends it, which can include access tokens, and its results can be passed to the LLM as context ({{fig-ai-agent-workload}}). Such a Tool can attempt to reuse a token it received or return content intended to influence the Agent's next action. Audience-restricted and sender-constrained access tokens ({{OAUTH-BCP}}) limit token reuse. The mechanisms in this document do not detect manipulated content. They limit its effect to the authority the Agent holds.
 
