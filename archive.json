@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-11-22T05:34:56.538264+00:00",
+  "timestamp": "2026-11-24T08:51:47.471126+00:00",
   "repo": "ietf-wg-wimse/draft-ietf-wimse-aims",
   "labels": [
     {
@@ -3341,7 +3341,7 @@
       "labels": [],
       "body": "List identified gaps",
       "createdAt": "2026-11-18T22:57:20Z",
-      "updatedAt": "2026-11-21T03:23:09Z",
+      "updatedAt": "2026-11-23T13:32:26Z",
       "closedAt": null,
       "comments": [
         {
@@ -3350,6 +3350,13 @@
           "body": "A few candidates that have already come up in issues, in case it helps seed the list:\n\n- Cross-domain access where the two sides share no trust relationship or trust anchor. 10.7 assumes trust is already in place (#146, #175; #177 states the limit).\n- Model identity when the LLM is a hosted service, where the Agent only has the provider's assertion (#87, #178).\n- User confirmation in the middle of execution, which the 10.8 note already flags, and which human is asked in a multi-agent chain (#91).\n- Limiting correlation when an Agent presents the same credential directly in several trust domains (#88; #176 notes the limit).\n\nHappy to turn whichever of these the editors want to keep into a PR.\n",
           "createdAt": "2026-11-21T03:23:09Z",
           "updatedAt": "2026-11-21T03:23:09Z"
+        },
+        {
+          "author": "MarcMolas",
+          "authorAssociation": "NONE",
+          "body": "Three more from the principal's side, in case they belong on the list:\n\n- Withdrawal of the principal's standing. Section 11 covers revoked or downgraded authorization of the agent. Nothing covers the user or organization behind the agent ceasing to be accepted while the agent's tokens remain valid, and the time to refusal is \"without undue delay\", counted from when a notification is received rather than from the withdrawal.\n- Resolution of `sub` back to the user. Audit records are retained \"according to the security policy of the deployment\"; who may map a subject identifier back to the person, on what grounds and with what record is not stated (#176 would add resolution under the deployment's policy).\n- What a status check tells the party that answers. Introspection is a call per token and SSF subscriptions are per subject; a status list fetched whole is not (Token Status List, Section 12.1). The text does not say which the deployment should prefer when correlation matters.\n\ndraft-molas-agent-principal-refs-00 states these as checkable properties (P4 to P6) and grades -01 against them in Section 6.1. Happy to turn any of them into a PR.",
+          "createdAt": "2026-11-23T13:32:26Z",
+          "updatedAt": "2026-11-23T13:32:26Z"
         }
       ]
     },
@@ -3381,9 +3388,17 @@
       "labels": [],
       "body": "Yaron suggested this is an issue that needs further clrification",
       "createdAt": "2026-11-22T00:12:11Z",
-      "updatedAt": "2026-11-22T00:12:11Z",
+      "updatedAt": "2026-11-24T03:07:04Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "nik-kale",
+          "authorAssociation": "NONE",
+          "body": "I'm not sure what exactly Yaron was raising, but the last paragraph of 10.6 can be read as allowing the exchange of transaction tokens for access tokens to any other service. A transaction token can only be used within its own trust domain (see Txn-Tokens, Sections 9.2 and 14, where transaction tokens are only valid within the trust domain specified in the \"aud\" claim).\n\nThe only thing that can be passed on to other trust domains is the JWT authorization grant. This is made clear in 10.7, but maybe this could be made more explicit.\n\n#67 already asks about exchanging transaction tokens for access tokens (within the same trust domain).\n\nPossible text. Replace the last paragraph of 10.6 with:\n\n> A transaction token is only valid within the trust domain identified by its `aud` claim ({{Section 14 of OAUTH-TXN-TOKENS}}). When an Agent needs to carry identity and authorization context into another trust domain, it uses the chaining flow described in {{cross_domain_access}}.\n\nReplace the last sentence of the first paragraph of 10.7 with:\n\n> The Agent exchanges its access token or transaction token at the authorization server of its own trust domain for a JWT authorization grant ({{Section 2.3 of OAUTH-ID-CHAIN}}), and presents the grant to the authorization server of the other trust domain to obtain an access token for the target resource ({{Section 2.4 of OAUTH-ID-CHAIN}}). Only the grant crosses the boundary. Either authorization server can transcribe the subject identifier, omit claims and narrow the scope ({{Section 2.5 of OAUTH-ID-CHAIN}}), so the transaction identifier reaches the other trust domain only if both carry it, with the privacy tradeoff described in {{privacy}}.\n\nThere are 2 small problems with that paragraph (which I can make a PR for if desired):\n\n- The Fletcher draft being cited has been replaced by draft-fletcher-oauth-txn-token-chaining-profile and given a new title.\n- There's an extraneous comma in front of that citation.\n",
+          "createdAt": "2026-11-24T03:07:04Z",
+          "updatedAt": "2026-11-24T03:07:04Z"
+        }
+      ]
     }
   ],
   "pulls": [
@@ -8275,15 +8290,15 @@
       "authorAssociation": "NONE",
       "assignees": [],
       "labels": [],
-      "body": "Adds four subsections to Section 14, plus short text in Sections 8 and 10.7 where the issue discussions proposed it. It states properties, points at what AIMS already references, and adds no new normative language. The only new reference is an informative one, SPIFFE Federation.\n\n| Topic | Where | Related issues |\n| --- | --- | --- |\n| Layer dependencies and posture signal limits | Section 8, Section 14 | #82 |\n| Agent-specific threats | Section 14 | #83 |\n| Cross-domain trust and replay | Section 10.7, Section 14 | #84, #175 |\n| Delegation properties | Section 14 | #86 |\n\nEach topic is its own commit, so any of them can be changed or dropped separately.\n\nThe delegation paragraph is @mcguinness's wording from #86 with one added clause, \"any limits on further delegation\", which matches #155. This PR does not depend on #155. The format of per-hop records is left out, following the note on #157 that audit records belong in AUDIT.\n",
+      "body": "Adds three subsections to Section 14, plus short text in Sections 8 and 10.7 where the issue discussions proposed it. It states properties, points at what AIMS already references, and adds no new normative language. The only new reference is an informative one, SPIFFE Federation.\n\n| Topic | Where | Related issues |\n| --- | --- | --- |\n| Layer dependencies and posture signal limits | Section 8, Section 14 | #82 |\n| Agent-specific threats | Section 14 | #83 |\n| Cross-domain trust prerequisite | Section 10.7 | #36, #84, #175 |\n| Delegation properties | Section 14 | #86 |\n\nEach topic is its own commit, so any of them can be changed or dropped separately.\n\nThe delegation paragraph is @mcguinness's wording from #86 with one added clause, \"any limits on further delegation\", which matches #155. This PR does not depend on #155. The format of per-hop records is left out, following the note on #157 that audit records belong in AUDIT.\n\n\n",
       "createdAt": "2026-11-09T22:38:59Z",
-      "updatedAt": "2026-11-22T00:24:22Z",
+      "updatedAt": "2026-11-24T00:29:33Z",
       "baseRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
       "baseRefName": "main",
       "baseRefOid": "a11288c0f98a5986239b8c2b98155b7aa719c460",
       "headRepository": "nik-kale/draft-ietf-wimse-aims",
       "headRefName": "security-considerations",
-      "headRefOid": "26bbf207a30fd59bc9e16345dc7d39c8d5b5e62f",
+      "headRefOid": "6687a61664e21b4a0e233ff5406d32798a9887d8",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -8350,6 +8365,166 @@
               "updatedAt": "2026-11-22T00:24:22Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOQP22qc8AAAABZkT5Uw",
+          "commit": {
+            "abbreviatedOid": "26bbf20"
+          },
+          "author": "nik-kale",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-22T06:27:43Z",
+          "updatedAt": "2026-11-22T06:27:43Z",
+          "comments": [
+            {
+              "originalPosition": 15,
+              "body": "Agreed, removed.",
+              "createdAt": "2026-11-22T06:27:43Z",
+              "updatedAt": "2026-11-22T06:27:43Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOQP22qc8AAAABZkT5pg",
+          "commit": {
+            "abbreviatedOid": "89b91a7"
+          },
+          "author": "nik-kale",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-22T06:27:44Z",
+          "updatedAt": "2026-11-22T06:27:44Z",
+          "comments": [
+            {
+              "originalPosition": 42,
+              "body": "Applied, thanks.",
+              "createdAt": "2026-11-22T06:27:44Z",
+              "updatedAt": "2026-11-22T06:27:44Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOQP22qc8AAAABZtGI5Q",
+          "commit": {
+            "abbreviatedOid": "26bbf20"
+          },
+          "author": "PieterKas",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-23T10:28:37Z",
+          "updatedAt": "2026-11-23T10:28:37Z",
+          "comments": [
+            {
+              "originalPosition": 44,
+              "body": "I don't follow this paragraph and the statement about manipulated content is factually untrue.\n\n```suggestion\n```",
+              "createdAt": "2026-11-23T10:28:37Z",
+              "updatedAt": "2026-11-23T10:28:37Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOQP22qc8AAAABZtKNVQ",
+          "commit": {
+            "abbreviatedOid": "26bbf20"
+          },
+          "author": "PieterKas",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-23T10:32:59Z",
+          "updatedAt": "2026-11-23T10:33:00Z",
+          "comments": [
+            {
+              "originalPosition": 46,
+              "body": "In OAuth an Agent cannot be authorized to have more access than the person or service calling it (the user delegates to the agent, the amount delegated is subject to the authorization server). Can you elaborate on how an Agent may have broder access than that which is delegated to it?\n\n```suggestion\n```",
+              "createdAt": "2026-11-23T10:33:00Z",
+              "updatedAt": "2026-11-23T10:33:00Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOQP22qc8AAAABZtPCvQ",
+          "commit": {
+            "abbreviatedOid": "26bbf20"
+          },
+          "author": "PieterKas",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-23T10:37:54Z",
+          "updatedAt": "2026-11-23T10:37:54Z",
+          "comments": [
+            {
+              "originalPosition": 50,
+              "body": "This paragraph is confusing. It comments on risks in setting up federation relationships, which are universal (exists beyond agentic use cases) and then discusses replay attacks, which is also somewhat orthogonal to the federation relationship itself (these risks exist independent of federation relationships). The mitigations themselves are also incomplete (it does not take into account sender constrained tokens, and other replay protection mechanims like jti claims). \n\nAt the very least alternate phrasing is needed\n\n```suggestion\n```",
+              "createdAt": "2026-11-23T10:37:54Z",
+              "updatedAt": "2026-11-23T10:37:54Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOQP22qc8AAAABZ4RdBA",
+          "commit": {
+            "abbreviatedOid": "6687a61"
+          },
+          "author": "nik-kale",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-24T00:22:09Z",
+          "updatedAt": "2026-11-24T00:22:09Z",
+          "comments": [
+            {
+              "originalPosition": 44,
+              "body": "Agreed, removed.",
+              "createdAt": "2026-11-24T00:22:09Z",
+              "updatedAt": "2026-11-24T00:22:09Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOQP22qc8AAAABZ4RemQ",
+          "commit": {
+            "abbreviatedOid": "6687a61"
+          },
+          "author": "nik-kale",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-24T00:22:11Z",
+          "updatedAt": "2026-11-24T00:22:12Z",
+          "comments": [
+            {
+              "originalPosition": 46,
+              "body": "I meant an Agent that also holds authorization of its own (Section 10.5.2) and serves requests from callers. If a caller asks for something it isn't authorized to do and the Agent serves it with its own token, the caller gets access it was never delegated. Section 11 already lists confused deputy behavior among the patterns monitoring should detect, so I've removed this paragraph rather than add to it.",
+              "createdAt": "2026-11-24T00:22:12Z",
+              "updatedAt": "2026-11-24T00:22:12Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOQP22qc8AAAABZ4RftQ",
+          "commit": {
+            "abbreviatedOid": "6687a61"
+          },
+          "author": "nik-kale",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-24T00:22:13Z",
+          "updatedAt": "2026-11-24T00:22:13Z",
+          "comments": [
+            {
+              "originalPosition": 50,
+              "body": "Agreed, removed the subsection. The 10.7 paragraph still notes that trust between the authorization servers is assumed and not defined in this document, and replay isn't specific to agents.",
+              "createdAt": "2026-11-24T00:22:13Z",
+              "updatedAt": "2026-11-24T00:22:13Z"
+            }
+          ]
         }
       ]
     },
@@ -8363,15 +8538,15 @@
       "authorAssociation": "NONE",
       "assignees": [],
       "labels": [],
-      "body": "Adds the identity of the model in use to the list of posture signals in Section 8. It is one clause with no new normative language.\n\nRelated issue: #87\n\nThe digest wording is limited to deployments that can measure it. With a hosted LLM, the Agent has only the provider's statement of which model answered, which is an operator assertion, already in the same list.\n",
+      "body": "Adds the model in use to the list of posture signals in Section 8. It is one clause with no new normative language.\n\nRelated issue: #87\n\nIt doesn't say how the model is identified, since a digest is only one of several ways to do that.\n",
       "createdAt": "2026-11-09T22:39:02Z",
-      "updatedAt": "2026-11-20T23:44:39Z",
+      "updatedAt": "2026-11-24T00:22:15Z",
       "baseRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
       "baseRefName": "main",
       "baseRefOid": "a11288c0f98a5986239b8c2b98155b7aa719c460",
       "headRepository": "nik-kale/draft-ietf-wimse-aims",
       "headRefName": "posture-model-identity",
-      "headRefOid": "2730a627c981540ec9498f085c4d199540f97344",
+      "headRefOid": "455db6b3c5c18fe2f0956ea8b94acbf53832d5dd",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -8385,6 +8560,73 @@
           "updatedAt": "2026-11-20T23:44:39Z"
         }
       ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOQP22qc8AAAABZtZIWg",
+          "commit": {
+            "abbreviatedOid": "2730a62"
+          },
+          "author": "PieterKas",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-23T10:48:23Z",
+          "updatedAt": "2026-11-23T10:48:23Z",
+          "comments": [
+            {
+              "originalPosition": 5,
+              "body": "I don't think there are good definitions on how a model is identified (a hash is one version, but there may be other mechanisms) - I suggest the following text instead:\n\n```suggestion\nPosture assessment mechanisms are deployment and risk specific. They may include hardware-backed evidence, trusted execution environment (TEE) evidence, software integrity measurements, the model in use, supply-chain provenance, platform or orchestration-layer metadata, workload placement information, configuration state, operator assertions, or other environment-specific signals. Depending on the risk involved, a single signal may be sufficient, while higher-risk deployments may require multiple independent signals before credentials are issued or renewed.\n```",
+              "createdAt": "2026-11-23T10:48:23Z",
+              "updatedAt": "2026-11-23T10:48:23Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOQP22qc8AAAABZ4Rg3Q",
+          "commit": {
+            "abbreviatedOid": "455db6b"
+          },
+          "author": "nik-kale",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-24T00:22:15Z",
+          "updatedAt": "2026-11-24T00:22:15Z",
+          "comments": [
+            {
+              "originalPosition": 5,
+              "body": "Applied, thanks.",
+              "createdAt": "2026-11-24T00:22:15Z",
+              "updatedAt": "2026-11-24T00:22:15Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 185,
+      "id": "PR_kwDOQP22qc8AAAABRTiVSA",
+      "title": "Update CONTRIBUTING.md with AI contribution guidelines",
+      "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/pull/185",
+      "state": "OPEN",
+      "author": "nicksteele-oai",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Added guidelines for AI agents contributing to the repository.",
+      "createdAt": "2026-11-23T15:47:44Z",
+      "updatedAt": "2026-11-23T15:47:44Z",
+      "baseRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
+      "baseRefName": "main",
+      "baseRefOid": "a11288c0f98a5986239b8c2b98155b7aa719c460",
+      "headRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
+      "headRefName": "aims-contributing-bots-addition",
+      "headRefOid": "c6408348af26bd2fe80b547f392931b1ef410db7",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
       "reviews": []
     }
   ]
