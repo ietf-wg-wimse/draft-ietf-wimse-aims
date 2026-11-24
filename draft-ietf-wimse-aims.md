@@ -457,14 +457,6 @@ Valid credentials and tokens do not show how an Agent is behaving. The event cor
 
 To limit the impact of compromising an agent that creates or coordinates other agents, each coordinated agent should be issued with its own identifier, its own credentials, and narrowly scoped access tokens.
 
-A malicious or compromised Tool receives what an Agent sends it, which can include access tokens, and its results can be passed to the LLM as context ({{fig-ai-agent-workload}}). Such a Tool can attempt to reuse a token it received or return content intended to influence the Agent's next action. Audience-restricted and sender-constrained access tokens ({{OAUTH-BCP}}) limit token reuse. The mechanisms in this document do not detect manipulated content. They limit its effect to the authority the Agent holds.
-
-An Agent can be induced by its caller to use authority that the caller does not hold, which is a confused deputy problem. Transaction tokens ({{txn-tokens-risk-reduction}}) carry authorization context along a call chain within one Agent, LLM or Tool, but do not address a request between Agents across trust boundaries. A receiving Agent limits this risk by using only the authority its caller delegated, as described in {{delegation_chains}}.
-
-## Cross-Domain Trust and Replay
-
-Cross-domain access ({{cross_domain_access}}) depends on trust between authorization servers that is established outside the mechanisms in this document, so a weakness in that arrangement affects every exchange that relies on it. An authorization grant intercepted on its way to another trust domain can be replayed. {{Section 2.3.3 of OAUTH-ID-CHAIN}} covers the audience of the grant, and {{Section 5.5 of OAUTH-ID-CHAIN}} describes mitigations such as short-lived and single-use grants.
-
 ## Delegation Across Agents {#delegation_chains}
 
 When authority passes through a chain of Agents, possibly across trust domains, each issuer confirms that the new actor may act for the subject and limits the authority it grants to what the inbound token carried, any limits on further delegation, and what that actor is permitted to exercise. Each issuer also enforces a maximum chain depth, and each hop can be recorded in a form downstream parties can verify. A resource server can restrict sensitive operations to direct invocation.
