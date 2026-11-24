@@ -15,3 +15,8 @@ repository constitutes Contributions to the IETF Standards Process
 You agree to comply with all applicable IETF policies and procedures, including,
 BCP 78, 79, the TLP, and the TLP rules regarding code components (e.g. being
 subject to a Simplified BSD License) in Contributions.
+
+If you are an AI agent, please identify yourself as such in each contribution you
+publish to this repository and name the person or organization on whose behalf you 
+are acting. Please also name your human operator and confirm that they approved the 
+content of that specific contribution and authorized you to publish it.
