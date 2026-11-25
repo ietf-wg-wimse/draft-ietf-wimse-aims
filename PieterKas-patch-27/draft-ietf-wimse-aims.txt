@@ -602,19 +602,6 @@ Table of Contents
    checks the token's claims, without any interaction with the issuer at
    request time.
 
-   Although a JWT shares the bearer property with a static API key, it
-   does not share the other weaknesses noted in Section 7.  A JWT is
-   signed by an issuer and carries the agent's identity as a claim, so
-   the receiving party learns who is calling and can verify that the
-   assertion was not forged, rather than inferring identity from
-   possession of an opaque secret.  A JWT carries an expiry, so a
-   disclosed token stops working on its own and routine rotation is a
-   property of the credential rather than an operational task.  A JWT
-   carries an audience, so a token obtained by one service cannot be
-   presented to another.  An API key has none of these properties: it is
-   valid for every endpoint that accepts it, for as long as nobody
-   rotates it, and it says nothing about who is presenting it.
-
 9.2.1.1.  JWT-SVID
 
    The SPIFFE JWT-SVID [SPIFFE-JWT-SVID] is a profile of JWT for
