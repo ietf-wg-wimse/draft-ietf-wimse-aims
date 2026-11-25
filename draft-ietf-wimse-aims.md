@@ -308,7 +308,6 @@ JWT-based authentication is an application-layer mechanism in which the agent pr
 #### JWT-SVID {#jwt_svid}
 The SPIFFE JWT-SVID {{SPIFFE-JWT-SVID}} is a profile of JWT for workload identity. JWT-SVIDs are intended to be short-lived, with lifetimes in the order of minutes, and are obtained and renewed by the agent at runtime through the SPIFFE Workload API as described in {{agent_credential_provisioning}}.
 
-
 Relying parties validate JWT-SVIDs as specified in {{SPIFFE-JWT-SVID}} and apply the JWT security best current practices in {{!JWT-BCP=RFC8725}}.
 
 A JWT-SVID can also be used for OAuth client authentication, with the agent presenting it as the client assertion as defined in {{OAUTH-SPIFFE}} (see {{user_delegates_authorization}}).
