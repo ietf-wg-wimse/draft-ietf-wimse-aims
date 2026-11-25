@@ -608,10 +608,7 @@ Table of Contents
    workload identity.  JWT-SVIDs are intended to be short-lived, with
    lifetimes in the order of minutes, and are obtained and renewed by
    the agent at runtime through the SPIFFE Workload API as described in
-   Section 8.  A relying party validates a JWT-SVID using the JWT
-   signing keys from the trust domain's bundle, which it obtains through
-   the Workload API or, for an agent in another trust domain, through
-   SPIFFE Federation (see Section 10.7).
+   Section 8.
 
    Because a JWT-SVID is a bearer credential, usable by whoever
    possesses it, the security of JWT-based authentication rests on the
@@ -644,15 +641,6 @@ Table of Contents
    A JWT-SVID can also be used for OAuth client authentication, with the
    agent presenting it as the client assertion as defined in
    [OAUTH-SPIFFE] (see Section 10.5.1).
-
-   The trade-off between bearer and key-bound credentials is described
-   in Section 3.1.3 of [WIMSE-ARCH] and Section 4.4 of [WIMSE-ARCH].  A
-   bearer token that is disclosed can be reused by whoever obtains it,
-   whereas a credential bound to a cryptographic key cannot be used
-   without the key.  The WIT with WPTs (Section 9.2.2) or HTTP Message
-   Signatures, and the SPIFFE WIT-SVID [SPIFFE-WIT-SVID], are the key-
-   bound alternatives to the JWT-SVID for deployments that need proof of
-   possession at the application layer.
 
 9.2.2.  WIMSE Proof Tokens (WPTs)
 
