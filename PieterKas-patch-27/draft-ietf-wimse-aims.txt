@@ -604,18 +604,16 @@ Table of Contents
 
 9.2.1.1.  JWT-SVID
 
-   The SPIFFE JWT-SVID [SPIFFE-JWT-SVID] is a profile of JWT for
-   workload identity.  JWT-SVIDs are intended to be short-lived, with
-   lifetimes in the order of minutes, and are obtained and renewed by
-   the agent at runtime through the SPIFFE Workload API as described in
-   Section 8.
+   The SPIFFE JWT-SVID [SPIFFE-JWT-SVID] is a profile of JWT.  JWT-SVIDs
+   are intended to be short-lived, with lifetimes in the order of
+   minutes, and are obtained and renewed by the agent at runtime through
+   the SPIFFE Workload API as described in Section 8.
 
    Relying parties validate JWT-SVIDs as specified in [SPIFFE-JWT-SVID]
    and apply the JWT security best current practices in [JWT-BCP].
 
    A JWT-SVID can also be used for OAuth client authentication, with the
-   agent presenting it as the client assertion as defined in
-   [OAUTH-SPIFFE] (see Section 10.5.1).
+   agent presenting it as the client assertion (see Section 10.5.1).
 
 9.2.2.  WIMSE Proof Tokens (WPTs)
 
