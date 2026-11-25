@@ -605,17 +605,13 @@ Table of Contents
 9.2.1.1.  JWT-SVID
 
    The SPIFFE JWT-SVID [SPIFFE-JWT-SVID] is a profile of JWT for
-   workload identity.  A JWT-SVID is issued by the agent's trust domain,
-   carries the agent's SPIFFE ID as the 'sub' claim, MUST contain an
-   'aud' claim identifying the intended recipient(s), and MUST contain
-   an 'exp' claim.  It may contain additional claims.  JWT-SVIDs are
-   intended to be short-lived, with lifetimes in the order of minutes,
-   and are obtained and renewed by the agent at runtime through the
-   SPIFFE Workload API as described in Section 8.  A relying party
-   validates a JWT-SVID using the JWT signing keys from the trust
-   domain's bundle, which it obtains through the Workload API or, for an
-   agent in another trust domain, through SPIFFE Federation (see
-   Section 10.7).
+   workload identity.  JWT-SVIDs are intended to be short-lived, with
+   lifetimes in the order of minutes, and are obtained and renewed by
+   the agent at runtime through the SPIFFE Workload API as described in
+   Section 8.  A relying party validates a JWT-SVID using the JWT
+   signing keys from the trust domain's bundle, which it obtains through
+   the Workload API or, for an agent in another trust domain, through
+   SPIFFE Federation (see Section 10.7).
 
    Because a JWT-SVID is a bearer credential, usable by whoever
    possesses it, the security of JWT-based authentication rests on the
