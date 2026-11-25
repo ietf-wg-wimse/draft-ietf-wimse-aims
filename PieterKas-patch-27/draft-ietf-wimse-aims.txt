@@ -404,27 +404,6 @@ Table of Contents
    [BEARER].  Section 9 describes how Agents use key-bound and bearer
    credentials for authentication.
 
-   Agent credentials differ in how the agent demonstrates that it is the
-   legitimate holder.  The WIT, WIC, X.509-SVID and WIT-SVID are key-
-   bound credentials: each binds a public key to the agent identifier,
-   and the agent authenticates by proving possession of the
-   corresponding private key, which is never transmitted.  The JWT-SVID
-   is a bearer credential: it is signed by the issuer and asserts the
-   agent identifier, but the agent authenticates simply by presenting
-   it, so any party that obtains the token can use it until it expires.
-   Section 3.1.3 of [WIMSE-ARCH] and Section 4.4 of [WIMSE-ARCH]
-   describe this distinction and the greater exposure of bearer
-   credentials to theft and reuse.  A bearer credential nonetheless
-   carries the properties that matter for agent identity: it is signed
-   by a known issuer and names the agent, so the receiving party learns
-   who is calling and can verify the assertion was not forged; it
-   carries an expiry, so a disclosed token stops working without
-   operator intervention; and it carries an audience, so it cannot be
-   presented to a service other than the one it was issued for.
-   Deployments that use bearer credentials rely on short lifetimes,
-   audience restriction and transport protection in place of key
-   binding; see Section 9.2.1.1 for their use in authentication.
-
    Deployments can improve the assurance of agent identity by protecting
    private keys using hardware-backed or isolated cryptographic storage
    such as TPMs, secure enclaves, or platform security modules when such
