@@ -114,6 +114,12 @@ normative:
   SPIFFE-WIT-SVID:
     title: "The WIT SPIFFE Verifiable Identity Document"
     target: https://github.com/spiffe/spiffe/blob/draft-wit-svid/standards/WIT-SVID.md
+  SPIFFE-WORKLOAD-API:
+    title: "SPIFFE Workload API"
+    target: https://github.com/spiffe/spiffe/blob/main/standards/SPIFFE_Workload_API.md
+  SPIFFE-FEDERATION:
+    title: "SPIFFE Federation"
+    target: https://github.com/spiffe/spiffe/blob/main/standards/SPIFFE_Federation.md
 
 informative:
   MissionShaping:
@@ -234,11 +240,17 @@ An agent participating in this framework MUST be assigned exactly one WIMSE iden
 The lifecycle of an agent identifier is distinct from the lifecycle of the credentials bound to it. Credentials are short-lived and expire while the identifier persists. When an agent is retired, its identifier must not be reassigned to a different agent, and the records that reference it (audit logs, authorization decisions, delegation records and security signals) remain interpretable for as long as the deployment's retention policy requires, which is typically longer than the agent's operational lifetime. The registry or namespace in which agent identifiers are allocated, and the retention period applied to retired identifiers, are deployment-specific and out of scope for this document.
 
 # Agent Credentials {#agent_credentials}
-Agents MUST possess credentials that provide a cryptographic binding to the agent identifier. These credentials are considered primary credentials that are provisioned at runtime. An identifier alone is insufficient unless it can be verified to be controlled by the communicating agent through a cryptographic binding.
+Agents MUST possess credentials that provide a cryptographic binding to the agent identifier. These credentials are considered primary credentials that are provisioned at runtime.
+
+Agents MUST possess credentials that provide a cryptographic binding to the agent identifier. These credentials are considered primary credentials that are provisioned at runtime. An identifier alone is insufficient unless it is carried in a credential that cryptographically binds it to the agent, either through the issuer's signature or through a key the agent proves possession of.
 
 WIMSE defines two credential formats in {{!WIMSE-CRED=I-D.ietf-wimse-workload-creds}}: the Workload Identity Token (WIT) and the transport-layer X.509 Workload Identity Certificate (WIC), both of which bind a cryptographic key to a workload identifier for use in authentication. SPIFFE defines three credential formats: the X.509-SVID {{SPIFFE-X509-SVID}}, WIT-SVID {{SPIFFE-WIT-SVID}}, and JWT-SVID {{SPIFFE-JWT-SVID}}. X.509-SVID is compatible with WIC, while WIT-SVID profiles WIT. JWT-SVIDs are short-lived bearer credentials used for JWT-based authentication. The choice of credential format depends on the deployment’s trust model and integration requirements.
 
 Agent credentials SHOULD be short-lived to minimize the risk of credential theft, MUST include an explicit expiration time after which it is no longer accepted, and MAY carry additional attributes relevant to the agent (for example trust domain, attestation evidence, or workload metadata).
+
+An Agent may have bearer credentials, key-bound credentials, or both. {{Section 3.1.3 of WIMSE-ARCH}} and {{Section 4.4 of WIMSE-ARCH}} describe the distinction between these types of credentials. The WIT, WIC, X.509-SVID and WIT-SVID are key-bound credentials. Each binds a public key to the agent identifier, and the agent authenticates by proving possession of the corresponding private key. The JWT-SVID is a bearer credential. It is signed by the issuer and asserts the agent identifier, and the agent authenticates by presenting it. Any party that obtains a bearer credential can present it until it expires. Deployments that use bearer credentials depend on short lifetimes, audience restriction and transport protection in place of key binding, as described in {{Section 5 of !BEARER=RFC6750}}. {{agent_authentication}} describes how Agents use key-bound and bearer credentials for authentication. 
+
+Agent credentials differ in how the agent demonstrates that it is the legitimate holder. The WIT, WIC, X.509-SVID and WIT-SVID are key-bound credentials: each binds a public key to the agent identifier, and the agent authenticates by proving possession of the corresponding private key, which is never transmitted. The JWT-SVID is a bearer credential: it is signed by the issuer and asserts the agent identifier, but the agent authenticates simply by presenting it, so any party that obtains the token can use it until it expires. {{Section 3.1.3 of WIMSE-ARCH}} and {{Section 4.4 of WIMSE-ARCH}} describe this distinction and the greater exposure of bearer credentials to theft and reuse. A bearer credential nonetheless carries the properties that matter for agent identity: it is signed by a known issuer and names the agent, so the receiving party learns who is calling and can verify the assertion was not forged; it carries an expiry, so a disclosed token stops working without operator intervention; and it carries an audience, so it cannot be presented to a service other than the one it was issued for. Deployments that use bearer credentials rely on short lifetimes, audience restriction and transport protection in place of key binding; see {{jwt_svid}} for their use in authentication.
 
 Deployments can improve the assurance of agent identity by protecting private keys using hardware-backed or isolated cryptographic storage such as TPMs, secure enclaves, or platform security modules when such capabilities are available. These mechanisms reduce key exfiltration risk but are not required for interoperability.
 
@@ -292,8 +304,28 @@ Application-layer authentication allows agents to authenticate independently of 
 
 The WIMSE working group defines WIMSE Proof Tokens and HTTP Message Signatures as authentication mechanisms that may be used by agents.
 
+### JWT-Based Authentication {#jwt_authentication}
+JWT-based authentication is an application-layer mechanism in which the agent presents a signed JSON Web Token (JWT) {{!JWT=RFC7519}} that asserts its identity to the receiving party. The token is typically carried in the HTTP Authorization header using the Bearer scheme, but the same token can be conveyed in message headers or metadata of other protocols, which makes it well suited to environments with intermediaries and to protocols other than HTTP. The receiving party validates the token signature against the issuer's published keys and checks the token's claims, without any interaction with the issuer at request time.
+
+Although a JWT shares the bearer property with a static API key, it does not share the other weaknesses noted in {{agent_credentials}}. A JWT is signed by an issuer and carries the agent's identity as a claim, so the receiving party learns who is calling and can verify that the assertion was not forged, rather than inferring identity from possession of an opaque secret. A JWT carries an expiry, so a disclosed token stops working on its own and routine rotation is a property of the credential rather than an operational task. A JWT carries an audience, so a token obtained by one service cannot be presented to another. An API key has none of these properties: it is valid for every endpoint that accepts it, for as long as nobody rotates it, and it says nothing about who is presenting it.
+
+#### JWT-SVID {#jwt_svid}
+The SPIFFE JWT-SVID {{SPIFFE-JWT-SVID}} is a profile of JWT for workload identity. A JWT-SVID is issued by the agent's trust domain, carries the agent's SPIFFE ID as the 'sub' claim, MUST contain an 'aud' claim identifying the intended recipient(s), and MUST contain an 'exp' claim. It may contain additional claims. JWT-SVIDs are intended to be short-lived, with lifetimes in the order of minutes, and are obtained and renewed by the agent at runtime through the SPIFFE Workload API as described in {{agent_credential_provisioning}}. A relying party validates a JWT-SVID using the JWT signing keys from the trust domain's bundle, which it obtains through the Workload API or, for an agent in another trust domain, through SPIFFE Federation (see {{cross_domain_access}}).
+
+Because a JWT-SVID is a bearer credential, usable by whoever possesses it, the security of JWT-based authentication rests on the following three controls:
+
+1. **Audience restriction.** The agent requests a JWT-SVID whose 'aud' claim names the specific service it intends to call, and the relying party rejects any token whose 'aud' claim does not identify it. A JWT-SVID issued for one service cannot then be replayed by that service against another, which is the primary mitigation against token theft and confused-deputy attacks between agents and tools.
+2. **Short lifetime.** The relying party rejects expired tokens, and issuers keep lifetimes as short as the deployment tolerates so that a leaked token has a narrow window of use. JWT-SVIDs are not revoked individually. Expiry and the rotation of trust domain signing keys are the revocation mechanisms, and the eventing mechanisms in {{agent_monitoring_and_remediation}} provide faster reaction where it is required.
+3. **Transport protection.** Because the JWT-SVID is a bearer artefact, it must be transmitted over a secure channel such as TLS, and is never logged, placed in URLs, or made available to the Large Language Model (see {{agent_credential_provisioning}}).
+
+Relying parties validate JWT-SVIDs as specified in {{SPIFFE-JWT-SVID}} and apply the JWT security best current practices in {{!JWT-BCP=RFC8725}}.
+
+A JWT-SVID can also be used for OAuth client authentication, with the agent presenting it as the client assertion as defined in {{OAUTH-SPIFFE}} (see {{user_delegates_authorization}}).
+
+The trade-off between bearer and key-bound credentials is described in {{Section 3.1.3 of WIMSE-ARCH}} and {{Section 4.4 of WIMSE-ARCH}}. A bearer token that is disclosed can be reused by whoever obtains it, whereas a credential bound to a cryptographic key cannot be used without the key. The WIT with WPTs ({{wpt}}) or HTTP Message Signatures, and the SPIFFE WIT-SVID {{SPIFFE-WIT-SVID}}, are the key-bound alternatives to the JWT-SVID for deployments that need proof of possession at the application layer.
+
 ### WIMSE Proof Tokens (WPTs) {#wpt}
-WIMSE Workload Proof Tokens (WPTs, {{!WIMSE-WPT=I-D.ietf-wimse-wpt}}) are a protocol-independent, application-layer mechanism for proving possession of the private key associated with a Workload Identity Token (WIT). WPTs are generated by the agent, using the private key matching the public key in the WIT. A WPT is defined as a signed JSON Web Token (JWT) that binds an agent’s authentication to a specific message context, for example, an HTTP request, thereby providing proof of possession rather than relying on bearer semantics.
+WIMSE Workload Proof Tokens (WPTs, {{!WIMSE-WPT=I-D.ietf-wimse-wpt}}) are a protocol-independent, application-layer mechanism for proving possession of the private key associated with a Workload Identity Token (WIT). WPTs are generated by the agent, using the private key matching the public key in the WIT. A WPT is defined as a signed JWT that binds an agent’s authentication to a specific message context, for example, an HTTP request, thereby providing proof of possession rather than relying on bearer semantics.
 
 WPTs are designed to work alongside WITs {{WIMSE-CRED}} and are typically short-lived to reduce the window for replay attacks. They carry claims such as audience (aud), expiration (exp), a unique token identifier (jti), and a hash of the associated WIT (wth). A WPT may also include hashes of other related tokens (e.g., a Transaction Token) to bind the authentication contexts to specific transaction or authorizations details.
 
@@ -455,13 +487,17 @@ This document has no IANA actions.
 # Acknowledgments
 The authors would like to thank:
 
-* Sean O'Dell for providing valuable input and feedback on this work.
-* Karl McGuinness for his blog posts on mission shaping as a pre-cursor to authorization {{MissionShaping}}
+Sean O'Dell, Karl McGuinness and Atul Tulshibagwale for reviewing, providing feedback and support for this work.
 
 --- back
 
 # Document History
    \[\[ To be removed from the final specification ]]
+  -02
+
+   * Describe how JWT based authentication may be used by agents (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/186)
+   * Add Atul Tulshibagwale to the acknowledgements
+
   -01
 
    * Editorial updates
