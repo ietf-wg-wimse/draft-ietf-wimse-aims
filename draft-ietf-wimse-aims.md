@@ -308,11 +308,6 @@ JWT-based authentication is an application-layer mechanism in which the agent pr
 #### JWT-SVID {#jwt_svid}
 The SPIFFE JWT-SVID {{SPIFFE-JWT-SVID}} is a profile of JWT for workload identity. JWT-SVIDs are intended to be short-lived, with lifetimes in the order of minutes, and are obtained and renewed by the agent at runtime through the SPIFFE Workload API as described in {{agent_credential_provisioning}}.
 
-Because a JWT-SVID is a bearer credential, usable by whoever possesses it, the security of JWT-based authentication rests on the following three controls:
-
-1. **Audience restriction.** The agent requests a JWT-SVID whose 'aud' claim names the specific service it intends to call, and the relying party rejects any token whose 'aud' claim does not identify it. A JWT-SVID issued for one service cannot then be replayed by that service against another, which is the primary mitigation against token theft and confused-deputy attacks between agents and tools.
-2. **Short lifetime.** The relying party rejects expired tokens, and issuers keep lifetimes as short as the deployment tolerates so that a leaked token has a narrow window of use. JWT-SVIDs are not revoked individually. Expiry and the rotation of trust domain signing keys are the revocation mechanisms, and the eventing mechanisms in {{agent_monitoring_and_remediation}} provide faster reaction where it is required.
-3. **Transport protection.** Because the JWT-SVID is a bearer artefact, it must be transmitted over a secure channel such as TLS, and is never logged, placed in URLs, or made available to the Large Language Model (see {{agent_credential_provisioning}}).
 
 Relying parties validate JWT-SVIDs as specified in {{SPIFFE-JWT-SVID}} and apply the JWT security best current practices in {{!JWT-BCP=RFC8725}}.
 
