@@ -1648,20 +1648,8 @@ appear in all capitals, as shown here.<a href="#section-3-1" class="pilcrow">¶<
 <a href="#section-9.2.1.1" class="section-number selfRef">9.2.1.1. </a><a href="#name-jwt-svid" class="section-name selfRef">JWT-SVID</a>
             </h5>
 <p id="section-9.2.1.1-1">The SPIFFE JWT-SVID <span>[<a href="#SPIFFE-JWT-SVID" class="cite xref">SPIFFE-JWT-SVID</a>]</span> is a profile of JWT for workload identity. JWT-SVIDs are intended to be short-lived, with lifetimes in the order of minutes, and are obtained and renewed by the agent at runtime through the SPIFFE Workload API as described in <a href="#agent_credential_provisioning" class="auto internal xref">Section 8</a>.<a href="#section-9.2.1.1-1" class="pilcrow">¶</a></p>
-<p id="section-9.2.1.1-2">Because a JWT-SVID is a bearer credential, usable by whoever possesses it, the security of JWT-based authentication rests on the following three controls:<a href="#section-9.2.1.1-2" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-9.2.1.1-3">
-<li id="section-9.2.1.1-3.1">
-                <p id="section-9.2.1.1-3.1.1"><strong>Audience restriction.</strong> The agent requests a JWT-SVID whose 'aud' claim names the specific service it intends to call, and the relying party rejects any token whose 'aud' claim does not identify it. A JWT-SVID issued for one service cannot then be replayed by that service against another, which is the primary mitigation against token theft and confused-deputy attacks between agents and tools.<a href="#section-9.2.1.1-3.1.1" class="pilcrow">¶</a></p>
-</li>
-              <li id="section-9.2.1.1-3.2">
-                <p id="section-9.2.1.1-3.2.1"><strong>Short lifetime.</strong> The relying party rejects expired tokens, and issuers keep lifetimes as short as the deployment tolerates so that a leaked token has a narrow window of use. JWT-SVIDs are not revoked individually. Expiry and the rotation of trust domain signing keys are the revocation mechanisms, and the eventing mechanisms in <a href="#agent_monitoring_and_remediation" class="auto internal xref">Section 11</a> provide faster reaction where it is required.<a href="#section-9.2.1.1-3.2.1" class="pilcrow">¶</a></p>
-</li>
-              <li id="section-9.2.1.1-3.3">
-                <p id="section-9.2.1.1-3.3.1"><strong>Transport protection.</strong> Because the JWT-SVID is a bearer artefact, it must be transmitted over a secure channel such as TLS, and is never logged, placed in URLs, or made available to the Large Language Model (see <a href="#agent_credential_provisioning" class="auto internal xref">Section 8</a>).<a href="#section-9.2.1.1-3.3.1" class="pilcrow">¶</a></p>
-</li>
-            </ol>
-<p id="section-9.2.1.1-4">Relying parties validate JWT-SVIDs as specified in <span>[<a href="#SPIFFE-JWT-SVID" class="cite xref">SPIFFE-JWT-SVID</a>]</span> and apply the JWT security best current practices in <span>[<a href="#JWT-BCP" class="cite xref">JWT-BCP</a>]</span>.<a href="#section-9.2.1.1-4" class="pilcrow">¶</a></p>
-<p id="section-9.2.1.1-5">A JWT-SVID can also be used for OAuth client authentication, with the agent presenting it as the client assertion as defined in <span>[<a href="#OAUTH-SPIFFE" class="cite xref">OAUTH-SPIFFE</a>]</span> (see <a href="#user_delegates_authorization" class="auto internal xref">Section 10.5.1</a>).<a href="#section-9.2.1.1-5" class="pilcrow">¶</a></p>
+<p id="section-9.2.1.1-2">Relying parties validate JWT-SVIDs as specified in <span>[<a href="#SPIFFE-JWT-SVID" class="cite xref">SPIFFE-JWT-SVID</a>]</span> and apply the JWT security best current practices in <span>[<a href="#JWT-BCP" class="cite xref">JWT-BCP</a>]</span>.<a href="#section-9.2.1.1-2" class="pilcrow">¶</a></p>
+<p id="section-9.2.1.1-3">A JWT-SVID can also be used for OAuth client authentication, with the agent presenting it as the client assertion as defined in <span>[<a href="#OAUTH-SPIFFE" class="cite xref">OAUTH-SPIFFE</a>]</span> (see <a href="#user_delegates_authorization" class="auto internal xref">Section 10.5.1</a>).<a href="#section-9.2.1.1-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
