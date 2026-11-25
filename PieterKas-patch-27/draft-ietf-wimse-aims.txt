@@ -5,7 +5,7 @@
 WIMSE                                                       P. Kasselman
 Internet-Draft                                          Defakto Security
 Intended status: Informational                               J. Lombardo
-Expires: 4 May 2027                                                  AWS
+Expires: 29 May 2027                                                 AWS
                                                             Y. Rosomakho
                                                                  Zscaler
                                                              B. Campbell
@@ -14,7 +14,7 @@ Expires: 4 May 2027                                                  AWS
                                                                   OpenAI
                                                               A. Parecki
                                                                     Okta
-                                                         31 October 2026
+                                                        25 November 2026
 
 
                      AI Identity Management System
@@ -65,7 +65,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 4 May 2027.
+   This Internet-Draft will expire on 29 May 2027.
 
 Copyright Notice
 
@@ -95,27 +95,30 @@ Table of Contents
      9.1.  Transport Layer Authentication
        9.1.1.  Limitations
      9.2.  Application Layer Authentication
-       9.2.1.  WIMSE Proof Tokens (WPTs)
-       9.2.2.  HTTP Message Signatures
-       9.2.3.  Limitations
+       9.2.1.  JWT-Based Authentication
+       9.2.2.  WIMSE Proof Tokens (WPTs)
+       9.2.3.  HTTP Message Signatures
+       9.2.4.  Limitations
+     9.3.  Long-Lived Sessions and Streams
    10. Agent Authorization
      10.1.  Agent Mission
      10.2.  Leverage OAuth 2.0 as a Delegation Authorization Framework
      10.3.  Use of OAuth 2.0 Access Tokens
-     10.4.  Obtaining an OAuth 2.0 Access Token
-       10.4.1.  User Delegates Authorization
-       10.4.2.  Agent Obtains Own Authorization
-       10.4.3.  Agents Accessed by Systems or Other Agents
-       10.4.4.  OAuth 2.0 Security Best Practices
-     10.5.  Risk Reduction with Transaction Tokens
-     10.6.  Cross Domain Access
-     10.7.  Human in the Loop
-     10.8.  Tool-to-Service Access
-     10.9.  Privacy Considerations
-     10.10. OAuth 2.0 Discovery in Dynamic Environments
-       10.10.1.  Authorization Server Capability Discovery
-       10.10.2.  Protected Resource Capability Discovery
-       10.10.3.  Client Capability Discovery
+     10.4.  Interaction with Policy-Based Systems
+     10.5.  Obtaining an OAuth 2.0 Access Token
+       10.5.1.  User Delegates Authorization
+       10.5.2.  Agent Obtains Own Authorization
+       10.5.3.  Agents Accessed by Systems or Other Agents
+       10.5.4.  OAuth 2.0 Security Best Practices
+     10.6.  Risk Reduction with Transaction Tokens
+     10.7.  Cross Domain Access
+     10.8.  Human in the Loop
+     10.9.  Tool-to-Service Access
+     10.10. Privacy Considerations
+     10.11. OAuth 2.0 Discovery in Dynamic Environments
+       10.11.1.  Authorization Server Capability Discovery
+       10.11.2.  Protected Resource Capability Discovery
+       10.11.3.  Client Capability Discovery
    11. Agent Monitoring, Observability and Remediation
    12. Agent Authentication and Authorization Policy
    13. Agent Compliance
@@ -251,9 +254,14 @@ Table of Contents
    preserved and used as input to authorization decisions and recorded
    in audit trails.
 
+   Note: The arrows in Figure 1 indicate the direction in which
+   information flows between the participants and do not imply a
+   particular interaction style.  The model applies equally to request
+   and response exchanges and to streaming interactions.
+
    This document describes how AI Agents should leverage existing
-   standards defined by SPIFFE [SPIFFE], WIMSE, OAuth, OpenID Connect
-   and OpenID SSF [SSF].
+   standards defined by SPIFFE [SPIFFE], WIMSE, OAuth and OpenID SSF
+   [SSF].
 
 5.  Agent Identity Management System
 
@@ -266,10 +274,9 @@ Table of Contents
    providers, provisioning services, authorization servers, policy
    engines, and runtime enforcement points).
 
-   An Agent Identity Management System ensures that the right Agent has
-   access to the right resources and tools at the right time for the
-   right reason.  An Agent identity management system depends on the
-   following components to achieve its goals:
+   AIMS ensures that the right Agent has access to the right resources
+   and tools at the right time for the right reason.  Such a system
+   depends on the following components to achieve its goals:
 
    *  *Agent Identifiers:* Unique identifier assigned to every Agent.
 
@@ -292,7 +299,7 @@ Table of Contents
       behavior and system state.
 
    *  *Agent Authentication and Authorization Policy:* The configuration
-      and rules for each of the Agent Identity Management System.
+      and rules for each of the AIMS components.
 
    *  *Agent Compliance:* Measurement of the state and functioning of
       the system against the stated policies.
@@ -340,13 +347,30 @@ Table of Contents
    An agent participating in this framework MUST be assigned exactly one
    WIMSE identifier, which MAY be a SPIFFE ID.
 
+   The lifecycle of an agent identifier is distinct from the lifecycle
+   of the credentials bound to it.  Credentials are short-lived and
+   expire while the identifier persists.  When an agent is retired, its
+   identifier must not be reassigned to a different agent, and the
+   records that reference it (audit logs, authorization decisions,
+   delegation records and security signals) remain interpretable for as
+   long as the deployment's retention policy requires, which is
+   typically longer than the agent's operational lifetime.  The registry
+   or namespace in which agent identifiers are allocated, and the
+   retention period applied to retired identifiers, are deployment-
+   specific and out of scope for this document.
+
 7.  Agent Credentials
 
    Agents MUST possess credentials that provide a cryptographic binding
    to the agent identifier.  These credentials are considered primary
+   credentials that are provisioned at runtime.
+
+   Agents MUST possess credentials that provide a cryptographic binding
+   to the agent identifier.  These credentials are considered primary
    credentials that are provisioned at runtime.  An identifier alone is
-   insufficient unless it can be verified to be controlled by the
-   communicating agent through a cryptographic binding.
+   insufficient unless it is carried in a credential that
+   cryptographically binds it to the agent, either through the issuer's
+   signature or through a key the agent proves possession of.
 
    WIMSE defines two credential formats in [WIMSE-CRED]: the Workload
    Identity Token (WIT) and the transport-layer X.509 Workload Identity
@@ -364,6 +388,42 @@ Table of Contents
    which it is no longer accepted, and MAY carry additional attributes
    relevant to the agent (for example trust domain, attestation
    evidence, or workload metadata).
+
+   An Agent may have bearer credentials, key-bound credentials, or both.
+   Section 3.1.3 of [WIMSE-ARCH] and Section 4.4 of [WIMSE-ARCH]
+   describe the distinction between these types of credentials.  The
+   WIT, WIC, X.509-SVID and WIT-SVID are key-bound credentials.  Each
+   binds a public key to the agent identifier, and the agent
+   authenticates by proving possession of the corresponding private key.
+   The JWT-SVID is a bearer credential.  It is signed by the issuer and
+   asserts the agent identifier, and the agent authenticates by
+   presenting it.  Any party that obtains a bearer credential can
+   present it until it expires.  Deployments that use bearer credentials
+   depend on short lifetimes, audience restriction and transport
+   protection in place of key binding, as described in Section 5 of
+   [BEARER].  Section 9 describes how Agents use key-bound and bearer
+   credentials for authentication.
+
+   Agent credentials differ in how the agent demonstrates that it is the
+   legitimate holder.  The WIT, WIC, X.509-SVID and WIT-SVID are key-
+   bound credentials: each binds a public key to the agent identifier,
+   and the agent authenticates by proving possession of the
+   corresponding private key, which is never transmitted.  The JWT-SVID
+   is a bearer credential: it is signed by the issuer and asserts the
+   agent identifier, but the agent authenticates simply by presenting
+   it, so any party that obtains the token can use it until it expires.
+   Section 3.1.3 of [WIMSE-ARCH] and Section 4.4 of [WIMSE-ARCH]
+   describe this distinction and the greater exposure of bearer
+   credentials to theft and reuse.  A bearer credential nonetheless
+   carries the properties that matter for agent identity: it is signed
+   by a known issuer and names the agent, so the receiving party learns
+   who is calling and can verify the assertion was not forged; it
+   carries an expiry, so a disclosed token stops working without
+   operator intervention; and it carries an audience, so it cannot be
+   presented to a service other than the one it was issued for.
+   Deployments that use bearer credentials rely on short lifetimes,
+   audience restriction and transport protection in place of key
+   binding; see Section 9.2.1.1 for their use in authentication.
 
    Deployments can improve the assurance of agent identity by protecting
    private keys using hardware-backed or isolated cryptographic storage
@@ -428,17 +488,32 @@ Table of Contents
    short-lived credentials for subsequent authentication and
    authorization.
 
-   An Agent Identity Management System may incorporate multiple posture
-   assessment mechanisms and implementations.  The selection of
-   mechanisms depends on deployment constraints, such as the underlying
-   platform, available identity signals, and desired level of trust
-   assurance.  This document does not require any particular posture
-   assessment mechanism, evidence format, or verifier architecture.
+   An AIMS implementation may incorporate multiple posture assessment
+   mechanisms and implementations.  The selection of mechanisms depends
+   on deployment constraints, such as the underlying platform, available
+   identity signals, and desired level of trust assurance.  This
+   document does not require any particular posture assessment
+   mechanism, evidence format, or verifier architecture.
 
    Agent credential provisioning must operate autonomously, scale to
    high-churn environments, and integrate closely with the posture
    assessment mechanisms used to establish trust in the Agent at each
    issuance or rotation event.
+
+   Posture assessment at provisioning time establishes trust at the
+   moment a credential is issued or renewed.  It does not by itself
+   establish that the posture still holds when a particular request is
+   made.  Higher-risk deployments, and interactions that cross trust
+   domain boundaries, may require posture evidence that is closer to the
+   time of the request.  Two approaches are available with existing
+   mechanisms:
+
+   1.  Shortening credential lifetimes so that renewal, and with it re-
+       assessment, occurs more frequently.
+
+   2.  Using the eventing mechanisms described in Section 11 so that a
+       change in posture detected after issuance results in revocation
+       or down-scoping of the agent's credentials and tokens.
 
    Agent credential provisioning typically includes two phases:
 
@@ -452,6 +527,16 @@ Table of Contents
        credentials before expiration.  Continuous rotation ensures that
        credentials remain valid only for the minimum necessary time and
        that authorization state reflects current operational conditions.
+
+   3.  *Deprovisioning*: The termination of an agent's credentials when
+       the agent is retired, when its posture no longer satisfies
+       policy, or when its identity is believed to be compromised.  At a
+       minimum, deprovisioning stops renewal so that outstanding short-
+       lived credentials expire and are not replaced.  Where the change
+       must take effect before expiry, the issuer signals the status
+       change to relying parties and to the issuers of any credentials
+       derived from the agent's primary credential, so that the derived
+       credentials are revoked or cease to be accepted as well.
 
    The use of short-lived credentials provides a significant improvement
    in the risk profile and risk of credential exposure.  It provides an
@@ -525,16 +610,98 @@ Table of Contents
    The WIMSE working group defines WIMSE Proof Tokens and HTTP Message
    Signatures as authentication mechanisms that may be used by agents.
 
-9.2.1.  WIMSE Proof Tokens (WPTs)
+9.2.1.  JWT-Based Authentication
+
+   JWT-based authentication is an application-layer mechanism in which
+   the agent presents a signed JSON Web Token (JWT) [JWT] that asserts
+   its identity to the receiving party.  The token is typically carried
+   in the HTTP Authorization header using the Bearer scheme, but the
+   same token can be conveyed in message headers or metadata of other
+   protocols, which makes it well suited to environments with
+   intermediaries and to protocols other than HTTP.  The receiving party
+   validates the token signature against the issuer's published keys and
+   checks the token's claims, without any interaction with the issuer at
+   request time.
+
+   Although a JWT shares the bearer property with a static API key, it
+   does not share the other weaknesses noted in Section 7.  A JWT is
+   signed by an issuer and carries the agent's identity as a claim, so
+   the receiving party learns who is calling and can verify that the
+   assertion was not forged, rather than inferring identity from
+   possession of an opaque secret.  A JWT carries an expiry, so a
+   disclosed token stops working on its own and routine rotation is a
+   property of the credential rather than an operational task.  A JWT
+   carries an audience, so a token obtained by one service cannot be
+   presented to another.  An API key has none of these properties: it is
+   valid for every endpoint that accepts it, for as long as nobody
+   rotates it, and it says nothing about who is presenting it.
+
+9.2.1.1.  JWT-SVID
+
+   The SPIFFE JWT-SVID [SPIFFE-JWT-SVID] is a profile of JWT for
+   workload identity.  A JWT-SVID is issued by the agent's trust domain,
+   carries the agent's SPIFFE ID as the 'sub' claim, MUST contain an
+   'aud' claim identifying the intended recipient(s), and MUST contain
+   an 'exp' claim.  It may contain additional claims.  JWT-SVIDs are
+   intended to be short-lived, with lifetimes in the order of minutes,
+   and are obtained and renewed by the agent at runtime through the
+   SPIFFE Workload API as described in Section 8.  A relying party
+   validates a JWT-SVID using the JWT signing keys from the trust
+   domain's bundle, which it obtains through the Workload API or, for an
+   agent in another trust domain, through SPIFFE Federation (see
+   Section 10.7).
+
+   Because a JWT-SVID is a bearer credential, usable by whoever
+   possesses it, the security of JWT-based authentication rests on the
+   following three controls:
+
+   1.  *Audience restriction.* The agent requests a JWT-SVID whose 'aud'
+       claim names the specific service it intends to call, and the
+       relying party rejects any token whose 'aud' claim does not
+       identify it.  A JWT-SVID issued for one service cannot then be
+       replayed by that service against another, which is the primary
+       mitigation against token theft and confused-deputy attacks
+       between agents and tools.
+
+   2.  *Short lifetime.* The relying party rejects expired tokens, and
+       issuers keep lifetimes as short as the deployment tolerates so
+       that a leaked token has a narrow window of use.  JWT-SVIDs are
+       not revoked individually.  Expiry and the rotation of trust
+       domain signing keys are the revocation mechanisms, and the
+       eventing mechanisms in Section 11 provide faster reaction where
+       it is required.
+
+   3.  *Transport protection.* Because the JWT-SVID is a bearer
+       artefact, it must be transmitted over a secure channel such as
+       TLS, and is never logged, placed in URLs, or made available to
+       the Large Language Model (see Section 8).
+
+   Relying parties validate JWT-SVIDs as specified in [SPIFFE-JWT-SVID]
+   and apply the JWT security best current practices in [JWT-BCP].
+
+   A JWT-SVID can also be used for OAuth client authentication, with the
+   agent presenting it as the client assertion as defined in
+   [OAUTH-SPIFFE] (see Section 10.5.1).
+
+   The trade-off between bearer and key-bound credentials is described
+   in Section 3.1.3 of [WIMSE-ARCH] and Section 4.4 of [WIMSE-ARCH].  A
+   bearer token that is disclosed can be reused by whoever obtains it,
+   whereas a credential bound to a cryptographic key cannot be used
+   without the key.  The WIT with WPTs (Section 9.2.2) or HTTP Message
+   Signatures, and the SPIFFE WIT-SVID [SPIFFE-WIT-SVID], are the key-
+   bound alternatives to the JWT-SVID for deployments that need proof of
+   possession at the application layer.
+
+9.2.2.  WIMSE Proof Tokens (WPTs)
 
    WIMSE Workload Proof Tokens (WPTs, [WIMSE-WPT]) are a protocol-
    independent, application-layer mechanism for proving possession of
    the private key associated with a Workload Identity Token (WIT).
    WPTs are generated by the agent, using the private key matching the
-   public key in the WIT.  A WPT is defined as a signed JSON Web Token
-   (JWT) that binds an agent’s authentication to a specific message
-   context, for example, an HTTP request, thereby providing proof of
-   possession rather than relying on bearer semantics.
+   public key in the WIT.  A WPT is defined as a signed JWT that binds
+   an agent’s authentication to a specific message context, for example,
+   an HTTP request, thereby providing proof of possession rather than
+   relying on bearer semantics.
 
    WPTs are designed to work alongside WITs [WIMSE-CRED] and are
    typically short-lived to reduce the window for replay attacks.  They
@@ -555,7 +722,7 @@ Table of Contents
    transport-layer identity (e.g., mutual TLS) is insufficient or
    unavailable.
 
-9.2.2.  HTTP Message Signatures
+9.2.3.  HTTP Message Signatures
 
    The WIMSE Workload-to-Workload Authentication with HTTP Signatures
    specification [WIMSE-HTTPSIG] defines an application-layer
@@ -577,7 +744,7 @@ Table of Contents
    scheme, or authority; those are only protected if separately covered
    (e.g., @method, @scheme, @authority).
 
-9.2.3.  Limitations
+9.2.4.  Limitations
 
    Unlike transport-layer authentication, application-layer
    authentication does not inherently provide channel binding to the
@@ -587,6 +754,22 @@ Table of Contents
    typically mitigate these risks through short token lifetimes,
    audience restrictions, nonce or unique identifier checks, and binding
    authentication to specific requests or transaction parameters.
+
+9.3.  Long-Lived Sessions and Streams
+
+   In a long lived session or a streaming connection, the Agent is
+   authenticated when the session is established, using the mechanisms
+   described above, and the authorization granted at that point is
+   bounded by the lifetime of the credential or token presented.
+   Because a session may outlive the credential or token used to
+   establish it, the Agent keeps its credentials current through the
+   automated rotation described in Section 8, the party accepting the
+   session re-validates authorization when the credential or token
+   expires, and both act on revocation or risk signals (Section 11) by
+   terminating or down-scoping the session rather than allowing it to
+   run to completion.  Where individual messages within a session
+   require their own proof of possession, WPTs (Section 9.2.2) can be
+   applied to those messages.
 
 10.  Agent Authorization
 
@@ -645,16 +828,15 @@ Table of Contents
    includes additional claims to convey contextual, attestation-derived,
    or policy-related information that enables fine-grained access
    control.  The resource server uses the access token and the
-   information it contains along with other authorization systems (e.g.
-   policy based, attribute based or role based authorization systems)
-   when enforcing access control.  JWT access tokens can be validated
-   directly by resource servers while other formats that are opaque to
-   the resource server can be validated through a mechanism that calls
-   back to the authorization server (the mechanism is called
-   introspection despite the word having nearly the opposite meaning).
-   This framework supports both models and does not require a specific
-   token format, provided that equivalent authorization semantics are
-   maintained.
+   information it contains along with other inputs, as described in
+   Section 10.4, when enforcing access control.  JWT access tokens can
+   be validated directly by resource servers while other formats that
+   are opaque to the resource server can be validated through a
+   mechanism that calls back to the authorization server (the mechanism
+   is called introspection despite the word having nearly the opposite
+   meaning).  This framework supports both models and does not require a
+   specific token format, provided that equivalent authorization
+   semantics are maintained.
 
    A resource server in receipt of tokens opaque to it are able to
    obtain authorization and other information from the token through
@@ -663,7 +845,47 @@ Table of Contents
    associated authorization attributes equivalent to those conveyed in
    structured tokens.
 
-10.4.  Obtaining an OAuth 2.0 Access Token
+10.4.  Interaction with Policy-Based Systems
+
+   In some deployments the claims in an access token are sufficient for
+   a resource server to make an authorization decision on their own.
+   Where they are not, the access token becomes one input to a decision
+   made by a policy-based authorization system (for example a policy-,
+   attribute- or role-based system), which evaluates it together with
+   other inputs.  The authenticated identity of the requester
+   (Section 9), the resource and action requested, the delegated User or
+   System context, posture and risk signals (Section 8, Section 11), and
+   environmental attributes such as time or network location.  The
+   policy itself, and the language in which it is expressed, are local
+   to the resource server and its trust domain.
+
+   Within a trust domain the components are operated by one organization
+   and the use of a policy langugage within that domain is a deployment
+   choice.  Across trust domains, the mechanisms in Section 10.7 convey
+   the outcome of a policy decision made in one domain to another domain
+   as a token with defined claims and scope, rather than conveying the
+   policy itself.  Each domain continues to evaluate its own policy
+   against the tokens it receives.  A common policy language is
+   therefore not required for the mechanisms in this document to
+   interoperate across trust domains.
+
+   Where policy is managed centrally or shared by several resource
+   servers, a resource server may request decisions from an external
+   policy decision point rather than evaluating policy itself.  A common
+   interface for that interaction is defined by the OpenID AuthZEN
+   Authorization API [AuthZEN-API].  Access tokens may be sender-
+   constrained to mitigate the risk of accidental token leakage or
+   deliberate token theft, so that a token obtained by an attacker
+   cannot be used without the corresponding key.  Sender-constraining
+   may use certificate-bound access tokens [OAUTH-CLIENTAUTH-MTLS], when
+   the Agent presents an X.509 credential over mutual TLS, or
+   Demonstrating Proof of Possession (DPoP) [OAUTH-DPOP], when
+   transport-layer binding is not feasible.  The use of sender-
+   constrained access tokens is described in the OAuth 2.0 Security Best
+   Current Practice [OAUTH-BCP] and the FAPI 2.0 Security Profile
+   [FAPI].
+
+10.5.  Obtaining an OAuth 2.0 Access Token
 
    OAuth 2.0 defines a number authorization grant flows in support of
    different authorization scenarios.  The appropriate flow depends on
@@ -671,7 +893,7 @@ Table of Contents
    involvement.  The following subsections describe the most relevant
    flows for Agent authorization.
 
-10.4.1.  User Delegates Authorization
+10.5.1.  User Delegates Authorization
 
    When a User delegates authorization to an Agent, the Authorization
    Code Grant as described in Section 4.1 of [OAUTH-FRAMEWORK] is the
@@ -700,7 +922,7 @@ Table of Contents
    OAuth negates the need for the Agent to have access to a User's
    credentials when accessing a resource on the User's behalf.
 
-10.4.2.  Agent Obtains Own Authorization
+10.5.2.  Agent Obtains Own Authorization
 
    Agents obtaining access tokens on their own behalf can use the Client
    Credentials Grant as described in Section 4.4 of [OAUTH-FRAMEWORK] or
@@ -712,19 +934,19 @@ Table of Contents
    lived client secrets.  When using the JWT Authorization Grant, the
    Agent will be identified in the subject of the JWT assertion.
 
-10.4.3.  Agents Accessed by Systems or Other Agents
+10.5.3.  Agents Accessed by Systems or Other Agents
 
    Agents themselves can act in the role of an OAuth protected resource
    and be invoked by a System (e.g. a batch job or another Agent).  The
    System obtains an access token using an appropriate mechanism and
    then invokes the Agent presenting the access token.
 
-10.4.4.  OAuth 2.0 Security Best Practices
+10.5.4.  OAuth 2.0 Security Best Practices
 
    The Best Current Practice for OAuth 2.0 Security as described in
    [OAUTH-BCP] are applicable when requesting and using access tokens.
 
-10.5.  Risk Reduction with Transaction Tokens
+10.6.  Risk Reduction with Transaction Tokens
 
    Resources servers, whether they are LLMs, Tools or Agents (in the
    Agent-to-Agent case) may be composed of multiple microservices that
@@ -755,13 +977,20 @@ Table of Contents
    transaction details (e.g. change in transaction amount).  Transaction
    tokens are typically short-lived, further limiting the risk in case
    they are obtained by an attacker by limiting the time window during
-   which these tokens will be accepted.
+   which these tokens will be accepted.  The scope of access conveyed by
+   each token in this sequence of exchanges can never exceed that of the
+   token presented to obtain it.  At each exchange the authorization
+   server (or transaction token service) evaluates its authorization
+   policy and makes the final decision on whether to issue a token and
+   with what scope.
 
-   A transaction token MAY be used to obtain an access token to call
-   another service (e.g. another Agent, Tool or LLM) by using OAuth 2.0
-   Token Exchange as defined in [OAUTH-TOKEN-EXCHANGE].
+   A transaction token may be presented in an OAuth 2.0 Token Exchange
+   [OAUTH-TOKEN-EXCHANGE] to obtain an access token for another service
+   (e.g. another Agent, Tool or LLM).  Obtaining an access token for a
+   service in another trust domain when the Agent has a transaction is
+   described in Section 10.7.
 
-10.6.  Cross Domain Access
+10.7.  Cross Domain Access
 
    Agents often require access to resources that are protected by
    different OAuth 2.0 authorization servers.  When the components in
@@ -796,18 +1025,18 @@ Table of Contents
    deployments to simplify authorization delegation for multiple
    software-as-a-service offerings.
 
-10.7.  Human in the Loop
+10.8.  Human in the Loop
 
    An OAuth authorization server MAY conclude that the level of access
    requested by an Agent requires explicit user confirmation.  In such
    cases the authorization server SHOULD either decline the request or
    obtain additional authorization from the User.  An Agent, acting as
    an OAuth client, can use the OpenID Client Initiated Backchannel
-   Authentication (CIBA) protocol ([OpenIDConnect.CIBA]).  This triggers
-   an out-of-band interaction allowing the user to approve or deny the
-   requested operation without exposing credentials to the agent (for
-   example a push notification requesting the user to approve a request
-   through an authenticator application on their mobile device).
+   Authentication (CIBA) protocol ([CIBA]).  This triggers an out-of-
+   band interaction allowing the user to approve or deny the requested
+   operation without exposing credentials to the agent (for example a
+   push notification requesting the user to approve a request through an
+   authenticator application on their mobile device).
 
    Interactive agent frameworks may also solicit user confirmation
    directly during task execution (for example tool invocation approval
@@ -831,13 +1060,13 @@ Table of Contents
    initiation, which doesn't map well to cases that envision the need
    for User confirmation to occur mid-execution.
 
-10.8.  Tool-to-Service Access
+10.9.  Tool-to-Service Access
 
    Tools expose interfaces to underlying services and resources.  Access
    to the Tools can be controlled by OAuth and augmented by policy,
    attribute or role based authorization systems (amongst others).  If
    the Tools are implemented as one or more microservices, it should use
-   transaction tokens to reduce risk as described in Section 10.5 to
+   transaction tokens to reduce risk as described in Section 10.6 to
    avoid passing access tokens around within the Tool implementation.
 
    Access from the Tools to the resources and services MAY be controlled
@@ -855,7 +1084,7 @@ Table of Contents
    received from the Agent to Services or Resources.  It increases the
    risk of credential theft and lateral attacks.
 
-10.9.  Privacy Considerations
+10.10.  Privacy Considerations
 
    Authorization tokens may contain user identifiers, agent identifiers,
    audience restrictions, transaction details, and contextual
@@ -877,7 +1106,7 @@ Table of Contents
    authorization exchanges only disclose information required for the
    target authorization decision.
 
-10.10.  OAuth 2.0 Discovery in Dynamic Environments
+10.11.  OAuth 2.0 Discovery in Dynamic Environments
 
    In dynamic Agent deployments (e.g., ephemeral workloads, multi-tenant
    services, and frequently changing endpoint topology), Agents and
@@ -885,18 +1114,18 @@ Table of Contents
    static configuration and to bind runtime decisions to verifiable
    metadata.
 
-10.10.1.  Authorization Server Capability Discovery
+10.11.1.  Authorization Server Capability Discovery
 
    An Agent that needs to obtain tokens can discover authorization
    server endpoints and capabilities using OAuth 2.0 Authorization
    Server Metadata [OAUTH-SERVER-METADATA] and/or OpenID Connect
-   Discovery [OpenIDConnect.Discovery].  This allows the Agent to learn
-   the authorization server issuer identifier, authorization and token
+   Discovery [OIDC.Discovery].  This allows the Agent to learn the
+   authorization server issuer identifier, authorization and token
    endpoints, supported grant types, client authentication methods,
    signing keys (via jwks_uri), and other relevant capabilities without
    preconfiguring them.
 
-10.10.2.  Protected Resource Capability Discovery
+10.11.2.  Protected Resource Capability Discovery
 
    When an Agent is invoking a Tool, the Agent MAY use OAuth 2.0
    Protected Resource Metadata [OAUTH-RESOURCE-METADATA] to discover how
@@ -911,7 +1140,7 @@ Table of Contents
    similar way as an Agent.  Similarly, a System may use
    [OAUTH-RESOURCE-METADATA] when accessing an Agent.
 
-10.10.3.  Client Capability Discovery
+10.11.3.  Client Capability Discovery
 
    Other actors (e.g., Authorization Servers, registrars, or policy
    systems) may need to learn about any entities (System, Agent, Tool)
@@ -995,7 +1224,8 @@ Table of Contents
    Section 8, Agent Authentication Section 9, Agent Authorization
    Section 10 and Agent Monitoring, Observability and Remediation
    Section 11 collectively constitute the authentication and
-   authorization policy within which the Agent operates.
+   authorization policy within which the Agent operates within an AIMS
+   implementation.
 
    Because these parameters are highly deployment and risk-model-
    specific (and often reflect local governance, regulatory, and
@@ -1029,16 +1259,16 @@ Table of Contents
    for the Oauth protocol famility.  The OAuth 2.0 Security Best Current
    Practice [OAUTH-BCP] which captures current guidance on threats and
    mitigations that have emerged since the original OAuth 2.0
-   specifications were published.  The FAPI 2.0 Security Profile
-   [OpenIDConnect.FAPI] defines a high-assurance profile of OAuth 2.0
-   suitable for high security applications.
+   specifications were published.  The FAPI 2.0 Security Profile [FAPI]
+   defines a high-assurance profile of OAuth 2.0 suitable for high
+   security applications.
 
 15.  Privacy Considerations
 
    This document composes existing specifications to enable
    authentication and authorization between AI agents.
 
-   In addition to the the privacy considerations in Section 10.9, the
+   In addition to the the privacy considerations in Section 10.10, the
    privacy considerations in each referenced specification apply in
    full.
 
@@ -1050,11 +1280,8 @@ Table of Contents
 
    The authors would like to thank:
 
-   *  Sean O'Dell for providing valuable input and feedback on this
-      work.
-
-   *  Karl McGuinness for his blog posts on mission shaping as a pre-
-      cursor to authorization [MissionShaping]
+   Sean O'Dell, Karl McGuinness and Atul Tulshibagwale for reviewing,
+   providing feedback and support for this work.
 
 18.  References
 
@@ -1069,12 +1296,40 @@ Table of Contents
    [AP2]      "Agent Payments Protocol (AP2)", n.d.,
               <https://github.com/google-agentic-commerce/AP2>.
 
+   [AuthZEN-API]
+              Gazitt, O., Ed., Brossard, D., Ed., and A. Tulshibagwale,
+              Ed., "Authorization API 1.0", 2026,
+              <https://openid.net/specs/authorization-api-1_0.html>.
+
+   [BEARER]   Jones, M. and D. Hardt, "The OAuth 2.0 Authorization
+              Framework: Bearer Token Usage", RFC 6750,
+              DOI 10.17487/RFC6750, October 2012,
+              <https://www.rfc-editor.org/rfc/rfc6750>.
+
    [CAEP]     "OpenID Continuous Access Evaluation Profile 1.0", n.d.,
               <https://openid.net/specs/openid-caep-1_0-final.html>.
+
+   [CIBA]     "OpenID Connect Client-Initiated Backchannel
+              Authentication Flow - Core 1.0", n.d.,
+              <https://openid.net/specs/openid-client-initiated-
+              backchannel-authentication-core-1_0.html>.
+
+   [FAPI]     "FAPI 2.0 Security Profile", n.d.,
+              <https://openid.net/specs/fapi-security-profile-
+              2_0-final.html>.
 
    [HTTP-SIG] Backman, A., Ed., Richer, J., Ed., and M. Sporny, "HTTP
               Message Signatures", RFC 9421, DOI 10.17487/RFC9421,
               February 2024, <https://www.rfc-editor.org/rfc/rfc9421>.
+
+   [JWT]      Jones, M., Bradley, J., and N. Sakimura, "JSON Web Token
+              (JWT)", RFC 7519, DOI 10.17487/RFC7519, May 2015,
+              <https://www.rfc-editor.org/rfc/rfc7519>.
+
+   [JWT-BCP]  Sheffer, Y., Hardt, D., and M. Jones, "JSON Web Token Best
+              Current Practices", BCP 225, RFC 8725,
+              DOI 10.17487/RFC8725, February 2020,
+              <https://www.rfc-editor.org/rfc/rfc8725>.
 
    [MCP]      "Model Context Protocol", n.d.,
               <https://modelcontextprotocol.io/specification>.
@@ -1093,9 +1348,9 @@ Table of Contents
    [OAUTH-CLIENT-METADATA]
               Parecki, A. and E. Smith, "OAuth Client ID Metadata
               Document", Work in Progress, Internet-Draft, draft-ietf-
-              oauth-client-id-metadata-document-02, 6 July 2026,
+              oauth-client-id-metadata-document-03, 2 November 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-oauth-
-              client-id-metadata-document-02>.
+              client-id-metadata-document-03>.
 
    [OAUTH-CLIENTAUTH-JWT]
               Jones, M., Campbell, B., and C. Mortimore, "JSON Web Token
@@ -1109,6 +1364,12 @@ Table of Contents
               and Certificate-Bound Access Tokens", RFC 8705,
               DOI 10.17487/RFC8705, February 2020,
               <https://www.rfc-editor.org/rfc/rfc8705>.
+
+   [OAUTH-DPOP]
+              Fett, D., Campbell, B., Bradley, J., Lodderstedt, T.,
+              Jones, M., and D. Waite, "OAuth 2.0 Demonstrating Proof of
+              Possession (DPoP)", RFC 9449, DOI 10.17487/RFC9449,
+              September 2023, <https://www.rfc-editor.org/rfc/rfc9449>.
 
    [OAUTH-FRAMEWORK]
               Hardt, D., Ed., "The OAuth 2.0 Authorization Framework",
@@ -1153,9 +1414,9 @@ Table of Contents
               Schwenkschuster, A., Kasselman, P., Rose, S., Thorgersen,
               S., and N. Cam-Winget, "OAuth SPIFFE Client
               Authentication", Work in Progress, Internet-Draft, draft-
-              ietf-oauth-spiffe-client-auth-02, 15 June 2026,
+              ietf-oauth-spiffe-client-auth-03, 2 November 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-oauth-
-              spiffe-client-auth-02>.
+              spiffe-client-auth-03>.
 
    [OAUTH-TOKEN-EXCHANGE]
               Jones, M., Nadalin, A., Campbell, B., Ed., Bradley, J.,
@@ -1183,26 +1444,10 @@ Table of Contents
               <https://datatracker.ietf.org/doc/html/draft-ietf-oauth-
               transaction-tokens-11>.
 
-   [OpenIDConnect.AuthZEN]
-              Gazitt, O., Ed., Brossard, D., Ed., and A. Tulshibagwale,
-              Ed., "Authorization API 1.0", 2026,
-              <https://openid.net/specs/authorization-api-1_0.html>.
-
-   [OpenIDConnect.CIBA]
-              "OpenID Connect Client-Initiated Backchannel
-              Authentication Flow - Core 1.0", n.d.,
-              <https://openid.net/specs/openid-client-initiated-
-              backchannel-authentication-core-1_0.html>.
-
-   [OpenIDConnect.Discovery]
+   [OIDC.Discovery]
               "OpenID Connect Discovery 1.0", n.d.,
               <https://openid.net/specs/openid-connect-discovery-
               1_0-final.html>.
-
-   [OpenIDConnect.FAPI]
-              "FAPI 2.0 Security Profile", n.d.,
-              <https://openid.net/specs/fapi-security-profile-
-              2_0-final.html>.
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
@@ -1220,6 +1465,11 @@ Table of Contents
    [SPIFFE]   "Secure Production Identity Framework for Everyone", n.d.,
               <https://spiffe.io/docs/latest/spiffe-about/overview/>.
 
+   [SPIFFE-FEDERATION]
+              "SPIFFE Federation", n.d.,
+              <https://github.com/spiffe/spiffe/blob/main/standards/
+              SPIFFE_Federation.md>.
+
    [SPIFFE-ID]
               "SPIFFE-ID", n.d.,
               <https://github.com/spiffe/spiffe/blob/main/standards/
@@ -1235,6 +1485,11 @@ Table of Contents
               <https://github.com/spiffe/spiffe/blob/draft-wit-
               svid/standards/WIT-SVID.md>.
 
+   [SPIFFE-WORKLOAD-API]
+              "SPIFFE Workload API", n.d.,
+              <https://github.com/spiffe/spiffe/blob/main/standards/
+              SPIFFE_Workload_API.md>.
+
    [SPIFFE-X509-SVID]
               "The X.509 SPIFFE Verifiable Identity Document", n.d.,
               <https://github.com/spiffe/spiffe/blob/main/standards/
@@ -1248,9 +1503,9 @@ Table of Contents
               Salowey, J. A., Rosomakho, Y., and H. Tschofenig,
               "Workload Identity in a Multi System Environment (WIMSE)
               Architecture", Work in Progress, Internet-Draft, draft-
-              ietf-wimse-arch-08, 6 July 2026,
+              ietf-wimse-arch-09, 16 November 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-wimse-
-              arch-08>.
+              arch-09>.
 
    [WIMSE-CRED]
               Campbell, B., Salowey, J. A., Schwenkschuster, A.,
@@ -1263,9 +1518,9 @@ Table of Contents
    [WIMSE-HTTPSIG]
               Salowey, J. A. and Y. Sheffer, "WIMSE Workload-to-Workload
               Authentication with HTTP Signatures", Work in Progress,
-              Internet-Draft, draft-ietf-wimse-http-signature-08, 20
-              October 2026, <https://datatracker.ietf.org/doc/html/
-              draft-ietf-wimse-http-signature-08>.
+              Internet-Draft, draft-ietf-wimse-http-signature-09, 20
+              November 2026, <https://datatracker.ietf.org/doc/html/
+              draft-ietf-wimse-http-signature-09>.
 
    [WIMSE-ID] Rosomakho, Y. and J. A. Salowey, "Workload Identifier",
               Work in Progress, Internet-Draft, draft-ietf-wimse-
@@ -1292,7 +1547,15 @@ Table of Contents
 
 Appendix A.  Document History
 
-   [[ To be removed from the final specification ]] -01
+   [[ To be removed from the final specification ]] -02
+
+   *  Describe how JWT based authentication may be used by agents
+      (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/
+      issues/186)
+
+   *  Add Atul Tulshibagwale to the acknowledgements
+
+   -01
 
    *  Editorial updates
 
@@ -1309,8 +1572,32 @@ Appendix A.  Document History
    *  Added reference to newly adopted WISE draft (https://github.com/
       ietf-wg-wimse/draft-ietf-wimse-aims/issues/153)
 
-   *  Added mention of OpenID Connect (https://github.com/ietf-wg-wimse/
-      draft-ietf-wimse-aims/issues/133)
+   *  Address concerns about circularity of using a transaction token to
+      get an access token (https://github.com/ietf-wg-wimse/draft-ietf-
+      wimse-aims/issues/126)
+
+   *  Explicit guidance on policy langugages and policy based systems
+      (https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/
+      issues/124)
+
+   *  Added text on sender constraining tokens (https://github.com/ietf-
+      wg-wimse/draft-ietf-wimse-aims/issues/126)
+
+   *  Make it explicit that the AIMS draft applies regardless of
+      streaming or request/response interactions (https://github.com/
+      ietf-wg-wimse/draft-ietf-wimse-aims/issues/129)
+
+   *  Added text to clarify that posture assessment is ongoing with
+      forward pointing references. (https://github.com/ietf-wg-wimse/
+      draft-ietf-wimse-aims/issues/128)
+
+   *  Make deprovisioning explicit (https://github.com/ietf-wg-wimse/
+      draft-ietf-wimse-aims/issues/125)
+
+   *  Re-use the AIMS term (https://github.com/ietf-wg-wimse/draft-ietf-
+      wimse-aims/issues/135)
+
+   *  fix up some reference names
 
    -03
 
