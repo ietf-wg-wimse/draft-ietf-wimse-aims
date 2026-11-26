@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-11-24T08:51:47.471126+00:00",
+  "timestamp": "2026-11-26T07:15:51.764437+00:00",
   "repo": "ietf-wg-wimse/draft-ietf-wimse-aims",
   "labels": [
     {
@@ -3145,7 +3145,7 @@
       "labels": [],
       "body": "I wanted to push back on the statement that \"AIMS requires tamper-evident audit logs\" in https://mailarchive.ietf.org/arch/msg/wimse/7WwiusWW7wMZSuhkK1o5T_bBKpE/ because such a requirement isn't about interop and thus arguable out of place as a normative things. But I was somewhat disappointed to find that the statement was correct per https://datatracker.ietf.org/doc/html/draft-ietf-wimse-aims-00#section-11-3 \n\nI'd argue we should change that. \n\n",
       "createdAt": "2026-10-23T16:52:33Z",
-      "updatedAt": "2026-11-20T23:44:21Z",
+      "updatedAt": "2026-11-24T21:17:09Z",
       "closedAt": null,
       "comments": [
         {
@@ -3154,6 +3154,55 @@
           "body": "An implementation data point on what the current Section 11 wording costs to meet, since the question here is whether \"tamper-evident\" belongs in normative text.\n\nSection 11 of draft-ietf-wimse-aims-00 says audit records MUST be tamper-evident and retained according to the security policy of the deployment. I mapped that requirement onto an existing record format in draft-zambo-aer1-wimse-mapping-03, in the \"Tamper evidence\" passage of Section 3. As implemented there, tamper-evidence is only this:\n\n* The record carries the exact canonical bytes of the recorded result and a SHA-256 output commitment over them (Sections 3 and 4 of draft-zambo-aer1-26), plus a metadata binding (Section 3.1 of AER-1).\n* Verification is a recomputation. A third party recomputes the digest and compares (Section 6 of AER-1), and a record altered after issuance fails the comparison.\n* Sequenced records also chain (Section 7 of AER-1), so removal or reordering of records inside one job timeline is detectable against the chain.\n\nNo signature, transparency service, or shared infrastructure is required for that base property. The SCITT carriage in Section 5 of the mapping is optional, and only adds an independently operated witness for deployments that want one.\n\nThe limit matters as much as the mechanism. Section 6 of the mapping states that verification establishes that the saved record was not changed after it was saved. It does not establish that the recorded action was correct, or that it was authorized. So the current MUST, if it stays, buys record integrity that any reader can check, and nothing about the decision itself.\n\nWhether record integrity is an interop property or a deployment property is the working group's call. I am posting the cost side only, because \"tamper-evident\" can sound like it implies signing infrastructure, and in at least one deployed mapping it does not: the reference implementation cited in the mapping issues a receipt for every tool call it receives, and the conformance corpus for the format is published at 143 vectors and 146 checks.\n\nBrennan Zambo, Zambo, author of draft-zambo-aer1-wimse-mapping-03: https://datatracker.ietf.org/doc/draft-zambo-aer1-wimse-mapping/03/\n",
           "createdAt": "2026-11-20T23:44:21Z",
           "updatedAt": "2026-11-20T23:44:21Z"
+        },
+        {
+          "author": "kanywst",
+          "authorAssociation": "NONE",
+          "body": "Another data point: visado (https://github.com/kanywst/visado), an Envoy ext_authz service, writes the \u00a711 minimum record for every decision ([docs/audit.md](https://github.com/kanywst/visado/blob/7878555994bd02d290cc5bd036a8e821e186c281/docs/audit.md)).\n\n- Tamper evidence is a per-process hash chain (`seq`, `prev`, SHA-256 over the record). It detects a record changed, removed or inserted inside a copy of the log. It does not detect records cut from the end, records lost after a restart, or a whole log rewritten as a new chain.\n- Every other \u00a711 item comes from what the enforcement point already has, except remediation events: visado receives no SSF, CAEP or RISC signal, so none is recorded.",
+          "createdAt": "2026-11-24T15:08:56Z",
+          "updatedAt": "2026-11-24T15:16:13Z"
+        },
+        {
+          "author": "rjb4standards",
+          "authorAssociation": "NONE",
+          "body": "Expressing support for tamper-evident evidence data. We do this today using a SCITT Signed Statement containing a payload with the evidence file SHA-256 hash value and the name of the evidence file that was submitted in a Trust Declaration. This was discussed during the SCITT work group meeting:\nTrust Declaration payload: https://github.com/rjb4standards/REA-Products/blob/master/DigitalCertificates/00-TRUSTDECLARATION-Example.json\n\nTrust Withdrawal payload: https://github.com/rjb4standards/REA-Products/blob/master/DigitalCertificates/00-TRUSTWITHDRAWAL-Example.json\n\nThese are the two statement types supported in the SAG-CTR Trust Registry and SCITT Ledger, submitted by an authorized Risk Assessor using a digital chain of custody protocol. \n",
+          "createdAt": "2026-11-24T15:59:42Z",
+          "updatedAt": "2026-11-24T15:59:42Z"
+        },
+        {
+          "author": "zambodotdev",
+          "authorAssociation": "NONE",
+          "body": "@kanywst @rjb4standards Three implementation reports now sit on this thread, and the useful thing is that they cover three different scopes, because Section 11's wording question turns on which failure modes the requirement means to catch.\n\nvisado's per-process chain detects a record changed, removed or inserted inside a copy of the log, and its author is candid that it does not detect records cut from the end, records lost after a restart, or a whole log rewritten as a new chain. The SCITT carriage answers exactly those tail cases by committing the statement to an independently operated ledger. The AER-1 mapping I posted above sits between them: records chain inside one job timeline, so removal or reordering within the job is detectable by recomputation, and the optional SCITT carriage in Section 5 of the mapping is there for deployments that want the external witness for the tail.\n\nThe general point the three reports make together: a chain alone never detects its own truncation. Detecting a cut tail requires a commitment of the current head held somewhere the log writer does not control, whether that is a transparency ledger, a counterparty-held copy, or a periodically anchored digest. If the working group keeps the tamper-evident wording, the one distinction worth making explicit in the text is between alteration inside the record set, which a hash chain settles, and truncation of the set itself, which only an external commitment settles. Implementations are already split along that line, and naming it would let a deployment state which of the two its evidence actually covers.",
+          "createdAt": "2026-11-24T16:03:53Z",
+          "updatedAt": "2026-11-24T16:03:53Z"
+        },
+        {
+          "author": "bc-pi",
+          "authorAssociation": "COLLABORATOR",
+          "body": "My suggestion to change was more based in the fundamental idea that this document should aim to provide a descriptive framework for interoperable usage of existing and widely deployed standards in agent authn and authz. Furthermore, [BCP 14](https://datatracker.ietf.org/doc/bcp14/) recommends that the RFC2119 key words (MUST, REQUIRED, SHOULD, etc.) be used \u201csparingly\u201d and mandates they not be used unless they are \u201cactually required for interoperation or to limit behavior which has potential for causing harm.\u201d I do not believe this document should be prescribing or policing operational hopes or expectations.",
+          "createdAt": "2026-11-24T20:08:03Z",
+          "updatedAt": "2026-11-24T20:08:03Z"
+        },
+        {
+          "author": "zambodotdev",
+          "authorAssociation": "NONE",
+          "body": "@bc-pi That framing is right, and the distinction I raised survives it intact, because it needs no normative language to do its work.\n\nStated descriptively, it is just a report of what the implementations on this thread already do: a hash chain detects alteration inside the record set, by recomputation. Truncation of the set itself is detectable only against a commitment of the head held somewhere the log writer does not control. visado's report states the first and disclaims the second in its own words; the SCITT carriage exists to answer the second. A document whose job is describing interoperable usage can carry that as description, and a deployment reading it can state which of the two classes its evidence covers. No MUST, no policing; the fact that the two classes need different machinery is the interop content.\n",
+          "createdAt": "2026-11-24T20:16:25Z",
+          "updatedAt": "2026-11-24T20:16:25Z"
+        },
+        {
+          "author": "bc-pi",
+          "authorAssociation": "COLLABORATOR",
+          "body": "huh?",
+          "createdAt": "2026-11-24T21:12:33Z",
+          "updatedAt": "2026-11-24T21:12:33Z"
+        },
+        {
+          "author": "zambodotdev",
+          "authorAssociation": "NONE",
+          "body": "@bc-pi yeah, that last one was word salad. simpler version: the implementations on this thread catch two different things. a hash chain over the records catches a record changed inside the set. records cut off the end only get caught if the head is committed somewhere the writer does not control. both are just facts about what the code does, so a descriptive doc can say them with zero normative language. that is the whole point i was trying to make.",
+          "createdAt": "2026-11-24T21:14:59Z",
+          "updatedAt": "2026-11-24T21:17:09Z"
         }
       ]
     },
@@ -3372,9 +3421,17 @@
       "labels": [],
       "body": "Before WIMSE can address AI Agent Identity the group should identify the:\n\n1. Define Use Cases\n2. Draft requirements\n3. Come up with a solution!",
       "createdAt": "2026-11-18T23:03:55Z",
-      "updatedAt": "2026-11-18T23:03:55Z",
+      "updatedAt": "2026-11-24T20:57:12Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "bc-pi",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@yogeshbdeshpande, have you had a chance to read the [AIMS draft](https://datatracker.ietf.org/doc/draft-ietf-wimse-aims/)? ",
+          "createdAt": "2026-11-24T20:57:12Z",
+          "updatedAt": "2026-11-24T20:57:12Z"
+        }
+      ]
     },
     {
       "number": 184,
@@ -3397,6 +3454,30 @@
           "body": "I'm not sure what exactly Yaron was raising, but the last paragraph of 10.6 can be read as allowing the exchange of transaction tokens for access tokens to any other service. A transaction token can only be used within its own trust domain (see Txn-Tokens, Sections 9.2 and 14, where transaction tokens are only valid within the trust domain specified in the \"aud\" claim).\n\nThe only thing that can be passed on to other trust domains is the JWT authorization grant. This is made clear in 10.7, but maybe this could be made more explicit.\n\n#67 already asks about exchanging transaction tokens for access tokens (within the same trust domain).\n\nPossible text. Replace the last paragraph of 10.6 with:\n\n> A transaction token is only valid within the trust domain identified by its `aud` claim ({{Section 14 of OAUTH-TXN-TOKENS}}). When an Agent needs to carry identity and authorization context into another trust domain, it uses the chaining flow described in {{cross_domain_access}}.\n\nReplace the last sentence of the first paragraph of 10.7 with:\n\n> The Agent exchanges its access token or transaction token at the authorization server of its own trust domain for a JWT authorization grant ({{Section 2.3 of OAUTH-ID-CHAIN}}), and presents the grant to the authorization server of the other trust domain to obtain an access token for the target resource ({{Section 2.4 of OAUTH-ID-CHAIN}}). Only the grant crosses the boundary. Either authorization server can transcribe the subject identifier, omit claims and narrow the scope ({{Section 2.5 of OAUTH-ID-CHAIN}}), so the transaction identifier reaches the other trust domain only if both carry it, with the privacy tradeoff described in {{privacy}}.\n\nThere are 2 small problems with that paragraph (which I can make a PR for if desired):\n\n- The Fletcher draft being cited has been replaced by draft-fletcher-oauth-txn-token-chaining-profile and given a new title.\n- There's an extraneous comma in front of that citation.\n",
           "createdAt": "2026-11-24T03:07:04Z",
           "updatedAt": "2026-11-24T03:07:04Z"
+        }
+      ]
+    },
+    {
+      "number": 186,
+      "id": "I_kwDOQP22qc8AAAABibxrRA",
+      "title": "Add description for how to use JWT based. authentication",
+      "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/issues/186",
+      "state": "OPEN",
+      "author": "PieterKas",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "At IETF 127 Atul Tulshibagwale (@tulshi) pointed out that although AIMS references JWT-SVIDs, it does not describe how to use them (other JWTs) for authentication.",
+      "createdAt": "2026-11-25T13:39:58Z",
+      "updatedAt": "2026-11-25T19:56:33Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "bc-pi",
+          "authorAssociation": "COLLABORATOR",
+          "body": "is #187 for this? ",
+          "createdAt": "2026-11-25T19:56:33Z",
+          "updatedAt": "2026-11-25T19:56:33Z"
         }
       ]
     }
@@ -8608,26 +8689,279 @@
       "id": "PR_kwDOQP22qc8AAAABRTiVSA",
       "title": "Update CONTRIBUTING.md with AI contribution guidelines",
       "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/pull/185",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "nicksteele-oai",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "Added guidelines for AI agents contributing to the repository.",
       "createdAt": "2026-11-23T15:47:44Z",
-      "updatedAt": "2026-11-23T15:47:44Z",
+      "updatedAt": "2026-11-24T15:39:45Z",
       "baseRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
       "baseRefName": "main",
       "baseRefOid": "a11288c0f98a5986239b8c2b98155b7aa719c460",
       "headRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
       "headRefName": "aims-contributing-bots-addition",
       "headRefOid": "c6408348af26bd2fe80b547f392931b1ef410db7",
+      "closedAt": "2026-11-24T15:39:45Z",
+      "mergedAt": "2026-11-24T15:39:45Z",
+      "mergedBy": "nicksteele-oai",
+      "mergeCommit": {
+        "oid": "4f0abcd42864813563cd5dc61b891492abcf7272"
+      },
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 187,
+      "id": "PR_kwDOQP22qc8AAAABR2JAyQ",
+      "title": "Update agent credentials and JWT authentication sections",
+      "url": "https://github.com/ietf-wg-wimse/draft-ietf-wimse-aims/pull/187",
+      "state": "OPEN",
+      "author": "PieterKas",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Added SPIFFE Workload API and SPIFFE Federation references. Enhanced agent credentials section with details on key-bound and bearer credentials. Expanded JWT-based authentication explanation and clarified WIMSE Proof Tokens usage.",
+      "createdAt": "2026-11-25T13:48:14Z",
+      "updatedAt": "2026-11-25T19:55:52Z",
+      "baseRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
+      "baseRefName": "main",
+      "baseRefOid": "4f0abcd42864813563cd5dc61b891492abcf7272",
+      "headRepository": "ietf-wg-wimse/draft-ietf-wimse-aims",
+      "headRefName": "PieterKas-patch-27",
+      "headRefOid": "cc88113915ee67c8e10a2437f6d2bd82e95d8edc",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOQP22qc8AAAABaSV76g",
+          "commit": {
+            "abbreviatedOid": "6db420d"
+          },
+          "author": "PieterKas",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-25T14:02:58Z",
+          "updatedAt": "2026-11-25T14:02:59Z",
+          "comments": [
+            {
+              "originalPosition": 45,
+              "body": "On second reading, this may be redundent as it is mentioned in other specs. Open to removing it.\n```suggestion\n```",
+              "createdAt": "2026-11-25T14:02:59Z",
+              "updatedAt": "2026-11-25T14:02:59Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOQP22qc8AAAABaTElGw",
+          "commit": {
+            "abbreviatedOid": "b7c5799"
+          },
+          "author": "PieterKas",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-25T14:45:21Z",
+          "updatedAt": "2026-11-25T14:45:21Z",
+          "comments": [
+            {
+              "originalPosition": 40,
+              "body": "```suggestion\n```",
+              "createdAt": "2026-11-25T14:45:21Z",
+              "updatedAt": "2026-11-25T14:45:21Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOQP22qc8AAAABaTBEqQ",
+          "commit": {
+            "abbreviatedOid": "6db420d"
+          },
+          "author": "identitymonk",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Left some suggestion and comments",
+          "createdAt": "2026-11-25T14:41:47Z",
+          "updatedAt": "2026-11-25T14:53:38Z",
+          "comments": [
+            {
+              "originalPosition": 18,
+              "body": "```suggestion\n```",
+              "createdAt": "2026-11-25T14:41:47Z",
+              "updatedAt": "2026-11-25T14:53:38Z"
+            },
+            {
+              "originalPosition": 26,
+              "body": "Do we really want to encourage \" Any party that obtains a bearer credential can present it until it expires.\" ? This could mean, by derivation, that an RS could use the JWT-SVID downstream.... ",
+              "createdAt": "2026-11-25T14:45:36Z",
+              "updatedAt": "2026-11-25T14:53:38Z"
+            },
+            {
+              "originalPosition": 26,
+              "body": "Also should we not talk of the fact that during runtime, Agents could obtain additional credentials such as OAuth tokens, Transaction Tokens for the execution of their tasks.",
+              "createdAt": "2026-11-25T14:48:06Z",
+              "updatedAt": "2026-11-25T14:53:38Z"
+            },
+            {
+              "originalPosition": 26,
+              "body": "```suggestion\nAn Agent may have bearer credentials, key-bound credentials, or both. {{Section 3.1.3 of WIMSE-ARCH}} and {{Section 4.4 of WIMSE-ARCH}} describe the distinction between these types of credentials:\n- Key-bound credentials like the WIT, WIC, X.509-SVID and WIT-SVID . Each binds a public key to the agent identifier, and the agent authenticates by proving possession of the corresponding private key. \n- Bearer credential like the JWT-SVID, OAuth Access Tokens, and OAuth Transaction Tokens. Each is signed by the issuer and the agent authenticates by presenting it. \n\nDeployments that use bearer credentials depend on short lifetimes, audience restriction and transport protection in place of key binding, as described in {{Section 5 of !BEARER=RFC6750}}. {{agent_authentication}} describes how Agents use key-bound and bearer credentials for authentication.\n```",
+              "createdAt": "2026-11-25T14:51:23Z",
+              "updatedAt": "2026-11-25T14:53:38Z"
+            },
+            {
+              "originalPosition": 45,
+              "body": "+1 by pointing to https://spiffe.io/docs/latest/spiffe-specs/jwt-svid/ we remain consistent with how this specific reference is evolving.",
+              "createdAt": "2026-11-25T14:52:39Z",
+              "updatedAt": "2026-11-25T14:53:38Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOQP22qc8AAAABaUsgaQ",
+          "commit": {
+            "abbreviatedOid": "cc88113"
+          },
+          "author": "PieterKas",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-25T16:49:27Z",
+          "updatedAt": "2026-11-25T16:49:27Z",
+          "comments": [
+            {
+              "originalPosition": 18,
+              "body": "This concept of primary credentials is pretty important - I don't think it should be deleted. Can you elaborate on why you think it should be deleted?\n\nThe only cahnge I made was to remove a redundant sentence.",
+              "createdAt": "2026-11-25T16:49:27Z",
+              "updatedAt": "2026-11-25T16:49:27Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOQP22qc8AAAABaUzI2Q",
+          "commit": {
+            "abbreviatedOid": "cc88113"
+          },
+          "author": "PieterKas",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-25T16:56:39Z",
+          "updatedAt": "2026-11-25T16:56:39Z",
+          "comments": [
+            {
+              "originalPosition": 26,
+              "body": "Hah! It is not meant as encouragement.... I am OK with removing the sentence though.\n\nIn your example the RS cannot use the JWT-SVID downstream it is audiences to the RS.... audience restriction is described in RFC 6750. ",
+              "createdAt": "2026-11-25T16:56:39Z",
+              "updatedAt": "2026-11-25T16:56:39Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOQP22qc8AAAABaUzqzw",
+          "commit": {
+            "abbreviatedOid": "cc88113"
+          },
+          "author": "PieterKas",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-25T16:57:14Z",
+          "updatedAt": "2026-11-25T16:57:14Z",
+          "comments": [
+            {
+              "originalPosition": 26,
+              "body": "Secondary credentials are adressed further down in the draft. See line 255.",
+              "createdAt": "2026-11-25T16:57:14Z",
+              "updatedAt": "2026-11-25T16:57:14Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOQP22qc8AAAABaU5wqw",
+          "commit": {
+            "abbreviatedOid": "cc88113"
+          },
+          "author": "PieterKas",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-25T17:03:51Z",
+          "updatedAt": "2026-11-25T17:03:51Z",
+          "comments": [
+            {
+              "originalPosition": 26,
+              "body": ">Each is signed by the issuer and the agent authenticates by presenting it. \n\nOAuth and Transaction tokens are not used for authentication. I would suggest we leave it out of this section, which focus on primary credentials. OAuth, Transaction tokens etc are secondary credentials obtained with the aid of the primary credentials. We spend more. time on them in the Authorization section.",
+              "createdAt": "2026-11-25T17:03:51Z",
+              "updatedAt": "2026-11-25T17:03:51Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOQP22qc8AAAABaW3okw",
+          "commit": {
+            "abbreviatedOid": "cc88113"
+          },
+          "author": "bc-pi",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-25T19:32:42Z",
+          "updatedAt": "2026-11-25T19:32:42Z",
+          "comments": [
+            {
+              "originalPosition": 20,
+              "body": "I'm of the opinion that we should be much more sparing and intentional in the use of RFC2119 key words like MUST so don't love seeing one more added. But I can postpone that fight for a later and more comprehensive revision. ",
+              "createdAt": "2026-11-25T19:32:42Z",
+              "updatedAt": "2026-11-25T19:32:42Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOQP22qc8AAAABaXAOlA",
+          "commit": {
+            "abbreviatedOid": "cc88113"
+          },
+          "author": "bc-pi",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-25T19:43:53Z",
+          "updatedAt": "2026-11-25T19:43:53Z",
+          "comments": [
+            {
+              "originalPosition": 36,
+              "body": "in my world view, JWT-based authentication that asserts agent identity to the receiving party are not at all \"typically carried in the HTTP Authorization header using the Bearer scheme\" as that scheme is for oauth access tokens. So at least part of this paragraph/section doesn't sit right with me. Maybe more than that part too. ",
+              "createdAt": "2026-11-25T19:43:53Z",
+              "updatedAt": "2026-11-25T19:43:53Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOQP22qc8AAAABaXJlRg",
+          "commit": {
+            "abbreviatedOid": "cc88113"
+          },
+          "author": "bc-pi",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-25T19:55:52Z",
+          "updatedAt": "2026-11-25T19:55:52Z",
+          "comments": [
+            {
+              "originalPosition": 36,
+              "body": "are JWT-SVIDs conveyed via `Authorization: Bearer <...jwt...>`? If so, okay but that should be qualified as such.  ",
+              "createdAt": "2026-11-25T19:55:52Z",
+              "updatedAt": "2026-11-25T19:55:52Z"
+            }
+          ]
+        }
+      ]
     }
   ]
 }
