@@ -240,7 +240,6 @@ An agent participating in this framework MUST be assigned exactly one WIMSE iden
 The lifecycle of an agent identifier is distinct from the lifecycle of the credentials bound to it. Credentials are short-lived and expire while the identifier persists. When an agent is retired, its identifier must not be reassigned to a different agent, and the records that reference it (audit logs, authorization decisions, delegation records and security signals) remain interpretable for as long as the deployment's retention policy requires, which is typically longer than the agent's operational lifetime. The registry or namespace in which agent identifiers are allocated, and the retention period applied to retired identifiers, are deployment-specific and out of scope for this document.
 
 # Agent Credentials {#agent_credentials}
-Agents MUST possess credentials that provide a cryptographic binding to the agent identifier. These credentials are considered primary credentials that are provisioned at runtime.
 
 Agents MUST possess credentials that provide a cryptographic binding to the agent identifier. These credentials are considered primary credentials that are provisioned at runtime. An identifier alone is insufficient unless it is carried in a credential that cryptographically binds it to the agent, either through the issuer's signature or through a key the agent proves possession of.
 
