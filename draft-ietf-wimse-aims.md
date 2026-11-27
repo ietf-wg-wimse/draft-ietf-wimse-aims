@@ -241,7 +241,7 @@ The lifecycle of an agent identifier is distinct from the lifecycle of the crede
 
 # Agent Credentials {#agent_credentials}
 
-Agents MUST possess credentials that provide a cryptographic binding to the agent identifier. These credentials are considered primary credentials that are provisioned at runtime. An identifier alone is insufficient unless it is carried in a credential that cryptographically binds it to the agent, either through the issuer's signature or through a key the agent proves possession of.
+Agents must possess credentials that provide a cryptographic binding to the agent identifier. These credentials are considered primary credentials that are provisioned at runtime. An identifier alone is insufficient unless it is carried in a credential that cryptographically binds it to the agent, either through the issuer's signature or through a key the agent proves possession of.
 
 WIMSE defines two credential formats in {{!WIMSE-CRED=I-D.ietf-wimse-workload-creds}}: the Workload Identity Token (WIT) and the transport-layer X.509 Workload Identity Certificate (WIC), both of which bind a cryptographic key to a workload identifier for use in authentication. SPIFFE defines three credential formats: the X.509-SVID {{SPIFFE-X509-SVID}}, WIT-SVID {{SPIFFE-WIT-SVID}}, and JWT-SVID {{SPIFFE-JWT-SVID}}. X.509-SVID is compatible with WIC, while WIT-SVID profiles WIT. JWT-SVIDs are short-lived bearer credentials used for JWT-based authentication. The choice of credential format depends on the deployment’s trust model and integration requirements.
 
