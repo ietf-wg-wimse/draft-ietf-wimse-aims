@@ -5,7 +5,7 @@
 WIMSE                                                       P. Kasselman
 Internet-Draft                                          Defakto Security
 Intended status: Informational                               J. Lombardo
-Expires: 29 May 2027                                                 AWS
+Expires: 31 May 2027                                                 AWS
                                                             Y. Rosomakho
                                                                  Zscaler
                                                              B. Campbell
@@ -14,7 +14,7 @@ Expires: 29 May 2027                                                 AWS
                                                                   OpenAI
                                                               A. Parecki
                                                                     Okta
-                                                        25 November 2026
+                                                        27 November 2026
 
 
                      AI Identity Management System
@@ -65,7 +65,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 29 May 2027.
+   This Internet-Draft will expire on 31 May 2027.
 
 Copyright Notice
 
@@ -360,10 +360,6 @@ Table of Contents
    specific and out of scope for this document.
 
 7.  Agent Credentials
-
-   Agents MUST possess credentials that provide a cryptographic binding
-   to the agent identifier.  These credentials are considered primary
-   credentials that are provisioned at runtime.
 
    Agents MUST possess credentials that provide a cryptographic binding
    to the agent identifier.  These credentials are considered primary
