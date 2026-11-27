@@ -361,7 +361,7 @@ Table of Contents
 
 7.  Agent Credentials
 
-   Agents MUST possess credentials that provide a cryptographic binding
+   Agents must possess credentials that provide a cryptographic binding
    to the agent identifier.  These credentials are considered primary
    credentials that are provisioned at runtime.  An identifier alone is
    insufficient unless it is carried in a credential that
